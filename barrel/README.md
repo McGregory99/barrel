@@ -48,3 +48,7 @@ Layout: `$BARREL_HOME/Bottles/<name>/` is the Wine prefix plus `barrel.json` met
 `$BARREL_HOME/settings.json` holds the default bottle.
 
 Tests: `swift test`.
+
+## License
+
+GPL-3.0-or-later. See [LICENSE](../LICENSE).
