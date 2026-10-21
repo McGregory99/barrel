@@ -24,6 +24,25 @@ deps() {
     cp "$ROOT/upstream/moltenvk-1.2.10/MoltenVK/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib" "$DEPS/lib/"
 }
 
+# gmp → nettle → gnutls (with bundled libtasn1), all x86_64, for Wine's schannel/bcrypt.
+gnutls() {
+    tls=$SRC/gnutls
+    mkdir -p "$ROOT/build/gmp" "$ROOT/build/nettle" "$ROOT/build/gnutls"
+    [ -f "$DEPS/lib/libgmp.dylib" ] || (cd "$ROOT/build/gmp" && arch -x86_64 "$tls/gmp/configure" --prefix="$DEPS" CC="clang -arch x86_64" \
+        --enable-shared --disable-static && arch -x86_64 make -j"$JOBS" && make install)
+    # The CX tarball ships nettle without its hand-written Makefile.in; use the identical
+    # upstream GNU release (nettle-3.10.tar.gz, sha256 b4c518ad…ee47c) instead.
+    nettle=$ROOT/upstream/nettle-3.10/nettle-3.10
+    (cd "$ROOT/build/nettle" && arch -x86_64 "$nettle/configure" --prefix="$DEPS" CC="clang -arch x86_64" \
+        --disable-documentation --disable-static --with-include-path="$DEPS/include" --with-lib-path="$DEPS/lib" \
+        && arch -x86_64 make -j"$JOBS" && make install)
+    (cd "$ROOT/build/gnutls" && PKG_CONFIG_LIBDIR=$DEPS/lib/pkgconfig arch -x86_64 "$tls/gnutls/configure" \
+        --prefix="$DEPS" CC="clang -arch x86_64" --enable-shared --disable-static --disable-doc --disable-tests \
+        --disable-tools --disable-cxx --with-included-libtasn1 --with-included-unistring --without-p11-kit \
+        --without-idn --without-brotli --without-zstd --without-tpm --without-tpm2 \
+        && arch -x86_64 make -j"$JOBS" && make install)
+}
+
 wine() {
     mkdir -p "$ROOT/build/wine64"
     cd "$ROOT/build/wine64"
@@ -50,8 +69,9 @@ dxvk() {
 
 case $step in
     deps) deps ;;
+    gnutls) gnutls ;;
     wine) wine ;;
     dxvk) dxvk ;;
-    all) deps; wine; dxvk ;;
-    *) echo "usage: $0 [deps|wine|dxvk|all]" >&2; exit 2 ;;
+    all) deps; gnutls; wine; dxvk ;;
+    *) echo "usage: $0 [deps|gnutls|wine|dxvk|all]" >&2; exit 2 ;;
 esac
