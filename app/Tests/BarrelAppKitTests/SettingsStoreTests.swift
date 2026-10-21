@@ -20,6 +20,15 @@ struct SettingsStoreTests {
         #expect(settings.components.dxmtDirectory == nil)
     }
 
+    @Test func recipeFoldersComeFromSettingsThenDataDirectory() {
+        let settings = SettingsStore(defaults: defaults(), environment: [
+            "BARREL_HOME": "/data", "BARREL_RECIPES": "/repo/recipes"]).load()
+        #expect(settings.recipeDirectories.map(\.path) == ["/repo/recipes", "/data/Recipes"])
+
+        let plain = SettingsStore(defaults: defaults(), environment: ["BARREL_HOME": "/data"]).load()
+        #expect(plain.recipeDirectories.map(\.path) == ["/data/Recipes"])
+    }
+
     @Test func savedValuesWinOverEnvironment() {
         let defaults = defaults()
         let store = SettingsStore(defaults: defaults, environment: ["BARREL_WINE": "/env/wine"])

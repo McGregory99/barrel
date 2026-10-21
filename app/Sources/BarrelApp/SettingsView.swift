@@ -19,8 +19,9 @@ struct SettingsView: View {
                       directory: true)
             PathField(title: "Native libraries", placeholder: "libMoltenVK.dylib folder", text: $draft.librariesDirectory, directory: true)
             PathField(title: "DXVK", placeholder: "folder with x64/ and x32/", text: $draft.dxvkDirectory, directory: true)
-            PathField(title: "DXMT", placeholder: "folder with x64/ and x32/", text: $draft.dxmtDirectory, directory: true)
+            PathField(title: "DXMT", placeholder: "folder with system32/, syswow64/, x86_64-unix/", text: $draft.dxmtDirectory, directory: true)
             PathField(title: "Game Porting Toolkit", placeholder: "your own copy (wine/, external/)", text: $draft.gptkDirectory, directory: true)
+            PathField(title: "Recipes", placeholder: "extra recipe folder (Data directory/Recipes is always read)", text: $draft.recipesDirectory, directory: true)
             HStack {
                 Spacer()
                 Button("Apply") { onApply(draft) }.keyboardShortcut(.defaultAction)

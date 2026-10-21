@@ -9,6 +9,8 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     var unavailable: Set<GraphicsBackend> = [.dxvk, .dxmt, .d3dmetal]
     var failure: Error?
     private(set) var runs: [(path: String, bottle: String)] = []
+    var recipeList: [RecipeSummary] = []
+    private(set) var installs: [(recipe: String, bottle: String?)] = []
 
     init(bottles: [Bottle] = [], defaultName: String? = nil) {
         self.bottles = bottles
@@ -62,4 +64,12 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
         if let i = bottles.firstIndex(where: { $0.name == name }) { bottles[i].msync = enabled }
     }
     func setDefault(_ name: String?) throws { try check(); defaultName = name }
+    func recipes() throws -> [RecipeSummary] { try check(); return recipeList }
+    func install(recipe: String, bottle: String?) throws -> String {
+        try check()
+        installs.append((recipe, bottle))
+        let name = bottle ?? recipe
+        if !bottles.contains(where: { $0.name == name }) { bottles.append(Bottle(name: name, windowsVersion: .win10)) }
+        return name
+    }
 }

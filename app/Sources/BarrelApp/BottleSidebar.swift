@@ -7,6 +7,7 @@ struct BottleSidebar: View {
     @Binding var selection: String?
     let onCreate: () -> Void
     let onRestore: () -> Void
+    let onInstall: () -> Void
 
     var body: some View {
         List(bottles, id: \.name, selection: $selection) { bottle in
@@ -22,6 +23,9 @@ struct BottleSidebar: View {
         .toolbar {
             ToolbarItem {
                 Button(action: onCreate) { Label("New Bottle", systemImage: "plus") }
+            }
+            ToolbarItem {
+                Button(action: onInstall) { Label("Install Software…", systemImage: "shippingbox") }
             }
             ToolbarItem {
                 Button(action: onRestore) { Label("Restore Bottle…", systemImage: "arrow.down.doc") }

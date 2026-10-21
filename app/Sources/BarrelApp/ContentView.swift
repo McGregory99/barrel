@@ -9,12 +9,14 @@ struct ContentView: View {
     @State private var restoreURL: URL?
     @State private var showDeleteConfirmation = false
     @State private var showCopy = false
+    @State private var showInstall = false
 
     var body: some View {
         NavigationSplitView {
             BottleSidebar(
                 bottles: model.bottles, defaultName: model.defaultName, selection: $model.selection,
-                onCreate: { showCreate = true }, onRestore: chooseArchive)
+                onCreate: { showCreate = true }, onRestore: chooseArchive,
+                onInstall: { showInstall = true; Task { await model.loadRecipes() } })
         } detail: {
             if let bottle = model.selectedBottle {
                 BottleDetailView(
@@ -51,6 +53,11 @@ struct ContentView: View {
                           initial: bottle.name + " copy") { name in
                     Task { await model.copy(bottle.name, to: name) }
                 }
+            }
+        }
+        .sheet(isPresented: $showInstall) {
+            InstallSheet(recipes: model.recipes, bottles: model.bottles.map(\.name)) { recipe, bottle in
+                Task { await model.install(recipe: recipe, into: bottle) }
             }
         }
         .sheet(item: $restoreURL) { url in

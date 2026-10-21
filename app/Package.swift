@@ -12,9 +12,14 @@ let package = Package(
         .package(path: "../barrel"),
     ],
     targets: [
-        .target(name: "BarrelAppKit", dependencies: [.product(name: "BarrelCore", package: "barrel")]),
+        .target(name: "BarrelAppKit", dependencies: [
+            .product(name: "BarrelCore", package: "barrel"),
+            .product(name: "BarrelRecipes", package: "barrel"),
+        ]),
         .executableTarget(name: "BarrelApp", dependencies: ["BarrelAppKit"]),
-        .testTarget(name: "BarrelAppKitTests", dependencies: ["BarrelAppKit"]),
+        .testTarget(name: "BarrelAppKitTests", dependencies: [
+            "BarrelAppKit", .product(name: "BarrelRecipes", package: "barrel"),
+        ]),
     ],
     // BarrelCore's service types are not Sendable; the app hops them off the main actor explicitly.
     swiftLanguageModes: [.v5]

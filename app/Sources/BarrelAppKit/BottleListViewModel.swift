@@ -1,4 +1,5 @@
 import BarrelCore
+import BarrelRecipes
 import Foundation
 import Observation
 
@@ -10,6 +11,7 @@ public final class BottleListViewModel {
     public private(set) var isBusy = false
     public private(set) var busyMessage: String?
     public private(set) var errorMessage: String?
+    public private(set) var recipes: [RecipeSummary] = []
     public var selection: String?
     public var gateway: BottleGateway?
 
@@ -79,21 +81,34 @@ public final class BottleListViewModel {
         await mutate(nil) { try $0.setDefault(name) }
     }
 
+    public func loadRecipes() async {
+        await perform(nil) { try $0.recipes() } apply: { [self] in recipes = $0 }
+    }
+
+    /// Installs a recipe into `bottle`, or into a new bottle named after the recipe when nil.
+    public func install(recipe: String, into bottle: String?) async {
+        let name = recipes.first { $0.id == recipe }?.name ?? recipe
+        await mutate("Installing \(name)… (this can take several minutes)", selectResult: true) {
+            try $0.install(recipe: recipe, bottle: bottle)
+        }
+    }
+
     // MARK: Plumbing
 
     /// Runs a mutating call, then reloads the list. A returned name (or `select`) becomes the selection.
-    private func mutate<T>(_ message: String?, select: String? = nil,
-                           _ work: @escaping @Sendable (BottleGateway) throws -> T) async {
-        var succeeded = false
+    /// With `selectResult`, the work's returned bottle name becomes the selection.
+    private func mutate<T: Sendable>(_ message: String?, select: String? = nil, selectResult: Bool = false,
+                                     _ work: @escaping @Sendable (BottleGateway) throws -> T) async {
+        var selected: String?
         await perform(message) { gateway in
-            _ = try work(gateway)
+            let result = try work(gateway)
             let list = try gateway.list()
-            return (list, try gateway.defaultBottle())
+            return (result, list, try gateway.defaultBottle())
         } apply: { [self] result in
-            apply(bottles: result.0, defaultName: result.1)
-            succeeded = true
+            apply(bottles: result.1, defaultName: result.2)
+            selected = select ?? (selectResult ? result.0 as? String : nil)
         }
-        if succeeded, let select { selection = select }
+        if let selected { selection = selected }
     }
 
     private func apply(bottles: [Bottle], defaultName: String?) {
@@ -123,6 +138,7 @@ public final class BottleListViewModel {
         switch error {
         case let error as BottleError: error.description
         case let error as WineRuntimeError: error.description
+        case let error as RecipeError: error.description
         default: error.localizedDescription
         }
     }

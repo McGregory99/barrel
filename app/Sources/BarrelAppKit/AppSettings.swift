@@ -9,6 +9,8 @@ public struct AppSettings: Equatable, Sendable {
     public var dxvkDirectory = ""
     public var dxmtDirectory = ""
     public var gptkDirectory = ""
+    /// Extra recipe folder, e.g. the repository's `recipes/`; `<data>/Recipes` is always read.
+    public var recipesDirectory = ""
 
     public static let defaultDataDirectory = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Application Support/Barrel", isDirectory: true)
@@ -21,6 +23,12 @@ public struct AppSettings: Equatable, Sendable {
         func url(_ path: String) -> URL? { path.isEmpty ? nil : URL(fileURLWithPath: path, isDirectory: true) }
         return RuntimeComponents(libraryDirectory: url(librariesDirectory), dxvkDirectory: url(dxvkDirectory),
                                  dxmtDirectory: url(dxmtDirectory), gptkDirectory: url(gptkDirectory))
+    }
+
+    public var recipeDirectories: [URL] {
+        var directories = [dataDirectory.appendingPathComponent("Recipes", isDirectory: true)]
+        if !recipesDirectory.isEmpty { directories.insert(URL(fileURLWithPath: recipesDirectory, isDirectory: true), at: 0) }
+        return directories
     }
 
     /// The configured wine binary, else `wine` from PATH, else a path that fails with a clear OS error.
@@ -43,6 +51,7 @@ public struct SettingsStore {
     private enum Key {
         static let wine = "wineBinary", home = "dataDirectory", libs = "librariesDirectory"
         static let dxvk = "dxvkDirectory", dxmt = "dxmtDirectory", gptk = "gptkDirectory"
+        static let recipes = "recipesDirectory"
     }
 
     public init(defaults: UserDefaults = .standard, environment: [String: String] = ProcessInfo.processInfo.environment) {
@@ -62,6 +71,7 @@ public struct SettingsStore {
         settings.dxvkDirectory = value(Key.dxvk, "BARREL_DXVK")
         settings.dxmtDirectory = value(Key.dxmt, "BARREL_DXMT")
         settings.gptkDirectory = value(Key.gptk, "BARREL_GPTK")
+        settings.recipesDirectory = value(Key.recipes, "BARREL_RECIPES")
         return settings
     }
 
@@ -72,5 +82,6 @@ public struct SettingsStore {
         defaults.set(settings.dxvkDirectory, forKey: Key.dxvk)
         defaults.set(settings.dxmtDirectory, forKey: Key.dxmt)
         defaults.set(settings.gptkDirectory, forKey: Key.gptk)
+        defaults.set(settings.recipesDirectory, forKey: Key.recipes)
     }
 }
