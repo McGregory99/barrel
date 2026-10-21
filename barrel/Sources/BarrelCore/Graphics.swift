@@ -111,6 +111,8 @@ public struct FileGraphicsInstaller: GraphicsInstaller {
 public enum LaunchEnvironment {
     static let direct3DLibraries = ["d3d9", "d3d10core", "d3d11", "dxgi"]
     static let systemLibraryFallback = ["/usr/local/lib", "/usr/lib"]
+    static let gstreamerRegistry = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Library/Caches/Barrel/gstreamer-1.0/registry.x86_64.bin")
 
     public static func make(for bottle: Bottle, components: RuntimeComponents) -> [String: String] {
         var env: [String: String] = [
@@ -118,6 +120,9 @@ public enum LaunchEnvironment {
             // With Metal argument buffers MoltenVK disables texel-buffer alignment emulation; Unity's
             // GPU skinning then faults (GPU Address Fault → VK_ERROR_DEVICE_LOST, untextured models).
             "MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS": "0",
+            // Other x86_64 GStreamers (e.g. CrossOver's) share ~/.cache/gstreamer-1.0/registry.x86_64.bin;
+            // a separate cache avoids rescanning plugins every time the other one rewrites it.
+            "GST_REGISTRY_1_0": gstreamerRegistry.path,
         ]
         var libraryPath = components.libraryDirectory.map { [$0.path] } ?? []
         var dllPath: [String] = []

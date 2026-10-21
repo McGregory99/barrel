@@ -55,7 +55,7 @@ Downloads are SHA-256 verified and cached in `$BARREL_HOME/Downloads`.
 
 The Direct3D DLL load order is written to the bottle's registry (`DllOverrides`, and
 `AppDefaults\<exe>\DllOverrides` for `--app`), so per-executable choices win over the bottle default.
-`run` launches Wine with the bottle's environment: `CX_ACTIVE_GRAPHICS_BACKEND`, `WINEMSYNC=1`, and `DYLD_FALLBACK_LIBRARY_PATH` so Wine
+`run` launches Wine with the bottle's environment: `CX_ACTIVE_GRAPHICS_BACKEND`, `WINEMSYNC=1`, `GST_REGISTRY_1_0` (a GStreamer plugin cache of its own), and `DYLD_FALLBACK_LIBRARY_PATH` so Wine
 can `dlopen` MoltenVK.
 
 Layout: `$BARREL_HOME/Bottles/<name>/` is the Wine prefix plus `barrel.json` metadata;

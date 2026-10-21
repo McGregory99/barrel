@@ -181,6 +181,13 @@ struct GraphicsFixture {
         #expect(env["MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS"] == "0")
     }
 
+    @Test func gstreamerRegistryCacheIsBarrelsOwn() {
+        let env = LaunchEnvironment.make(for: bottle(.wined3d), components: components)
+        let expected = FileManager.default.homeDirectoryForCurrentUser
+            .appendingPathComponent("Library/Caches/Barrel/gstreamer-1.0/registry.x86_64.bin").path
+        #expect(env["GST_REGISTRY_1_0"] == expected)
+    }
+
     @Test func msyncCanBeDisabled() {
         let env = LaunchEnvironment.make(for: bottle(.wined3d, msync: false), components: components)
         #expect(env["WINEMSYNC"] == nil)
