@@ -12,7 +12,7 @@ struct Barrel: ParsableCommand {
               BARREL_WINE  Path to the wine binary (default: 'wine' found in PATH)
               BARREL_LIBS  Directory with native libraries such as libMoltenVK.dylib
               BARREL_DXVK  DXVK build directory (x64/, x32/)
-              BARREL_DXMT  DXMT build directory (x64/, x32/)
+              BARREL_DXMT  DXMT install directory (system32/, syswow64/, x86_64-unix/, …)
               BARREL_GPTK  Your Apple Game Porting Toolkit directory (wine/, external/)
               BARREL_LAUNCHERS  Where 'barrel launcher' puts apps (default: ~/Applications/Barrel)
             """,

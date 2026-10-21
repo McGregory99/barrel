@@ -208,3 +208,70 @@ struct GraphicsFixture {
         #expect(f.base.runtime.lastEnvironment["CX_ACTIVE_GRAPHICS_BACKEND"] == "dxvk")
     }
 }
+
+@Suite struct FileGraphicsInstallerTests {
+    func makeTree(_ root: URL, _ files: [String]) throws {
+        for file in files {
+            let url = root.appendingPathComponent(file)
+            try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+            try Data(file.utf8).write(to: url)
+        }
+    }
+
+    func dlls(_ directory: URL) -> [String] {
+        ((try? FileManager.default.contentsOfDirectory(atPath: directory.path)) ?? []).sorted()
+    }
+
+    @Test func dxvkCopiesX64AndX32Folders() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("gfx-\(UUID().uuidString)")
+        try makeTree(root.appendingPathComponent("dxvk"), ["x64/d3d11.dll", "x64/dxgi.dll", "x32/d3d11.dll", "x64/README"])
+        let prefix = root.appendingPathComponent("prefix")
+        try FileGraphicsInstaller().install(.dxvk, into: prefix,
+                                            components: RuntimeComponents(dxvkDirectory: root.appendingPathComponent("dxvk")))
+        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/system32")) == ["d3d11.dll", "dxgi.dll"])
+        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/syswow64")) == ["d3d11.dll"])
+    }
+
+    @Test func dxmtCopiesItsSystem32AndSyswow64Folders() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("gfx-\(UUID().uuidString)")
+        try makeTree(root.appendingPathComponent("dxmt"), ["system32/d3d11.dll", "syswow64/dxgi.dll",
+                                                           "x86_64-windows/winemetal.dll"])
+        let prefix = root.appendingPathComponent("prefix")
+        try FileGraphicsInstaller().install(.dxmt, into: prefix,
+                                            components: RuntimeComponents(dxmtDirectory: root.appendingPathComponent("dxmt")))
+        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/system32")) == ["d3d11.dll"])
+        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/syswow64")) == ["dxgi.dll"])
+    }
+}
+
+@Suite struct DXMTEnvironmentTests {
+    let components = RuntimeComponents(dxvkDirectory: URL(fileURLWithPath: "/rt/dxvk"),
+                                       dxmtDirectory: URL(fileURLWithPath: "/rt/dxmt"),
+                                       gptkDirectory: URL(fileURLWithPath: "/gptk"))
+
+    func bottle(_ backend: GraphicsBackend, apps: [String: GraphicsBackend] = [:]) -> Bottle {
+        var bottle = Bottle(name: "B", windowsVersion: .win10)
+        bottle.graphicsBackend = backend
+        bottle.appGraphics = apps
+        return bottle
+    }
+
+    @Test func dxmtBottleFindsWinemetalThroughWineDllPath() {
+        #expect(LaunchEnvironment.make(for: bottle(.dxmt), components: components)["WINEDLLPATH"] == "/rt/dxmt")
+    }
+
+    @Test func perAppDxmtAlsoAddsWinemetal() {
+        let env = LaunchEnvironment.make(for: bottle(.dxvk, apps: ["Game.exe": .dxmt]), components: components)
+        #expect(env["WINEDLLPATH"] == "/rt/dxmt")
+    }
+
+    @Test func bottlesWithoutDxmtDoNotChangeWineDllPath() {
+        let env = LaunchEnvironment.make(for: bottle(.dxvk, apps: ["steamwebhelper.exe": .wined3d]), components: components)
+        #expect(env["WINEDLLPATH"] == nil)
+    }
+
+    @Test func d3dmetalAndDxmtPathsAreCombined() {
+        let env = LaunchEnvironment.make(for: bottle(.d3dmetal, apps: ["Game.exe": .dxmt]), components: components)
+        #expect(env["WINEDLLPATH"] == "/gptk/wine:/rt/dxmt")
+    }
+}

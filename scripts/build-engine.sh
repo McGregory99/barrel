@@ -7,6 +7,8 @@
 #   upstream/dxvk-cx                 DXVK 1.10.3 from CX sources + mingw-w64 14 fixes
 #   upstream/moltenvk-cx             MoltenVK 1.2.10 from CX sources (geometry shader emulation DXVK needs)
 #   upstream/spirv-cross-cx          SPIRV-Cross copied from CX sources (fetchDependencies deletes its root)
+#   upstream/dxmt                    DXMT (LGPL-2.1+), git clone --recursive https://github.com/3Shain/dxmt
+#   upstream/llvm-15                 llvm-project llvmorg-15.0.7 (DXMT's shader converter links LLVM 15)
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SRC=$ROOT/upstream/crossover-26.3/sources
@@ -84,12 +86,44 @@ dxvk() {
     done
 }
 
+# LLVM 15 static libraries for x86_64 macOS (no targets, no tools): only DXMT's airconv needs them.
+llvm15() {
+    [ -f "$ROOT/build/llvm-15/lib/libLLVMCore.a" ] && return 0
+    [ -d "$ROOT/upstream/llvm-15" ] ||
+        git clone --depth 1 --branch llvmorg-15.0.7 https://github.com/llvm/llvm-project.git "$ROOT/upstream/llvm-15"
+    cmake -S "$ROOT/upstream/llvm-15/llvm" -B "$ROOT/build/llvm-15-build" -G Ninja \
+        -DCMAKE_INSTALL_PREFIX="$ROOT/build/llvm-15" -DCMAKE_OSX_ARCHITECTURES=x86_64 \
+        -DLLVM_HOST_TRIPLE=x86_64-apple-darwin -DCMAKE_BUILD_TYPE=Release -DLLVM_ENABLE_ASSERTIONS=On \
+        -DLLVM_ENABLE_ZSTD=Off -DLLVM_TARGETS_TO_BUILD="" -DLLVM_BUILD_TOOLS=Off -DLLVM_INCLUDE_BENCHMARKS=Off \
+        -DLLVM_INCLUDE_TESTS=Off -DLLVM_INCLUDE_EXAMPLES=Off \
+        -DCMAKE_CXX_FLAGS="-D_LIBCPP_KEEP_TRANSITIVE_INCLUDES_LLVM23"
+    cmake --build "$ROOT/build/llvm-15-build" -j"$JOBS"
+    cmake --install "$ROOT/build/llvm-15-build"
+}
+
+# DXMT: native d3d11/dxgi/d3d10core (system32, syswow64) plus the winemetal builtin bridge
+# (x86_64-windows, i386-windows, x86_64-unix) that barrel puts on WINEDLLPATH.
+dxmt() {
+    llvm15
+    for bits in 64 32; do
+        llvm_arg=""
+        [ "$bits" = 64 ] && llvm_arg="-Dnative_llvm_path=$ROOT/build/llvm-15"
+        [ -f "$ROOT/build/dxmt/build$bits/build.ninja" ] ||
+            meson setup --cross-file "$ROOT/upstream/dxmt/build-win$bits.txt" -Dwine_builtin_dll=false \
+                -Dwine_install_path="$ROOT/build/install" $llvm_arg --buildtype release \
+                --prefix "$ROOT/build/dxmt/install" "$ROOT/build/dxmt/build$bits" "$ROOT/upstream/dxmt"
+        ninja -C "$ROOT/build/dxmt/build$bits" install
+    done
+}
+
 case $step in
     deps) deps ;;
     moltenvk) moltenvk ;;
     gnutls) gnutls ;;
     wine) wine ;;
     dxvk) dxvk ;;
+    llvm15) llvm15 ;;
+    dxmt) dxmt ;;
     all) deps; gnutls; wine; dxvk ;;
-    *) echo "usage: $0 [deps|moltenvk|gnutls|wine|dxvk|all]" >&2; exit 2 ;;
+    *) echo "usage: $0 [deps|moltenvk|gnutls|wine|dxvk|llvm15|dxmt|all]" >&2; exit 2 ;;
 esac

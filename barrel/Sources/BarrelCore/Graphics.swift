@@ -36,7 +36,8 @@ public struct RuntimeComponents: Sendable {
     public var libraryDirectory: URL?
     /// DXVK build with `x64/` and `x32/` DLL folders.
     public var dxvkDirectory: URL?
-    /// DXMT build with `x64/` and `x32/` DLL folders.
+    /// DXMT install with `system32/`, `syswow64/` (native Direct3D DLLs) and the
+    /// `x86_64-windows/`, `i386-windows/`, `x86_64-unix/` folders holding its `winemetal` bridge.
     public var dxmtDirectory: URL?
     /// Game Porting Toolkit root containing `wine/` and `external/` (D3DMetal.framework).
     public var gptkDirectory: URL?
@@ -64,22 +65,23 @@ public protocol GraphicsInstaller {
     func install(_ backend: GraphicsBackend, into prefix: URL, components: RuntimeComponents) throws
 }
 
-/// Copies DXVK/DXMT DLLs into the prefix: `x64` → system32, `x32` → syswow64.
+/// Copies DXVK/DXMT DLLs into the prefix: DXVK's `x64`/`x32` and DXMT's `system32`/`syswow64`
+/// go to system32/syswow64.
 public struct FileGraphicsInstaller: GraphicsInstaller {
     public init() {}
 
     public func install(_ backend: GraphicsBackend, into prefix: URL, components: RuntimeComponents) throws {
-        let source: URL?
+        let source: (root: URL?, x64: String, x32: String)
         switch backend {
-        case .dxvk: source = components.dxvkDirectory
-        case .dxmt: source = components.dxmtDirectory
-        case .wined3d, .d3dmetal: source = nil
+        case .dxvk: source = (components.dxvkDirectory, "x64", "x32")
+        case .dxmt: source = (components.dxmtDirectory, "system32", "syswow64")
+        case .wined3d, .d3dmetal: return
         }
-        guard let source else { return }
+        guard let root = source.root else { return }
 
         let windows = prefix.appendingPathComponent("drive_c/windows")
-        try copyDLLs(from: source.appendingPathComponent("x64"), to: windows.appendingPathComponent("system32"))
-        try copyDLLs(from: source.appendingPathComponent("x32"), to: windows.appendingPathComponent("syswow64"))
+        try copyDLLs(from: root.appendingPathComponent(source.x64), to: windows.appendingPathComponent("system32"))
+        try copyDLLs(from: root.appendingPathComponent(source.x32), to: windows.appendingPathComponent("syswow64"))
     }
 
     private func copyDLLs(from source: URL, to destination: URL) throws {
@@ -109,12 +111,22 @@ public enum LaunchEnvironment {
             "MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS": "0",
         ]
         var libraryPath = components.libraryDirectory.map { [$0.path] } ?? []
+        var dllPath: [String] = []
 
         if bottle.graphicsBackend == .d3dmetal, let gptk = components.gptkDirectory {
             let external = gptk.appendingPathComponent("external").path
-            env["WINEDLLPATH"] = gptk.appendingPathComponent("wine").path
+            dllPath.append(gptk.appendingPathComponent("wine").path)
             env["DYLD_FALLBACK_FRAMEWORK_PATH"] = external
             libraryPath.append(external)
+        }
+        // DXMT's Direct3D DLLs are native copies in the prefix; their `winemetal` bridge is a Wine
+        // builtin (PE + unix .so) that no stock Wine ships, so it is found through WINEDLLPATH.
+        let usesDXMT = bottle.graphicsBackend == .dxmt || bottle.appGraphics.values.contains(.dxmt)
+        if usesDXMT, let dxmt = components.dxmtDirectory {
+            dllPath.append(dxmt.path)
+        }
+        if !dllPath.isEmpty {
+            env["WINEDLLPATH"] = dllPath.joined(separator: ":")
         }
 
         if !libraryPath.isEmpty {
