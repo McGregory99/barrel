@@ -67,6 +67,18 @@ public enum RecipeParser {
             }
             settings.msync = flag
         }
+        if let apps = dict["appGraphics"] {
+            guard let map = apps as? [String: Any] else {
+                throw RecipeError.invalidValue(field: "bottle.appGraphics", reason: "must be an object of executable: backend")
+            }
+            for (executable, value) in map {
+                guard let name = value as? String, let backend = try? GraphicsBackend(name: name) else {
+                    throw RecipeError.invalidValue(field: "bottle.appGraphics.\(executable)",
+                                                   reason: "must be one of wined3d, dxvk, dxmt")
+                }
+                settings.appGraphics[executable] = backend
+            }
+        }
         return settings
     }
 

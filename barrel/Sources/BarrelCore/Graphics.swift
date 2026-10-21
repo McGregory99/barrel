@@ -11,6 +11,17 @@ public enum GraphicsBackend: String, Codable, CaseIterable, Sendable {
     /// Apple Game Porting Toolkit, D3D11/12 → Metal. Not redistributable: user supplies it.
     case d3dmetal
 
+    /// Wine load order for the Direct3D DLLs under this backend.
+    var dllOverrideMode: String {
+        switch self {
+        case .wined3d, .d3dmetal: "builtin"
+        case .dxvk, .dxmt: "native,builtin"
+        }
+    }
+
+    /// D3DMetal needs process-wide environment (WINEDLLPATH), so it cannot be chosen per executable.
+    var supportsPerApp: Bool { self != .d3dmetal }
+
     public init(name: String) throws {
         guard let backend = GraphicsBackend(rawValue: name.lowercased()) else {
             throw BottleError.unknownBackend(name)
@@ -84,20 +95,15 @@ public struct FileGraphicsInstaller: GraphicsInstaller {
 }
 
 /// Environment variables Wine needs to run a bottle with its selected options.
+/// Direct3D DLL load order lives in the prefix registry (see `BottleService.setGraphics`),
+/// so per-executable AppDefaults can override it; the environment would win over both.
 public enum LaunchEnvironment {
-    static let direct3DLibraries = "d3d9,d3d10core,d3d11,dxgi"
+    static let direct3DLibraries = ["d3d9", "d3d10core", "d3d11", "dxgi"]
     static let systemLibraryFallback = ["/usr/local/lib", "/usr/lib"]
 
     public static func make(for bottle: Bottle, components: RuntimeComponents) -> [String: String] {
         var env: [String: String] = ["CX_ACTIVE_GRAPHICS_BACKEND": bottle.graphicsBackend.rawValue]
         var libraryPath = components.libraryDirectory.map { [$0.path] } ?? []
-
-        switch bottle.graphicsBackend {
-        case .wined3d, .d3dmetal:
-            env["WINEDLLOVERRIDES"] = "\(direct3DLibraries)=b"
-        case .dxvk, .dxmt:
-            env["WINEDLLOVERRIDES"] = "\(direct3DLibraries)=n,b"
-        }
 
         if bottle.graphicsBackend == .d3dmetal, let gptk = components.gptkDirectory {
             let external = gptk.appendingPathComponent("external").path

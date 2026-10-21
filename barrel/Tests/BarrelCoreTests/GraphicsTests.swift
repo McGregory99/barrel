@@ -61,6 +61,79 @@ struct GraphicsFixture {
         #expect(f.installer.installed.isEmpty)
     }
 
+    @Test func bottleBackendIsWrittenAsGlobalDllOverrides() throws {
+        let f = try GraphicsFixture()
+        _ = try f.service.create(name: "Game", version: .win10)
+        try f.service.setGraphics("Game", backend: .dxvk)
+        let writes = f.base.runtime.registryWrites()
+        for dll in ["d3d9", "d3d10core", "d3d11", "dxgi"] {
+            #expect(writes["HKCU\\Software\\Wine\\DllOverrides\\\(dll)"] == "native,builtin")
+        }
+
+        try f.service.setGraphics("Game", backend: .wined3d)
+        #expect(f.base.runtime.registryWrites()["HKCU\\Software\\Wine\\DllOverrides\\d3d11"] == "builtin")
+    }
+
+    @Test func appBackendIsWrittenToAppDefaultsAndPersisted() throws {
+        let f = try GraphicsFixture()
+        _ = try f.service.create(name: "Steam", version: .win10)
+        try f.service.setGraphics("Steam", backend: .dxvk)
+        try f.service.setAppGraphics("Steam", executable: "steamwebhelper.exe", backend: .wined3d)
+
+        let writes = f.base.runtime.registryWrites()
+        let key = "HKCU\\Software\\Wine\\AppDefaults\\steamwebhelper.exe\\DllOverrides"
+        for dll in ["d3d9", "d3d10core", "d3d11", "dxgi"] {
+            #expect(writes["\(key)\\\(dll)"] == "builtin")
+        }
+        let bottle = try f.base.store.load("Steam")
+        #expect(bottle.graphicsBackend == .dxvk)
+        #expect(bottle.appGraphics == ["steamwebhelper.exe": .wined3d])
+    }
+
+    @Test func appBackendInstallsReplacementDlls() throws {
+        let f = try GraphicsFixture()
+        _ = try f.service.create(name: "Mixed", version: .win10)
+        try f.service.setAppGraphics("Mixed", executable: "Game.exe", backend: .dxvk)
+        #expect(f.installer.installed.map(\.0) == [.dxvk])
+    }
+
+    @Test func everyWineCommandUsesTheBottlesSyncMode() throws {
+        let f = try GraphicsFixture()
+        _ = try f.service.create(name: "Steam", version: .win10)
+        try f.service.setGraphics("Steam", backend: .dxvk)
+        try f.service.setAppGraphics("Steam", executable: "steamwebhelper.exe", backend: .wined3d)
+        #expect(!f.base.runtime.environments.isEmpty)
+        #expect(f.base.runtime.environments.allSatisfy { $0["WINEMSYNC"] == "1" })
+
+        try f.service.setMSync("Steam", enabled: false)
+        try f.service.setGraphics("Steam", backend: .wined3d)
+        #expect(f.base.runtime.environments.last?["WINEMSYNC"] == nil)
+    }
+
+    @Test func d3dmetalCannotBeSetPerApp() throws {
+        let f = try GraphicsFixture()
+        _ = try f.service.create(name: "B", version: .win10)
+        #expect(throws: BottleError.backendNotPerApp(.d3dmetal)) {
+            try f.service.setAppGraphics("B", executable: "Game.exe", backend: .d3dmetal)
+        }
+    }
+
+    @Test(arguments: ["", "dir\\Game.exe", "a/b.exe"])
+    func appBackendRejectsInvalidExecutableNames(executable: String) throws {
+        let f = try GraphicsFixture()
+        _ = try f.service.create(name: "B", version: .win10)
+        #expect(throws: BottleError.invalidExecutable(executable)) {
+            try f.service.setAppGraphics("B", executable: executable, backend: .wined3d)
+        }
+    }
+
+    @Test func metadataWithoutAppGraphicsDecodesEmpty() throws {
+        let json = #"{"name":"Old","uuid":"\#(UUID().uuidString)","windowsVersion":"win7","createdAt":"2026-01-01T00:00:00Z"}"#
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        #expect(try decoder.decode(Bottle.self, from: Data(json.utf8)).appGraphics.isEmpty)
+    }
+
     @Test func parsesBackendNames() throws {
         #expect(try GraphicsBackend(name: "DXVK") == .dxvk)
         #expect(throws: BottleError.unknownBackend("vulkan")) { try GraphicsBackend(name: "vulkan") }
@@ -80,17 +153,17 @@ struct GraphicsFixture {
         return bottle
     }
 
-    @Test func wined3dForcesBuiltinDirect3D() {
+    @Test func wined3dEnvironmentLeavesDllChoiceToTheRegistry() {
         let env = LaunchEnvironment.make(for: bottle(.wined3d), components: components)
-        #expect(env["WINEDLLOVERRIDES"] == "d3d9,d3d10core,d3d11,dxgi=b")
+        #expect(env["WINEDLLOVERRIDES"] == nil)
         #expect(env["CX_ACTIVE_GRAPHICS_BACKEND"] == "wined3d")
         #expect(env["WINEMSYNC"] == "1")
         #expect(env["DYLD_FALLBACK_LIBRARY_PATH"] == "/rt/lib:/usr/local/lib:/usr/lib")
     }
 
-    @Test func dxvkPrefersNativeDirect3D() {
+    @Test func dxvkEnvironmentNamesTheBackendOnly() {
         let env = LaunchEnvironment.make(for: bottle(.dxvk), components: components)
-        #expect(env["WINEDLLOVERRIDES"] == "d3d9,d3d10core,d3d11,dxgi=n,b")
+        #expect(env["WINEDLLOVERRIDES"] == nil)
         #expect(env["CX_ACTIVE_GRAPHICS_BACKEND"] == "dxvk")
     }
 

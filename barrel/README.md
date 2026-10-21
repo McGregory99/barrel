@@ -24,7 +24,8 @@ export BARREL_LIBS=…/build/deps/lib       # libMoltenVK.dylib for Vulkan/DXVK
 export BARREL_DXVK=…/build/dxvk/install   # x64/ and x32/ DLLs
 export BARREL_GPTK=~/GPTK                 # your own Apple Game Porting Toolkit (not bundled)
 barrel graphics Office                    # show: wined3d | dxvk | dxmt | d3dmetal
-barrel graphics Office dxvk               # copies DXVK DLLs into the prefix
+barrel graphics Office dxvk               # copies DXVK DLLs, writes the D3D load order to the registry
+barrel graphics Steam wined3d --app steamwebhelper.exe   # per-executable override (AppDefaults)
 barrel msync Office off                   # MSync is on by default
 ```
 
@@ -38,8 +39,9 @@ barrel install vcredist-x64 --recipes-dir ../recipes    # no --bottle: bottle 'v
 
 Downloads are SHA-256 verified and cached in `$BARREL_HOME/Downloads`.
 
-`run` launches Wine with the bottle's environment: `WINEDLLOVERRIDES` for the D3D DLLs,
-`CX_ACTIVE_GRAPHICS_BACKEND`, `WINEMSYNC=1`, and `DYLD_FALLBACK_LIBRARY_PATH` so Wine
+The Direct3D DLL load order is written to the bottle's registry (`DllOverrides`, and
+`AppDefaults\<exe>\DllOverrides` for `--app`), so per-executable choices win over the bottle default.
+`run` launches Wine with the bottle's environment: `CX_ACTIVE_GRAPHICS_BACKEND`, `WINEMSYNC=1`, and `DYLD_FALLBACK_LIBRARY_PATH` so Wine
 can `dlopen` MoltenVK.
 
 Layout: `$BARREL_HOME/Bottles/<name>/` is the Wine prefix plus `barrel.json` metadata;

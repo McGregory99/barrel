@@ -7,6 +7,7 @@ public protocol RecipeHost {
     func createBottle(name: String, version: WindowsVersion, description: String?) throws
     func setGraphics(_ name: String, backend: GraphicsBackend) throws
     func setMSync(_ name: String, enabled: Bool) throws
+    func setAppGraphics(_ name: String, executable: String, backend: GraphicsBackend) throws
     func prefixURL(for name: String) -> URL
     /// Runs a program (Unix path) inside the bottle and waits; returns its exit status.
     func run(_ path: String, arguments: [String], bottle: String) throws -> Int32
@@ -32,6 +33,9 @@ public struct BottleServiceHost: RecipeHost {
     }
 
     public func setMSync(_ name: String, enabled: Bool) throws { try service.setMSync(name, enabled: enabled) }
+    public func setAppGraphics(_ name: String, executable: String, backend: GraphicsBackend) throws {
+        try service.setAppGraphics(name, executable: executable, backend: backend)
+    }
     public func prefixURL(for name: String) -> URL { store.prefixURL(for: name) }
 
     public func run(_ path: String, arguments: [String], bottle: String) throws -> Int32 {
@@ -85,6 +89,9 @@ public struct RecipeExecutor {
         }
         if let backend = settings.graphicsBackend { try host.setGraphics(name, backend: backend) }
         if let msync = settings.msync { try host.setMSync(name, enabled: msync) }
+        for executable in settings.appGraphics.keys.sorted() {
+            try host.setAppGraphics(name, executable: executable, backend: settings.appGraphics[executable]!)
+        }
     }
 
     private func apply(_ step: Step, bottle: String) throws {

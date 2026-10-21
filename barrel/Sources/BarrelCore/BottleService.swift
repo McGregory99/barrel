@@ -27,8 +27,9 @@ public struct BottleService {
         try store.save(bottle)
         do {
             let prefix = store.prefixURL(for: name)
-            try runtime.initializePrefix(at: prefix)
-            try runtime.setWindowsVersion(version, prefix: prefix)
+            let environment = LaunchEnvironment.make(for: bottle, components: components)
+            try runtime.initializePrefix(at: prefix, environment: environment)
+            try runtime.setWindowsVersion(version, prefix: prefix, environment: environment)
         } catch {
             try? store.remove(name)
             throw error
@@ -108,12 +109,39 @@ public struct BottleService {
                                  environment: LaunchEnvironment.make(for: selected, components: components))
     }
 
+    /// Sets the bottle-wide backend: installs its DLLs and writes the global Direct3D load order.
     public func setGraphics(_ name: String, backend: GraphicsBackend) throws {
         var bottle = try store.load(name)
         guard components.isAvailable(backend) else { throw BottleError.backendUnavailable(backend) }
-        try graphics.install(backend, into: store.prefixURL(for: name), components: components)
+        let prefix = store.prefixURL(for: name)
+        try graphics.install(backend, into: prefix, components: components)
+        try writeDirect3DOverrides(key: #"HKCU\Software\Wine\DllOverrides"#, backend: backend, bottle: bottle)
         bottle.graphicsBackend = backend
         try store.save(bottle)
+    }
+
+    /// Overrides the backend for one executable (by file name) through Wine's AppDefaults.
+    public func setAppGraphics(_ name: String, executable: String, backend: GraphicsBackend) throws {
+        var bottle = try store.load(name)
+        guard !executable.isEmpty, executable.rangeOfCharacter(from: CharacterSet(charactersIn: "/\\")) == nil
+        else { throw BottleError.invalidExecutable(executable) }
+        guard backend.supportsPerApp else { throw BottleError.backendNotPerApp(backend) }
+        guard components.isAvailable(backend) else { throw BottleError.backendUnavailable(backend) }
+        let prefix = store.prefixURL(for: name)
+        try graphics.install(backend, into: prefix, components: components)
+        try writeDirect3DOverrides(key: #"HKCU\Software\Wine\AppDefaults\"# + executable + #"\DllOverrides"#,
+                                   backend: backend, bottle: bottle)
+        bottle.appGraphics[executable] = backend
+        try store.save(bottle)
+    }
+
+    private func writeDirect3DOverrides(key: String, backend: GraphicsBackend, bottle: Bottle) throws {
+        let prefix = store.prefixURL(for: bottle.name)
+        let environment = LaunchEnvironment.make(for: bottle, components: components)
+        for dll in LaunchEnvironment.direct3DLibraries {
+            try runtime.setRegistryValue(key: key, name: dll, data: backend.dllOverrideMode, prefix: prefix,
+                                         environment: environment)
+        }
     }
 
     public func setMSync(_ name: String, enabled: Bool) throws {

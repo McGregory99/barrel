@@ -17,6 +17,7 @@ final class FakeHost: RecipeHost {
         case create(String, WindowsVersion)
         case graphics(GraphicsBackend)
         case msync(Bool)
+        case appGraphics(String, GraphicsBackend)
         case run(String, [String])
     }
     var events: [Event] = []
@@ -29,6 +30,9 @@ final class FakeHost: RecipeHost {
     }
     func setGraphics(_ name: String, backend: GraphicsBackend) throws { events.append(.graphics(backend)) }
     func setMSync(_ name: String, enabled: Bool) throws { events.append(.msync(enabled)) }
+    func setAppGraphics(_ name: String, executable: String, backend: GraphicsBackend) throws {
+        events.append(.appGraphics(executable, backend))
+    }
     func prefixURL(for name: String) -> URL { root.appendingPathComponent(name) }
     func run(_ path: String, arguments: [String], bottle: String) throws -> Int32 {
         events.append(.run(path, arguments)); return exitStatus
@@ -93,6 +97,17 @@ struct Harness {
             .create("app", .win7), .graphics(.dxvk), .msync(false),
             .run(h.cache.localURL(for: "a.exe").path, ["/q"]),
             .run("/bin/tool", []),
+        ])
+    }
+
+    @Test func appliesPerAppGraphicsAfterBottleBackendInNameOrder() throws {
+        let h = Harness()
+        let app = recipe("app", bottle: BottleSettings(graphicsBackend: .dxvk,
+                                                        appGraphics: ["zz.exe": .wined3d, "aa.exe": .dxvk]),
+                         steps: [])
+        _ = try h.executor.install("app", catalog: RecipeCatalog(recipes: [app]))
+        #expect(h.host.events == [
+            .create("app", .win10), .graphics(.dxvk), .appGraphics("aa.exe", .dxvk), .appGraphics("zz.exe", .wined3d),
         ])
     }
 

@@ -33,9 +33,11 @@ public struct Bottle: Codable, Equatable, Sendable {
     public var graphicsBackend: GraphicsBackend = .wined3d
     /// Mach-semaphore synchronization (CrossOver's MSync patches).
     public var msync = true
+    /// Per-executable backend overrides (e.g. `steamwebhelper.exe` → wined3d in a DXVK bottle).
+    public var appGraphics: [String: GraphicsBackend] = [:]
 
     private enum CodingKeys: String, CodingKey {
-        case name, uuid, windowsVersion, description, createdAt, graphicsBackend, msync
+        case name, uuid, windowsVersion, description, createdAt, graphicsBackend, msync, appGraphics
     }
 
     /// Fields added after the first metadata version fall back to their defaults.
@@ -48,6 +50,7 @@ public struct Bottle: Codable, Equatable, Sendable {
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         graphicsBackend = try container.decodeIfPresent(GraphicsBackend.self, forKey: .graphicsBackend) ?? .wined3d
         msync = try container.decodeIfPresent(Bool.self, forKey: .msync) ?? true
+        appGraphics = try container.decodeIfPresent([String: GraphicsBackend].self, forKey: .appGraphics) ?? [:]
     }
 
     public init(
@@ -76,9 +79,14 @@ public enum BottleError: Error, Equatable, CustomStringConvertible {
     case noDefaultBottle
     case unknownBackend(String)
     case backendUnavailable(GraphicsBackend)
+    case backendNotPerApp(GraphicsBackend)
+    case invalidExecutable(String)
 
     public var description: String {
         switch self {
+        case .backendNotPerApp(let backend):
+            "Graphics backend '\(backend.rawValue)' can only be set for the whole bottle"
+        case .invalidExecutable(let name): "Invalid executable name: '\(name)' (use a file name such as Game.exe)"
         case .unknownBackend(let name):
             "Unknown graphics backend '\(name)'. Valid: "
                 + GraphicsBackend.allCases.map(\.rawValue).joined(separator: ", ")

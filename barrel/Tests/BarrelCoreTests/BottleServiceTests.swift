@@ -8,19 +8,24 @@ final class FakeWineRuntime: WineRuntime {
         case setVersion(String, String)
         case shutdown(String)
         case start(String, String, [String])
+        case registry(String, String, String, String)
     }
 
     var calls: [Call] = []
     var failOnInitialize = false
 
-    func initializePrefix(at prefix: URL) throws {
+    var environments: [[String: String]] = []
+
+    func initializePrefix(at prefix: URL, environment: [String: String]) throws {
+        environments.append(environment)
         calls.append(.initialize(prefix.lastPathComponent))
         if failOnInitialize { throw WineRuntimeError.commandFailed(command: "wineboot", status: 1) }
         try FileManager.default.createDirectory(
             at: prefix.appendingPathComponent("drive_c"), withIntermediateDirectories: true)
     }
 
-    func setWindowsVersion(_ version: WindowsVersion, prefix: URL) throws {
+    func setWindowsVersion(_ version: WindowsVersion, prefix: URL, environment: [String: String]) throws {
+        environments.append(environment)
         calls.append(.setVersion(prefix.lastPathComponent, version.winecfgName))
     }
 
@@ -29,6 +34,17 @@ final class FakeWineRuntime: WineRuntime {
     }
 
     var lastEnvironment: [String: String] = [:]
+
+    func setRegistryValue(key: String, name: String, data: String, prefix: URL, environment: [String: String]) throws {
+        environments.append(environment)
+        calls.append(.registry(prefix.lastPathComponent, key, name, data))
+    }
+
+    func registryWrites() -> [String: String] {
+        var writes: [String: String] = [:]
+        for case let .registry(_, key, name, data) in calls { writes["\(key)\\\(name)"] = data }
+        return writes
+    }
 
     func start(_ path: String, arguments: [String], prefix: URL, environment: [String: String]) throws -> Int32 {
         calls.append(.start(prefix.lastPathComponent, path, arguments))

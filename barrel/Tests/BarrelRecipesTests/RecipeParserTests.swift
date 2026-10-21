@@ -33,6 +33,24 @@ func recipeJSON(id: String = "app", dependencies: String = "[]", steps: String =
         #expect(recipe.steps[3] == .dllOverride(DLLOverrideStep(dll: "d3dcompiler_47", mode: .nativeBuiltin)))
     }
 
+    @Test func parsesPerAppGraphics() throws {
+        let recipe = try RecipeParser.parse(recipeJSON(bottle: #"{"graphicsBackend":"dxvk","appGraphics":{"steamwebhelper.exe":"wined3d"}}"#))
+        #expect(recipe.bottle.graphicsBackend == .dxvk)
+        #expect(recipe.bottle.appGraphics == ["steamwebhelper.exe": .wined3d])
+    }
+
+    @Test func rejectsUnknownPerAppBackend() {
+        #expect(throws: RecipeError.self) {
+            try RecipeParser.parse(recipeJSON(bottle: #"{"appGraphics":{"game.exe":"vulkan"}}"#))
+        }
+    }
+
+    @Test func rejectsNonStringPerAppBackend() {
+        #expect(throws: RecipeError.self) {
+            try RecipeParser.parse(recipeJSON(bottle: #"{"appGraphics":{"game.exe":1}}"#))
+        }
+    }
+
     @Test func rejectsUnknownStepKind() {
         #expect(throws: RecipeError.unknownStepKind(kind: "teleport", step: 1)) {
             try RecipeParser.parse(recipeJSON(steps: #"[{"kind":"teleport"}]"#))

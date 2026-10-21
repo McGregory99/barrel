@@ -47,11 +47,15 @@ public struct BottleSettings: Equatable, Sendable {
     public var windowsVersion: WindowsVersion?
     public var graphicsBackend: GraphicsBackend?
     public var msync: Bool?
+    /// Per-executable backends, applied after `graphicsBackend` (e.g. steamwebhelper.exe → wined3d).
+    public var appGraphics: [String: GraphicsBackend]
 
-    public init(windowsVersion: WindowsVersion? = nil, graphicsBackend: GraphicsBackend? = nil, msync: Bool? = nil) {
+    public init(windowsVersion: WindowsVersion? = nil, graphicsBackend: GraphicsBackend? = nil, msync: Bool? = nil,
+                appGraphics: [String: GraphicsBackend] = [:]) {
         self.windowsVersion = windowsVersion
         self.graphicsBackend = graphicsBackend
         self.msync = msync
+        self.appGraphics = appGraphics
     }
 }
 
