@@ -235,12 +235,14 @@ struct GraphicsFixture {
     @Test func dxmtCopiesItsSystem32AndSyswow64Folders() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("gfx-\(UUID().uuidString)")
         try makeTree(root.appendingPathComponent("dxmt"), ["system32/d3d11.dll", "syswow64/dxgi.dll",
-                                                           "x86_64-windows/winemetal.dll"])
+                                                           "x86_64-windows/winemetal.dll", "i386-windows/winemetal.dll",
+                                                           "x86_64-unix/winemetal.so"])
         let prefix = root.appendingPathComponent("prefix")
         try FileGraphicsInstaller().install(.dxmt, into: prefix,
                                             components: RuntimeComponents(dxmtDirectory: root.appendingPathComponent("dxmt")))
-        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/system32")) == ["d3d11.dll"])
-        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/syswow64")) == ["dxgi.dll"])
+        // Wine 11 only loads a builtin DLL (winemetal) when a file with its name is in the prefix.
+        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/system32")) == ["d3d11.dll", "winemetal.dll"])
+        #expect(dlls(prefix.appendingPathComponent("drive_c/windows/syswow64")) == ["dxgi.dll", "winemetal.dll"])
     }
 }
 

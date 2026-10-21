@@ -65,23 +65,32 @@ public protocol GraphicsInstaller {
     func install(_ backend: GraphicsBackend, into prefix: URL, components: RuntimeComponents) throws
 }
 
-/// Copies DXVK/DXMT DLLs into the prefix: DXVK's `x64`/`x32` and DXMT's `system32`/`syswow64`
-/// go to system32/syswow64.
+/// Copies DXVK/DXMT DLLs into the prefix: DXVK's `x64`/`x32` go to system32/syswow64; so do DXMT's
+/// `system32`/`syswow64` plus its builtin `winemetal.dll` (Wine 11 only loads a builtin DLL when a
+/// file with its name is in the prefix; the copy then resolves to WINEDLLPATH for its unix library).
 public struct FileGraphicsInstaller: GraphicsInstaller {
     public init() {}
 
     public func install(_ backend: GraphicsBackend, into prefix: URL, components: RuntimeComponents) throws {
-        let source: (root: URL?, x64: String, x32: String)
+        let folders: [(source: String, destination: String)]
+        let root: URL?
         switch backend {
-        case .dxvk: source = (components.dxvkDirectory, "x64", "x32")
-        case .dxmt: source = (components.dxmtDirectory, "system32", "syswow64")
+        case .dxvk:
+            root = components.dxvkDirectory
+            folders = [("x64", "system32"), ("x32", "syswow64")]
+        case .dxmt:
+            root = components.dxmtDirectory
+            folders = [("system32", "system32"), ("syswow64", "syswow64"),
+                       ("x86_64-windows", "system32"), ("i386-windows", "syswow64")]
         case .wined3d, .d3dmetal: return
         }
-        guard let root = source.root else { return }
+        guard let root else { return }
 
         let windows = prefix.appendingPathComponent("drive_c/windows")
-        try copyDLLs(from: root.appendingPathComponent(source.x64), to: windows.appendingPathComponent("system32"))
-        try copyDLLs(from: root.appendingPathComponent(source.x32), to: windows.appendingPathComponent("syswow64"))
+        for folder in folders {
+            try copyDLLs(from: root.appendingPathComponent(folder.source),
+                         to: windows.appendingPathComponent(folder.destination))
+        }
     }
 
     private func copyDLLs(from source: URL, to destination: URL) throws {
