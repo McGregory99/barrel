@@ -145,6 +145,14 @@ public enum PEIcon {
 
 /// Turns an `.ico` image into ICNS data for a macOS app bundle.
 public enum IconConverter {
+    /// ICNS for a Windows executable's icon; nil when the file is not an `.exe` or has no icon.
+    public static func icns(fromExecutable url: URL) throws -> Data? {
+        guard url.pathExtension.lowercased() == "exe",
+              let ico = try PEIcon.largestIcon(in: Data(contentsOf: url, options: .alwaysMapped))
+        else { return nil }
+        return try icns(fromICO: ico)
+    }
+
     public static func icns(fromICO ico: Data) throws -> Data {
         guard let source = CGImageSourceCreateWithData(ico as CFData, nil),
               let image = CGImageSourceCreateImageAtIndex(source, 0, nil)

@@ -12,6 +12,8 @@ public final class BottleListViewModel {
     public private(set) var busyMessage: String?
     public private(set) var errorMessage: String?
     public private(set) var recipes: [RecipeSummary] = []
+    /// The launcher app created most recently, so the view can reveal it in Finder.
+    public private(set) var lastLauncher: URL?
     public var selection: String?
     public var gateway: BottleGateway?
 
@@ -93,6 +95,12 @@ public final class BottleListViewModel {
         }
     }
 
+    public func createLauncher(name: String, program: URL, in bottle: String) async {
+        await perform("Creating launcher \(name)…") { gateway in
+            try gateway.createLauncher(name: name, bottle: bottle, program: program.path)
+        } apply: { [self] in lastLauncher = $0 }
+    }
+
     // MARK: Plumbing
 
     /// Runs a mutating call, then reloads the list. A returned name (or `select`) becomes the selection.
@@ -139,6 +147,8 @@ public final class BottleListViewModel {
         case let error as BottleError: error.description
         case let error as WineRuntimeError: error.description
         case let error as RecipeError: error.description
+        case let error as LauncherError: error.description
+        case let error as GatewayError: error.description
         default: error.localizedDescription
         }
     }

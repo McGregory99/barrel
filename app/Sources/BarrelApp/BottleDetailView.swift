@@ -10,6 +10,7 @@ struct BottleActions {
     var export: () -> Void
     var delete: () -> Void
     var runFile: () -> Void
+    var createLauncher: () -> Void
     var drop: ([URL]) -> Bool
 }
 
@@ -54,7 +55,11 @@ struct BottleDetailView: View {
                 Toggle("MSync (faster synchronization)", isOn: Binding(get: { bottle.msync }, set: actions.setMSync))
             }
             Section("Programs") {
-                Button("Run Program or Open Document…", action: actions.runFile)
+                HStack {
+                    Button("Run Program or Open Document…", action: actions.runFile)
+                    Button("Create Launcher…", action: actions.createLauncher)
+                        .help("Make a Mac app (in ~/Applications/Barrel) that opens a program of this bottle")
+                }
                 RoundedRectangle(cornerRadius: 8)
                     .strokeBorder(isDropTargeted ? Color.accentColor : .secondary, style: StrokeStyle(lineWidth: 1, dash: [5]))
                     .frame(height: 60)

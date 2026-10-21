@@ -10,6 +10,7 @@ struct ContentView: View {
     @State private var showDeleteConfirmation = false
     @State private var showCopy = false
     @State private var showInstall = false
+    @State private var launcherProgram: URL?
 
     var body: some View {
         NavigationSplitView {
@@ -31,6 +32,7 @@ struct ContentView: View {
                         export: { exportBottle(bottle) },
                         delete: { showDeleteConfirmation = true },
                         runFile: chooseProgram,
+                        createLauncher: { chooseLauncherProgram(in: bottle.name) },
                         drop: { urls in
                             guard let url = urls.first else { return false }
                             Task { await model.run(url, in: bottle.name) }
@@ -59,6 +61,17 @@ struct ContentView: View {
             InstallSheet(recipes: model.recipes, bottles: model.bottles.map(\.name)) { recipe, bottle in
                 Task { await model.install(recipe: recipe, into: bottle) }
             }
+        }
+        .sheet(item: $launcherProgram) { program in
+            NameSheet(title: "Create a launcher for “\(program.lastPathComponent)”", prompt: "App name", action: "Create",
+                      initial: program.deletingPathExtension().lastPathComponent) { name in
+                if let bottle = model.selection {
+                    Task { await model.createLauncher(name: name, program: program, in: bottle) }
+                }
+            }
+        }
+        .onChange(of: model.lastLauncher) { _, app in
+            if let app { NSWorkspace.shared.activateFileViewerSelecting([app]) }
         }
         .sheet(item: $restoreURL) { url in
             NameSheet(title: "Restore “\(url.lastPathComponent)”", prompt: "New name (optional)", action: "Restore",
@@ -96,6 +109,14 @@ struct ContentView: View {
         panel.message = "Choose a program or document to open in “\(name)”"
         panel.canChooseDirectories = false
         if panel.runModal() == .OK, let url = panel.url { Task { await model.run(url, in: name) } }
+    }
+
+    private func chooseLauncherProgram(in name: String) {
+        let panel = NSOpenPanel()
+        panel.message = "Choose the program in “\(name)” the launcher should open"
+        panel.canChooseDirectories = false
+        panel.directoryURL = model.prefixURL(for: name)?.appendingPathComponent("drive_c")
+        if panel.runModal() == .OK { launcherProgram = panel.url }
     }
 
     private func exportBottle(_ bottle: Bottle) {

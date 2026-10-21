@@ -11,6 +11,7 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     private(set) var runs: [(path: String, bottle: String)] = []
     var recipeList: [RecipeSummary] = []
     private(set) var installs: [(recipe: String, bottle: String?)] = []
+    private(set) var launchers: [(name: String, bottle: String, program: String)] = []
 
     init(bottles: [Bottle] = [], defaultName: String? = nil) {
         self.bottles = bottles
@@ -65,6 +66,11 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     }
     func setDefault(_ name: String?) throws { try check(); defaultName = name }
     func recipes() throws -> [RecipeSummary] { try check(); return recipeList }
+    func createLauncher(name: String, bottle: String, program: String) throws -> URL {
+        try check()
+        launchers.append((name, bottle, program))
+        return URL(fileURLWithPath: "/Applications/Barrel/\(name).app")
+    }
     func install(recipe: String, bottle: String?) throws -> String {
         try check()
         installs.append((recipe, bottle))

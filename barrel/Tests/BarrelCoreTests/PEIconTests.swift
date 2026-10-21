@@ -154,6 +154,19 @@ func pngData(size: Int) throws -> Data {
         #expect(icns.prefix(4) == Data("icns".utf8))
     }
 
+    @Test func readsTheIconOfAnExecutableFile() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent("icon-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let pe = TestPE.build(icons: [.init(width: 0, bitCount: 32, payload: try pngData(size: 256))])
+        let exe = directory.appendingPathComponent("Game.EXE")
+        try pe.write(to: exe)
+        let notExe = directory.appendingPathComponent("readme.txt")
+        try pe.write(to: notExe)
+
+        #expect(try IconConverter.icns(fromExecutable: exe)?.prefix(4) == Data("icns".utf8))
+        #expect(try IconConverter.icns(fromExecutable: notExe) == nil)
+    }
+
     @Test func conversionFailsForUnreadableImages() {
         #expect(throws: PEIconError.unreadableImage) { try IconConverter.icns(fromICO: Data([0, 0, 1, 0])) }
     }

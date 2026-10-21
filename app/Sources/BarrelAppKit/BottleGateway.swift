@@ -2,6 +2,17 @@ import BarrelCore
 import BarrelRecipes
 import Foundation
 
+public enum GatewayError: Error, Equatable, CustomStringConvertible {
+    case launchersNeedBarrelApp
+
+    public var description: String {
+        switch self {
+        case .launchersNeedBarrelApp:
+            "Launchers need the barrel command-line tool that ships inside Barrel.app; run the packaged app."
+        }
+    }
+}
+
 /// What the app shows for an install recipe.
 public struct RecipeSummary: Equatable, Sendable, Identifiable {
     public var id: String
@@ -35,6 +46,8 @@ public protocol BottleGateway: Sendable {
     /// Installs a recipe and its dependencies; nil `bottle` uses (and creates) one named after the recipe.
     /// Returns the bottle used.
     func install(recipe: String, bottle: String?) throws -> String
+    /// Creates a macOS app that opens `program` in `bottle`; returns its URL.
+    func createLauncher(name: String, bottle: String, program: String) throws -> URL
 }
 
 /// Adapter from the gateway port to `BottleService`.
@@ -44,23 +57,47 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     private let components: RuntimeComponents
     private let recipeDirectories: [URL]
     private let downloadsDirectory: URL
+    private let launcherEnvironment: [String: String]
+    private let barrelExecutable: URL?
+    private let launchers: LauncherInstaller
 
     public init(store: BottleStore, wineBinary: URL, components: RuntimeComponents,
-                recipeDirectories: [URL] = [], downloadsDirectory: URL) {
+                recipeDirectories: [URL] = [], downloadsDirectory: URL,
+                launcherEnvironment: [String: String] = [:], barrelExecutable: URL? = nil,
+                launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory) {
         self.store = store
         self.components = components
         self.recipeDirectories = recipeDirectories
         self.downloadsDirectory = downloadsDirectory
+        self.launcherEnvironment = launcherEnvironment
+        self.barrelExecutable = barrelExecutable
+        self.launchers = LauncherInstaller(directory: launchersDirectory)
         self.service = BottleService(store: store, runtime: ProcessWineRuntime(wineBinary: wineBinary),
                                      components: components)
     }
 
+    public static let defaultLaunchersDirectory = FileManager.default.homeDirectoryForCurrentUser
+        .appendingPathComponent("Applications/Barrel", isDirectory: true)
+
     /// Builds the production gateway from user settings, creating the data directory if needed.
-    public convenience init(settings: AppSettings) throws {
+    /// Launchers call the `barrel` tool bundled next to the app's executable.
+    public convenience init(settings: AppSettings,
+                            barrelExecutable: URL? = Bundle.main.url(forAuxiliaryExecutable: "barrel"),
+                            launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory) throws {
+        // Launchers start outside the app, so they carry the settings as BARREL_* variables.
+        var environment = ["BARREL_HOME": settings.dataDirectory.path,
+                           "BARREL_WINE": settings.resolvedWineBinary.path]
+        for (key, value) in [("BARREL_LIBS", settings.librariesDirectory), ("BARREL_DXVK", settings.dxvkDirectory),
+                             ("BARREL_DXMT", settings.dxmtDirectory), ("BARREL_GPTK", settings.gptkDirectory)]
+        where !value.isEmpty {
+            environment[key] = value
+        }
         try self.init(store: FileBottleStore(root: settings.dataDirectory),
                       wineBinary: settings.resolvedWineBinary, components: settings.components,
                       recipeDirectories: settings.recipeDirectories,
-                      downloadsDirectory: settings.dataDirectory.appendingPathComponent("Downloads", isDirectory: true))
+                      downloadsDirectory: settings.dataDirectory.appendingPathComponent("Downloads", isDirectory: true),
+                      launcherEnvironment: environment, barrelExecutable: barrelExecutable,
+                      launchersDirectory: launchersDirectory)
     }
 
     public func list() throws -> [Bottle] { try service.list() }
@@ -97,5 +134,13 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
                                       downloads: DownloadCache(directory: downloadsDirectory,
                                                                downloader: URLSessionDownloader()))
         return try executor.install(recipe, catalog: RecipeCatalog.load(directories: recipeDirectories), bottle: bottle)
+    }
+
+    public func createLauncher(name: String, bottle: String, program: String) throws -> URL {
+        guard let barrelExecutable else { throw GatewayError.launchersNeedBarrelApp }
+        let spec = LauncherSpec(name: name, bottle: bottle, program: program, environment: launcherEnvironment,
+                                barrelExecutable: barrelExecutable)
+        let icon = try? IconConverter.icns(fromExecutable: URL(fileURLWithPath: program))
+        return try launchers.install(spec, icon: icon)
     }
 }

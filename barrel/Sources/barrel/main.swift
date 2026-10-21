@@ -359,10 +359,8 @@ struct CreateLauncher: ParsableCommand {
     }
 
     private func icon(from path: String) -> Data? {
-        guard path.lowercased().hasSuffix(".exe") else { return nil }
         do {
-            guard let ico = try PEIcon.largestIcon(in: Data(contentsOf: URL(fileURLWithPath: path), options: .alwaysMapped)) else { return nil }
-            return try IconConverter.icns(fromICO: ico)
+            return try IconConverter.icns(fromExecutable: URL(fileURLWithPath: path))
         } catch {
             FileHandle.standardError.write(Data("warning: no icon from \(path): \(error)\n".utf8))
             return nil
