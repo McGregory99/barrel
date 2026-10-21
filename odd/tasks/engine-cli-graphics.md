@@ -24,3 +24,5 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - L3: freetype top-level configure needs the `dlg` submodule; built with CMake instead.
 - L4: Wine configure: `--enable-archs=i386,x86_64`, missing gnutls, GStreamer, MoltenVK, FFmpeg (deferred to T3/T6). Build running.
 - L5: CLI named `barrel` (working name). Bottles are always 64-bit WoW64; `_64` template suffix only selects the version. Smoke-tested against a fake wine; real Wine smoke test waits on T1.
+- L6: Build failed in `dlls/win32u/vulkan.c`: CX HACK 25909 dropped the `#ifdef SONAME_LIBVULKAN` guard, so builds without Vulkan break. Fixed in our Wine branch (`b4af2ac`), keeping the `CX_LIBVULKAN` override. Build resumed.
+- L7 (T6 license): D3DMetal (GPTK 3.0 in CrossOver) license reportedly grants use only to develop/test/evaluate games; redistribution is unclear (Apple forum thread 841547 asks Apple to clarify). Decision: do NOT bundle D3DMetal; the user points `barrel` at their own GPTK install downloaded from Apple. DXVK (zlib), DXMT and MoltenVK (Apache-2.0) can be bundled.
