@@ -43,14 +43,21 @@ gnutls() {
     # The CX tarball ships nettle without its hand-written Makefile.in; use the identical
     # upstream GNU release (nettle-3.10.tar.gz, sha256 b4c518ad…ee47c) instead.
     nettle=$ROOT/upstream/nettle-3.10/nettle-3.10
-    (cd "$ROOT/build/nettle" && arch -x86_64 "$nettle/configure" --prefix="$DEPS" CC="clang -arch x86_64" \
+    [ -f "$DEPS/lib/libnettle.dylib" ] || (cd "$ROOT/build/nettle" && arch -x86_64 "$nettle/configure" --prefix="$DEPS" CC="clang -arch x86_64" \
         --disable-documentation --disable-static --with-include-path="$DEPS/include" --with-lib-path="$DEPS/lib" \
         && arch -x86_64 make -j"$JOBS" && make install)
+    # libtool drops absolute .dylib paths from *_LIBS when linking libgnutls, so link them via LDFLAGS.
+    tls_link="-L$DEPS/lib -lhogweed -lnettle -lgmp"
+    # CX's m4/hooks.m4 tests `x$NETTLE_LIBS != x` unquoted, so each *_LIBS must be one word (no spaces).
     (cd "$ROOT/build/gnutls" && PKG_CONFIG_LIBDIR=$DEPS/lib/pkgconfig arch -x86_64 "$tls/gnutls/configure" \
-        --prefix="$DEPS" CC="clang -arch x86_64" --enable-shared --disable-static --disable-doc --disable-tests \
+        --prefix="$DEPS" CC="clang -arch x86_64" CPPFLAGS="-I$DEPS/include" LDFLAGS="-L$DEPS/lib" \
+        NETTLE_CFLAGS="-I$DEPS/include" HOGWEED_CFLAGS="-I$DEPS/include" \
+        NETTLE_LIBS="$DEPS/lib/libnettle.dylib" HOGWEED_LIBS="$DEPS/lib/libhogweed.dylib" \
+        GMP_LIBS="$DEPS/lib/libgmp.dylib" \
+        --enable-shared --disable-static --disable-doc --disable-tests \
         --disable-tools --disable-cxx --with-included-libtasn1 --with-included-unistring --without-p11-kit \
-        --without-idn --without-brotli --without-zstd --without-tpm --without-tpm2 \
-        && arch -x86_64 make -j"$JOBS" && make install)
+        --without-idn --without-brotli --without-zstd --without-tpm --without-tpm2 --disable-gost \
+        && arch -x86_64 make -j"$JOBS" LDFLAGS="$tls_link" && make install LDFLAGS="$tls_link")
 }
 
 wine() {
