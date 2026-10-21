@@ -53,9 +53,13 @@ public enum BottleError: Error, Equatable, CustomStringConvertible {
     case alreadyExists(String)
     case notFound(String)
     case unknownTemplate(String)
+    case invalidArchive(String)
+    case noDefaultBottle
 
     public var description: String {
         switch self {
+        case .invalidArchive(let path): "'\(path)' does not contain a bottle"
+        case .noDefaultBottle: "No bottle given and no default bottle set"
         case .invalidName(let name): "Invalid bottle name: '\(name)'"
         case .alreadyExists(let name): "Bottle '\(name)' already exists"
         case .notFound(let name): "Bottle '\(name)' not found"

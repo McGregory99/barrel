@@ -7,6 +7,7 @@ final class FakeWineRuntime: WineRuntime {
         case initialize(String)
         case setVersion(String, String)
         case shutdown(String)
+        case start(String, String, [String])
     }
 
     var calls: [Call] = []
@@ -25,6 +26,11 @@ final class FakeWineRuntime: WineRuntime {
 
     func shutdown(prefix: URL) throws {
         calls.append(.shutdown(prefix.lastPathComponent))
+    }
+
+    func start(_ path: String, arguments: [String], prefix: URL) throws -> Int32 {
+        calls.append(.start(prefix.lastPathComponent, path, arguments))
+        return 0
     }
 }
 

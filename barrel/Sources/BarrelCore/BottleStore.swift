@@ -9,6 +9,10 @@ public protocol BottleStore {
     func save(_ bottle: Bottle) throws
     func remove(_ name: String) throws
     func duplicate(_ source: String, to destination: String) throws
+    /// Reads bottle metadata from a directory outside the store (e.g. an extracted archive).
+    func readBottle(at directory: URL) throws -> Bottle
+    /// Moves an external bottle directory into the store under `name`.
+    func adopt(_ directory: URL, as name: String) throws
     func defaultBottleName() throws -> String?
     func setDefaultBottleName(_ name: String?) throws
 }
@@ -68,6 +72,18 @@ public struct FileBottleStore: BottleStore {
 
     public func duplicate(_ source: String, to destination: String) throws {
         try fileManager.copyItem(at: prefixURL(for: source), to: prefixURL(for: destination))
+    }
+
+    public func readBottle(at directory: URL) throws -> Bottle {
+        let url = directory.appendingPathComponent(Self.metadataFile)
+        guard fileManager.fileExists(atPath: url.path) else {
+            throw BottleError.invalidArchive(directory.path)
+        }
+        return try decoder.decode(Bottle.self, from: Data(contentsOf: url))
+    }
+
+    public func adopt(_ directory: URL, as name: String) throws {
+        try fileManager.moveItem(at: directory, to: prefixURL(for: name))
     }
 
     public func defaultBottleName() throws -> String? {

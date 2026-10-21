@@ -10,7 +10,8 @@ struct Barrel: ParsableCommand {
               BARREL_HOME  Data directory (default: ~/Library/Application Support/Barrel)
               BARREL_WINE  Path to the wine binary (default: 'wine' found in PATH)
             """,
-        subcommands: [Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self]
+        subcommands: [Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self,
+                      Export.self, Restore.self, Run.self]
     )
 }
 
@@ -137,6 +138,44 @@ struct Templates: ParsableCommand {
 
     func run() {
         WindowsVersion.allCases.forEach { print($0.rawValue) }
+    }
+}
+
+struct Export: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "Export a bottle to a .tar.gz archive.")
+
+    @Argument var name: String
+    @Argument(help: "Archive path to write.") var archive: String
+
+    func run() throws {
+        try Environment.service().export(name, to: URL(fileURLWithPath: archive))
+        print("Exported '\(name)' to \(archive)")
+    }
+}
+
+struct Restore: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "Restore a bottle from an exported archive.")
+
+    @Argument(help: "Archive created by 'barrel export'.") var archive: String
+    @Option(name: .customLong("as"), help: "Restore under a new name (gets a new identity).") var newName: String?
+
+    func run() throws {
+        let bottle = try Environment.service().restore(from: URL(fileURLWithPath: archive), as: newName)
+        print("Restored bottle '\(bottle.name)'")
+    }
+}
+
+struct Run: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Run a Windows program or open a document using Windows file associations.")
+
+    @Option(help: "Bottle to use (default: the default bottle).") var bottle: String?
+    @Argument(help: "Program or document path.") var path: String
+    @Argument(parsing: .captureForPassthrough, help: "Arguments passed to the program.") var arguments: [String] = []
+
+    func run() throws {
+        let status = try Environment.service().run(path, arguments: arguments, bottle: bottle)
+        if status != 0 { throw ExitCode(status) }
     }
 }
 

@@ -1,13 +1,15 @@
 import Foundation
 
-/// Bottle use cases: create, copy, delete, list and default selection.
+/// Bottle use cases: create, copy, delete, archive, run and default selection.
 public struct BottleService {
     let store: BottleStore
     let runtime: WineRuntime
+    let archiver: Archiver
 
-    public init(store: BottleStore, runtime: WineRuntime) {
+    public init(store: BottleStore, runtime: WineRuntime, archiver: Archiver = TarArchiver()) {
         self.store = store
         self.runtime = runtime
+        self.archiver = archiver
     }
 
     @discardableResult
@@ -58,6 +60,45 @@ public struct BottleService {
         if try store.defaultBottleName() == name {
             try store.setDefaultBottleName(nil)
         }
+    }
+
+    public func export(_ name: String, to archive: URL) throws {
+        guard store.exists(name) else { throw BottleError.notFound(name) }
+        try runtime.shutdown(prefix: store.prefixURL(for: name))
+        try archiver.archive(directory: store.prefixURL(for: name), to: archive)
+    }
+
+    /// Restores an exported bottle. Restoring under a new name gives it a new identity.
+    @discardableResult
+    public func restore(from archive: URL, as newName: String? = nil) throws -> Bottle {
+        let fileManager = FileManager.default
+        let staging = fileManager.temporaryDirectory.appendingPathComponent("barrel-restore-\(UUID().uuidString)")
+        try fileManager.createDirectory(at: staging, withIntermediateDirectories: true)
+        defer { try? fileManager.removeItem(at: staging) }
+
+        try archiver.extract(archive, into: staging)
+        let entries = try fileManager.contentsOfDirectory(at: staging, includingPropertiesForKeys: nil)
+        guard entries.count == 1, var bottle = try? store.readBottle(at: entries[0]) else {
+            throw BottleError.invalidArchive(archive.path)
+        }
+
+        let name = newName ?? bottle.name
+        try validate(name)
+        guard !store.exists(name) else { throw BottleError.alreadyExists(name) }
+        if name != bottle.name {
+            bottle.name = name
+            bottle.uuid = UUID()
+        }
+        try store.adopt(entries[0], as: name)
+        try store.save(bottle)
+        return bottle
+    }
+
+    /// Opens a program or document in `bottle`, or in the default bottle when nil.
+    public func run(_ path: String, arguments: [String], bottle: String?) throws -> Int32 {
+        guard let name = try bottle ?? store.defaultBottleName() else { throw BottleError.noDefaultBottle }
+        guard store.exists(name) else { throw BottleError.notFound(name) }
+        return try runtime.start(path, arguments: arguments, prefix: store.prefixURL(for: name))
     }
 
     public func setDefault(_ name: String?) throws {
