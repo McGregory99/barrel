@@ -49,7 +49,15 @@ barrel launcher remove Stonewards
 ```
 
 The launcher stores the current `BARREL_*` variables, because apps opened from Finder do not
-inherit the shell environment.
+inherit the shell environment. Its output goes to `~/Library/Logs/Barrel/<name>.log`. `list`,
+`remove` and re-creating only touch apps barrel made (bundle id `org.barrel.launcher.*`).
+
+Notes:
+- Bottle maintenance (create, Windows version, registry writes) runs with Wine Mono and Gecko
+  disabled, so a prefix update never blocks on their installer dialogs. Install .NET or MSHTML
+  apps through a recipe, or run `wine wineboot -u` in the bottle yourself to get the prompts.
+- `d3dmetal` needs this project's Wine build (ntdll `WINEDLLPATH_PREPEND`, see
+  `../docs/wine-patches.md`); stock Wine searches its own d3d11/dxgi first.
 
 Downloads are SHA-256 verified and cached in `$BARREL_HOME/Downloads`.
 

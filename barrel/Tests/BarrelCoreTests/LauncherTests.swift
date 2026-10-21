@@ -8,7 +8,8 @@ struct LauncherFixture {
 
     init() throws {
         root = FileManager.default.temporaryDirectory.appendingPathComponent("barrel-launchers-\(UUID().uuidString)")
-        installer = LauncherInstaller(directory: root.appendingPathComponent("Applications"))
+        installer = LauncherInstaller(directory: root.appendingPathComponent("Applications"),
+                                      logDirectory: root.appendingPathComponent("Logs"))
     }
 
     func spec(name: String = "Stonewards", arguments: [String] = ["-applaunch", "4502710"],
@@ -26,6 +27,7 @@ struct LauncherFixture {
             #!/bin/sh
             for arg in "$@"; do printf '%s\\n' "$arg"; done > '\(output.path)'
             printf 'HOME_VAR=%s\\n' "$BARREL_HOME" >> '\(output.path)'
+            echo "barrel stderr line" >&2
             """.write(to: executable, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
         return (executable, output)
@@ -96,7 +98,34 @@ struct LauncherFixture {
         #expect(throws: LauncherError.notFound("A Game")) { try f.installer.remove("A Game") }
     }
 
-    @Test(arguments: ["", ".hidden", "a/b", "a:b"])
+    @Test func launcherOutputGoesToALogFile() throws {
+        let f = try LauncherFixture()
+        let fake = try f.recordingBarrel()
+        let app = try f.installer.install(f.spec(barrel: fake.executable))
+        let process = Process()
+        process.executableURL = app.appendingPathComponent("Contents/MacOS/launcher")
+        try process.run()
+        process.waitUntilExit()
+        let log = try String(contentsOf: f.root.appendingPathComponent("Logs/Stonewards.log"), encoding: .utf8)
+        #expect(log.contains("barrel stderr line"))
+    }
+
+    @Test func onlyBarrelLaunchersAreListedOrRemoved() throws {
+        let f = try LauncherFixture()
+        _ = try f.installer.install(f.spec(name: "Mine"))
+        let foreign = f.installer.directory.appendingPathComponent("Other.app/Contents")
+        try FileManager.default.createDirectory(at: foreign, withIntermediateDirectories: true)
+        let plist = try PropertyListSerialization.data(
+            fromPropertyList: ["CFBundleIdentifier": "com.example.other"], format: .xml, options: 0)
+        try plist.write(to: foreign.appendingPathComponent("Info.plist"))
+
+        #expect(try f.installer.list() == ["Mine"])
+        #expect(throws: LauncherError.foreignApp("Other")) { try f.installer.remove("Other") }
+        #expect(throws: LauncherError.foreignApp("Other")) { try f.installer.install(f.spec(name: "Other")) }
+        #expect(FileManager.default.fileExists(atPath: foreign.path))
+    }
+
+    @Test(arguments: ["", ".hidden", "a/b", "a:b", "line\nbreak", "car\rriage", "tab\there"])
     func rejectsInvalidNames(name: String) throws {
         let f = try LauncherFixture()
         #expect(throws: LauncherError.invalidName(name)) { try f.installer.install(f.spec(name: name)) }

@@ -26,40 +26,55 @@ public struct LauncherSpec: Equatable, Sendable {
 public enum LauncherError: Error, Equatable, CustomStringConvertible {
     case invalidName(String)
     case notFound(String)
+    case foreignApp(String)
 
     public var description: String {
         switch self {
         case .invalidName(let name): "Invalid launcher name: '\(name)'"
         case .notFound(let name): "Launcher '\(name)' not found"
+        case .foreignApp(let name): "'\(name).app' was not created by barrel; leaving it untouched"
         }
     }
 }
 
 /// Writes launcher app bundles (`<name>.app`) into one directory, e.g. ~/Applications/Barrel.
+/// Only bundles it created (identifier `org.barrel.launcher.*`) are listed, replaced or removed.
 public struct LauncherInstaller: Sendable {
     public let directory: URL
+    /// Where each launcher appends its output (`<name>.log`); apps opened from Finder have no terminal.
+    public let logDirectory: URL
 
-    public init(directory: URL) {
+    static let identifierPrefix = "org.barrel.launcher."
+
+    public init(directory: URL,
+                logDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
+                    .appendingPathComponent("Library/Logs/Barrel")) {
         self.directory = directory
+        self.logDirectory = logDirectory
     }
 
-    /// Creates or replaces the launcher. `icon` is ICNS data.
+    /// Creates or replaces the launcher. `icon` is ICNS data. The bundle is built next to its final
+    /// place and swapped in, so a failure leaves any previous launcher intact.
     @discardableResult
     public func install(_ spec: LauncherSpec, icon: Data? = nil) throws -> URL {
         try validate(spec.name)
         let fileManager = FileManager.default
         let app = appURL(spec.name)
-        let contents = app.appendingPathComponent("Contents")
-        let macOS = contents.appendingPathComponent("MacOS")
+        let exists = fileManager.fileExists(atPath: app.path)
+        if exists, !isBarrelLauncher(app) { throw LauncherError.foreignApp(spec.name) }
 
-        if fileManager.fileExists(atPath: app.path) { try fileManager.removeItem(at: app) }
+        try fileManager.createDirectory(at: directory, withIntermediateDirectories: true)
+        let staging = directory.appendingPathComponent(".\(UUID().uuidString).app", isDirectory: true)
+        defer { try? fileManager.removeItem(at: staging) }
+        let contents = staging.appendingPathComponent("Contents")
+        let macOS = contents.appendingPathComponent("MacOS")
         try fileManager.createDirectory(at: macOS, withIntermediateDirectories: true)
 
         var info: [String: Any] = [
             "CFBundleName": spec.name,
             "CFBundleDisplayName": spec.name,
             "CFBundleExecutable": "launcher",
-            "CFBundleIdentifier": "org.barrel.launcher." + identifierSafe(spec.name),
+            "CFBundleIdentifier": Self.identifierPrefix + identifierSafe(spec.name),
             "CFBundlePackageType": "APPL",
             "CFBundleInfoDictionaryVersion": "6.0",
             "LSApplicationCategoryType": "public.app-category.games",
@@ -76,13 +91,20 @@ public struct LauncherInstaller: Sendable {
         let executable = macOS.appendingPathComponent("launcher")
         try Data(script(for: spec).utf8).write(to: executable)
         try fileManager.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+
+        if exists {
+            _ = try fileManager.replaceItemAt(app, withItemAt: staging)
+        } else {
+            try fileManager.moveItem(at: staging, to: app)
+        }
         return app
     }
 
     public func list() throws -> [String] {
         guard FileManager.default.fileExists(atPath: directory.path) else { return [] }
         return try FileManager.default.contentsOfDirectory(atPath: directory.path)
-            .filter { $0.hasSuffix(".app") }
+            .filter { $0.hasSuffix(".app") && !$0.hasPrefix(".") }
+            .filter { isBarrelLauncher(directory.appendingPathComponent($0)) }
             .map { String($0.dropLast(4)) }
             .sorted()
     }
@@ -91,7 +113,13 @@ public struct LauncherInstaller: Sendable {
         try validate(name)
         let app = appURL(name)
         guard FileManager.default.fileExists(atPath: app.path) else { throw LauncherError.notFound(name) }
+        guard isBarrelLauncher(app) else { throw LauncherError.foreignApp(name) }
         try FileManager.default.removeItem(at: app)
+    }
+
+    private func isBarrelLauncher(_ app: URL) -> Bool {
+        let info = NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist"))
+        return (info?["CFBundleIdentifier"] as? String)?.hasPrefix(Self.identifierPrefix) == true
     }
 
     private func appURL(_ name: String) -> URL {
@@ -99,7 +127,11 @@ public struct LauncherInstaller: Sendable {
     }
 
     private func script(for spec: LauncherSpec) -> String {
-        var lines = ["#!/bin/sh", "# Generated by barrel: opens \(spec.name) in bottle \(spec.bottle)."]
+        let log = logDirectory.appendingPathComponent(spec.name + ".log")
+        var lines = ["#!/bin/sh", "# Generated by barrel.",
+                     "mkdir -p \(shellQuoted(logDirectory.path))",
+                     "exec >>\(shellQuoted(log.path)) 2>&1",
+                     "echo \"--- $(date)\""]
         for (key, value) in spec.environment.sorted(by: { $0.key < $1.key }) {
             lines.append("export \(key)=\(shellQuoted(value))")
         }
@@ -117,7 +149,7 @@ public struct LauncherInstaller: Sendable {
     }
 
     private func validate(_ name: String) throws {
-        let forbidden = CharacterSet(charactersIn: "/:\0")
+        let forbidden = CharacterSet(charactersIn: "/:").union(.controlCharacters)
         guard !name.isEmpty, !name.hasPrefix("."), name.count <= 128,
               name.rangeOfCharacter(from: forbidden) == nil
         else { throw LauncherError.invalidName(name) }
