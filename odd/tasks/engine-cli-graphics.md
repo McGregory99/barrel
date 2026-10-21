@@ -17,7 +17,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 | T3 | S1 | inline | pending | gnutls + GStreamer x86_64 deps |
 | T4 | S2 | inline | done | `barrel` Swift package: create/list/info/copy/delete/default/templates — commit `6adcccf`, 13 tests |
 | T5 | S2 | inline | partial | export/restore/run done — commit `3c7d775`, 22 tests total; macOS launchers (F4) pending until Wine runs |
-| T7 | S4 | inline | done (menu) | Steam login + Stonewards main menu on DXVK (L23); gameplay check by user pending |
+| T7 | S4 | inline | done | Steam login + Stonewards playable on DXVK: user confirmed "Aparentemente funciona bien" (L26); fixes L20–L25 |
 | T6 | S3 | inline | in progress | selector `barrel graphics` + `msync` (`7162ba4`, 32 tests); D3D11 smoke test `tools/d3d11-smoke`: wined3d OK (120 frames, FL 10.1, MSync up); DXVK OK with CX MoltenVK (Apple M2, FL 11_0, 120 frames); DXMT build + D3DMetal (user GPTK) pending |
 
 ## Log
@@ -46,3 +46,4 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - L23 (milestone, S4): Stonewards (Unity 6000.3, app 4502710) downloaded by the user in our Steam bottle and launched via `steam.exe -applaunch 4502710` → main menu reached. Player.log: "Forcing GfxDevice: Direct3D 11", Direct3D 11.0 [level 11.1], Renderer "Apple M2" (DXVK on CX MoltenVK). Same path as CrossOver except DXVK instead of (likely) D3DMetal.
 - L24: Stonewards freeze #1 = game inherited the old `WINEDLLOVERRIDES=…=b` from a Steam started by the previous barrel → ran on wined3d's Vulkan renderer → VK_ERROR_DEVICE_LOST. With registry overrides it loads DXVK (+loaddll: d3d11/dxgi native). Freeze #2 / untextured orange characters on DXVK: MoltenVK "Texture buffer single texel alignment emulation is currently incompatible with argument buffers, disabling" (62×) then "GPU Address Fault" → DEVICE_LOST. Fix: MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0 → 0 warnings, 0 faults, Guerrero renders correctly (verified by window-only screenshot). Now always set by LaunchEnvironment.
 - L25: Stonewards hang #3 ("Seleccionar" does nothing, 0% CPU, no GPU faults): winedbg per-thread backtrace shows the main thread blocked in win32u called from gameoverlayrenderer64 (Steam in-game overlay hook) inside UnityPlayer. Fix: DllOverrides gameoverlayrenderer/gameoverlayrenderer64 = "" (disabled) in the steam recipe; applied live to the user's bottle.
+- L26 (2026-10-21, user): "Aparentemente funciona bien" — Stonewards playable after the overlay fix. Remaining: T3 GStreamer, T5 macOS launchers (F4), T6 DXMT build + D3DMetal with the user's own GPTK.
