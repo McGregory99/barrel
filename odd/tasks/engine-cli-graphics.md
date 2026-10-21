@@ -6,6 +6,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - S1 (phase 3 — engine): "Compilar el Wine de CrossOver 26.3 tal cual, como referencia que sabemos que funciona." / "Partir los parches por áreas y aplicarlos sobre Wine 11.0 oficial, empezando por MSync, la conexión con D3DMetal y el driver de Mac." Acceptance: "`winecfg` y un `.exe` de prueba arrancan dentro de una bottle."
 - S2 (phase 4 — bottle CLI): "Crear, copiar, borrar y exportar/importar bottles, más la plantilla de versión de Windows (F1 y F2)." / "Lanzar programas y documentos, y crear accesos directos en macOS (F3 y F4)." Acceptance: "los mismos casos de uso que `cxbottle` y `cxstart`, con tests." Clean-room: behavior from `--help` only, no CodeWeavers code.
 - S3 (phase 5 — graphics): "Integrar DXVK con MoltenVK, DXMT y D3DMetal, con un selector en cada bottle (F6)." / "Revisar la licencia de redistribución de D3DMetal." Acceptance: "un juego D3D11 funciona con cada motor."
+- S4 (user goal, see L16): "QUiero que con esto que estamos creando pueda hacer eso tambien" — install Steam, then download and play Stonewards, as with CrossOver.
 - Assumption: CLI written in Swift (shares code with the future SwiftUI GUI). Open to change.
 
 ## Tasks
@@ -16,6 +17,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 | T3 | S1 | inline | pending | gnutls + GStreamer x86_64 deps |
 | T4 | S2 | inline | done | `barrel` Swift package: create/list/info/copy/delete/default/templates — commit `6adcccf`, 13 tests |
 | T5 | S2 | inline | partial | export/restore/run done — commit `3c7d775`, 22 tests total; macOS launchers (F4) pending until Wine runs |
+| T7 | S4 | inline | pending | Steam + Stonewards end to end (recipe `recipes/steam.json`; needs gnutls Wine and the user's Steam login) |
 | T6 | S3 | inline | in progress | selector `barrel graphics` + `msync` (`7162ba4`, 32 tests); D3D11 smoke test `tools/d3d11-smoke`: wined3d OK (120 frames, FL 10.1, MSync up); DXVK OK with CX MoltenVK (Apple M2, FL 11_0, 120 frames); DXMT build + D3DMetal (user GPTK) pending |
 
 ## Log
@@ -34,3 +36,5 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - L13: L12 hang not reproduced: the same `barrel run` with DXVK returned exit 1 in <60 s. The first run started right after `make install`; kept as watch item.
 - L14: gnutls step: gmp OK; CX tarball lacks nettle's hand-written Makefile.in → build upstream GNU nettle-3.10 (sources identical apart from generated files; sha256 b4c518adb174e484cb4acea54118f02380c7133771e7e9beb98a0787194ee47c, signature not checked: no gpg).
 - L15: CX MoltenVK built (`upstream/moltenvk-cx`, SPIRV-Cross from CX tarball via --spirv-cross-root). Swapped in at runtime (Wine dlopens it): DXVK D3D11 smoke test → adapter "Apple M2", feature level 0xb000 (11_0), 120 frames, result OK, via `barrel run`. Official MoltenVK kept as build/deps/lib/libMoltenVK.official.dylib.
+- L16 (2026-10-21, user goal): "para lo que uso yo crossover es para poder jugar sobre Mac a juegos que teoricamente son solo para Windows. El ejemplo mas claro es poder jugar a juegos de Steam. Entonces con crosover me ha tocado descargarme steam y luego descargarme un juego concretamente el stoneguards o stenowards y me funciona bien. QUiero que con esto que estamos creando pueda hacer eso tambien"
+- L17: Reference setup (read-only look at the user's CrossOver bottle "Steam-2"): win10_64 template; Stonewards is Unity 6000.3.25f1, 64-bit, ships a D3D12 folder but runs with "Forcing GfxDevice: Direct3D 11", FL 11.1, renderer "AMD Compatibility Mode" (likely D3DMetal). CX Wine patches include libcef (CEF, used by Steam's UI) hacks. Plan: gnutls → Wine rebuild → `recipes/steam.json` (SteamSetup.exe sha256 7d365453…12bcb, `/S`) → user logs in → Stonewards on DXVK (FL 11_0 verified) with `-force-d3d11` if Unity picks D3D12; D3DMetal path needs the user's own GPTK.
