@@ -31,13 +31,14 @@ public struct ProcessWineRuntime: WineRuntime {
     }
 
     public func initializePrefix(at prefix: URL, environment: [String: String]) throws {
-        try run(wineBinary, ["wineboot", "--init"], prefix: prefix, extraEnvironment: environment)
-        try run(wineserver, ["-w"], prefix: prefix, extraEnvironment: environment)
+        try run(wineBinary, ["wineboot", "--init"], prefix: prefix, extraEnvironment: environment, unattended: true)
+        try run(wineserver, ["-w"], prefix: prefix, extraEnvironment: environment, unattended: true)
     }
 
     public func setWindowsVersion(_ version: WindowsVersion, prefix: URL, environment: [String: String]) throws {
-        try run(wineBinary, ["winecfg", "-v", version.winecfgName], prefix: prefix, extraEnvironment: environment)
-        try run(wineserver, ["-w"], prefix: prefix, extraEnvironment: environment)
+        try run(wineBinary, ["winecfg", "-v", version.winecfgName], prefix: prefix, extraEnvironment: environment,
+                unattended: true)
+        try run(wineserver, ["-w"], prefix: prefix, extraEnvironment: environment, unattended: true)
     }
 
     public func shutdown(prefix: URL) throws {
@@ -52,22 +53,31 @@ public struct ProcessWineRuntime: WineRuntime {
     public func setRegistryValue(key: String, name: String, data: String, prefix: URL,
                                  environment: [String: String]) throws {
         try run(wineBinary, ["reg", "add", key, "/v", name, "/t", "REG_SZ", "/d", data, "/f"], prefix: prefix,
-                extraEnvironment: environment, quiet: true)
+                extraEnvironment: environment, quiet: true, unattended: true)
     }
 
     private var wineserver: URL {
         wineBinary.deletingLastPathComponent().appendingPathComponent("wineserver")
     }
 
+    /// Disabling mscoree/mshtml keeps a prefix creation or update (which any Wine command can
+    /// trigger after a Wine upgrade) from opening the Wine Mono/Gecko installer dialogs and
+    /// blocking a command nobody is watching.
+    static let unattendedOverrides = "mscoree,mshtml="
+
     @discardableResult
     private func run(_ executable: URL, _ arguments: [String], prefix: URL,
                      extraEnvironment: [String: String] = [:], allowFailure: Bool = false,
-                     quiet: Bool = false) throws -> Int32 {
+                     quiet: Bool = false, unattended: Bool = false) throws -> Int32 {
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments
         if quiet { process.standardOutput = FileHandle.nullDevice }
         var environment = LaunchEnvironment.merge(extraEnvironment, into: ProcessInfo.processInfo.environment)
+        if unattended {
+            environment["WINEDLLOVERRIDES"] = [environment["WINEDLLOVERRIDES"], Self.unattendedOverrides]
+                .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ";")
+        }
         environment["WINEPREFIX"] = prefix.path
         environment["WINEDEBUG"] = environment["WINEDEBUG"] ?? "-all"
         process.environment = environment
