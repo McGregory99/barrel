@@ -11,12 +11,12 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 ## Tasks
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1 | inline | in progress | wine-11.0 + CX patch commit `b616515` (upstream clone, branch `cx-26.3`); x86_64 freetype built; configure OK |
-| T2 | S1 | inline | pending | smoke test: wineboot + winecfg + test .exe |
+| T1 | S1 | inline | done | Wine `wine-11.0-2-gb4af2ac` (CX patches `b616515` + build fix `b4af2ac`) built and installed to `build/install`; `scripts/build-engine.sh` |
+| T2 | S1 | inline | done | `barrel create Smoke --template win10` → real prefix, reports Windows 10 build 19045; 64-bit cmd.exe → AMD64, 32-bit (WoW64) cmd.exe → x86; winecfg ran 10 s, 2 expected errors only |
 | T3 | S1 | inline | pending | gnutls + GStreamer x86_64 deps |
 | T4 | S2 | inline | done | `barrel` Swift package: create/list/info/copy/delete/default/templates — commit `6adcccf`, 13 tests |
 | T5 | S2 | inline | partial | export/restore/run done — commit `3c7d775`, 22 tests total; macOS launchers (F4) pending until Wine runs |
-| T6 | S3 | inline | pending | MoltenVK + DXVK, DXMT, D3DMetal selector per bottle; license check |
+| T6 | S3 | inline | in progress | MoltenVK 1.2.10-rc2 linked (rebuild running); DXVK 1.10.3 built x64+x32 (`upstream/dxvk-cx` `a7030e8`); DXMT, D3DMetal path, per-bottle selector pending |
 
 ## Log
 - L1 (2026-10-21): "ponte con las fases 3,4,5"
@@ -26,3 +26,5 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - L5: CLI named `barrel` (working name). Bottles are always 64-bit WoW64; `_64` template suffix only selects the version. Smoke-tested against a fake wine; real Wine smoke test waits on T1.
 - L6: Build failed in `dlls/win32u/vulkan.c`: CX HACK 25909 dropped the `#ifdef SONAME_LIBVULKAN` guard, so builds without Vulkan break. Fixed in our Wine branch (`b4af2ac`), keeping the `CX_LIBVULKAN` override. Build resumed.
 - L7 (T6 license): D3DMetal (GPTK 3.0 in CrossOver) license reportedly grants use only to develop/test/evaluate games; redistribution is unclear (Apple forum thread 841547 asks Apple to clarify). Decision: do NOT bundle D3DMetal; the user points `barrel` at their own GPTK install downloaded from Apple. DXVK (zlib), DXMT and MoltenVK (Apache-2.0) can be bundled.
+- L8: Real-Wine smoke test passed (see T2). Wine needs `WINEDLLOVERRIDES=mscoree,mshtml=` during init until Mono/Gecko are provided, otherwise wineboot prompts for an installer.
+- L9: DXVK 1.10.3 does not build with mingw-w64 14 / GCC 16: fixed with `-include cstdint`, the upstream namespaced `D3DDEVINFO_RESOURCEMANAGER`, and a feature-detected guard for the `ID3D10StateBlock` UUID.
