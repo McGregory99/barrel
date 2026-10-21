@@ -1,5 +1,6 @@
 import ArgumentParser
 import BarrelCore
+import BarrelRecipes
 import Foundation
 
 struct Barrel: ParsableCommand {
@@ -15,7 +16,8 @@ struct Barrel: ParsableCommand {
               BARREL_GPTK  Your Apple Game Porting Toolkit directory (wine/, external/)
             """,
         subcommands: [Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self,
-                      Export.self, Restore.self, Run.self, Graphics.self, MSync.self]
+                      Export.self, Restore.self, Run.self, Graphics.self, MSync.self,
+                      Recipes.self, Install.self]
     )
 }
 
@@ -227,6 +229,52 @@ struct MSync: ParsableCommand {
         guard ["on", "off"].contains(state) else { throw ValidationError("state must be 'on' or 'off'") }
         try Environment.service().setMSync(name, enabled: state == "on")
         print("MSync \(state) for '\(name)'")
+    }
+}
+
+extension Environment {
+    static func catalog(extra: String?) -> RecipeCatalog {
+        var directories = [home().appendingPathComponent("Recipes", isDirectory: true)]
+        if let extra { directories.insert(URL(fileURLWithPath: extra, isDirectory: true), at: 0) }
+        return RecipeCatalog.load(directories: directories)
+    }
+}
+
+struct Recipes: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "List available install recipes.")
+
+    @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes).") var recipesDir: String?
+
+    func run() throws {
+        let catalog = Environment.catalog(extra: recipesDir)
+        for recipe in catalog.sorted { print("\(recipe.id)\t\(recipe.name)") }
+        for problem in catalog.problems {
+            FileHandle.standardError.write(Data("warning: \(problem.file): \(problem.message)\n".utf8))
+        }
+    }
+}
+
+struct Install: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Install a recipe (and its dependencies) into a bottle.",
+        discussion: "Without --bottle, a bottle named after the recipe is used and created if missing.")
+
+    @Argument(help: "Recipe id (see 'barrel recipes').") var recipe: String
+    @Option(help: "Bottle to install into.") var bottle: String?
+    @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes).") var recipesDir: String?
+
+    func run() throws {
+        let catalog = Environment.catalog(extra: recipesDir)
+        let home = Environment.home()
+        let store = try FileBottleStore(root: home)
+        let service = BottleService(store: store, runtime: ProcessWineRuntime(wineBinary: try Environment.wine()),
+                                    components: Environment.components())
+        let cache = DownloadCache(directory: home.appendingPathComponent("Downloads", isDirectory: true),
+                                  downloader: URLSessionDownloader())
+        let executor = RecipeExecutor(host: BottleServiceHost(service: service, store: store), downloads: cache,
+                                      log: { print($0) })
+        let name = try executor.install(recipe, catalog: catalog, bottle: bottle)
+        print("Installed '\(recipe)' into bottle '\(name)'")
     }
 }
 

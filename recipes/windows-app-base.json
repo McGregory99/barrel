@@ -1,0 +1,12 @@
+{
+  "formatVersion": 1,
+  "id": "windows-app-base",
+  "name": "Windows app base (VC++ 2015-2022 x64 + x86)",
+  "description": "Common runtime for desktop apps: both Visual C++ redistributables, Windows 10, and no Wine menu-builder shortcuts.",
+  "bottle": { "windowsVersion": "win10", "msync": true },
+  "dependencies": ["vcredist-x64", "vcredist-x86"],
+  "steps": [
+    { "kind": "dllOverride", "dll": "winemenubuilder.exe", "mode": "disabled" },
+    { "kind": "registry", "key": "HKCU\\Software\\Wine\\Explorer", "name": "Desktop", "type": "REG_SZ", "data": "Default" }
+  ]
+}

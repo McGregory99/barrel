@@ -1,0 +1,21 @@
+{
+  "formatVersion": 1,
+  "id": "vcredist-x86",
+  "name": "Microsoft Visual C++ 2015-2022 Redistributable (x86)",
+  "description": "Microsoft's redistributable from aka.ms. The aka.ms link always serves the latest build, so the pinned sha256 goes stale when Microsoft publishes a new one: re-download, verify the signature and update the hash.",
+  "dependencies": [],
+  "steps": [
+    {
+      "kind": "download",
+      "url": "https://aka.ms/vs/17/release/vc_redist.x86.exe",
+      "sha256": "0c09f2611660441084ce0df425c51c11e147e6447963c3690f97e0b25c55ed64",
+      "fileName": "vc_redist.x86.exe"
+    },
+    {
+      "kind": "run",
+      "file": "vc_redist.x86.exe",
+      "arguments": ["/install", "/quiet", "/norestart"],
+      "expectedExitCodes": [0, 1638, 3010]
+    }
+  ]
+}

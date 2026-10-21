@@ -28,6 +28,16 @@ barrel graphics Office dxvk               # copies DXVK DLLs into the prefix
 barrel msync Office off                   # MSync is on by default
 ```
 
+Install recipes (format: `../docs/recipes.md`; examples in `../recipes/`):
+
+```sh
+barrel recipes --recipes-dir ../recipes                 # list recipes ($BARREL_HOME/Recipes is read too)
+barrel install windows-app-base --recipes-dir ../recipes --bottle Office
+barrel install vcredist-x64 --recipes-dir ../recipes    # no --bottle: bottle 'vcredist-x64' is created
+```
+
+Downloads are SHA-256 verified and cached in `$BARREL_HOME/Downloads`.
+
 `run` launches Wine with the bottle's environment: `WINEDLLOVERRIDES` for the D3D DLLs,
 `CX_ACTIVE_GRAPHICS_BACKEND`, `WINEMSYNC=1`, and `DYLD_FALLBACK_LIBRARY_PATH` so Wine
 can `dlopen` MoltenVK.
