@@ -14,10 +14,11 @@ struct Barrel: ParsableCommand {
               BARREL_DXVK  DXVK build directory (x64/, x32/)
               BARREL_DXMT  DXMT build directory (x64/, x32/)
               BARREL_GPTK  Your Apple Game Porting Toolkit directory (wine/, external/)
+              BARREL_LAUNCHERS  Where 'barrel launcher' puts apps (default: ~/Applications/Barrel)
             """,
         subcommands: [Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self,
                       Export.self, Restore.self, Run.self, Graphics.self, MSync.self,
-                      Recipes.self, Install.self]
+                      Recipes.self, Install.self, Launcher.self]
     )
 }
 
@@ -289,6 +290,83 @@ struct Install: ParsableCommand {
                                       log: { print($0) })
         let name = try executor.install(recipe, catalog: catalog, bottle: bottle)
         print("Installed '\(recipe)' into bottle '\(name)'")
+    }
+}
+
+struct Launcher: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Create, list or remove macOS apps that open a Windows program in a bottle.",
+        subcommands: [CreateLauncher.self, ListLaunchers.self, RemoveLauncher.self])
+
+    static func installer() -> LauncherInstaller {
+        let directory = ProcessInfo.processInfo.environment["BARREL_LAUNCHERS"].map { URL(fileURLWithPath: $0) }
+            ?? FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent("Applications/Barrel")
+        return LauncherInstaller(directory: directory)
+    }
+}
+
+struct CreateLauncher: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "create",
+        abstract: "Create a launcher app.",
+        discussion: """
+            The launcher runs 'barrel run --bottle <bottle> <program> [arguments]' with the
+            BARREL_* variables of the current shell, so it also works when opened from Finder.
+            Example (a Steam game): barrel launcher create steam ".../Steam/steam.exe" --name Stonewards
+              --icon-from ".../steamapps/common/Stonewards/Stonewards.exe" -- -applaunch 4502710
+            """)
+
+    @Argument(help: "Bottle name.") var bottle: String
+    @Argument(help: "Program or document path (Unix path).") var program: String
+    @Option(help: "App name (default: the program's file name without extension).") var name: String?
+    @Option(help: "Windows executable to take the icon from (default: the program).") var iconFrom: String?
+    @Argument(parsing: .postTerminator, help: "Arguments passed to the program, after '--'.") var arguments: [String] = []
+
+    func run() throws {
+        _ = try Environment.service().info(bottle)
+        let programURL = URL(fileURLWithPath: program)
+        let appName = name ?? programURL.deletingPathExtension().lastPathComponent
+        guard let barrel = Bundle.main.executableURL else { throw ValidationError("cannot locate the barrel binary") }
+
+        var environment = ["BARREL_HOME": Environment.home().path, "BARREL_WINE": try Environment.wine().path]
+        for key in ["BARREL_LIBS", "BARREL_DXVK", "BARREL_DXMT", "BARREL_GPTK"] {
+            if let value = ProcessInfo.processInfo.environment[key] { environment[key] = value }
+        }
+
+        let spec = LauncherSpec(name: appName, bottle: bottle, program: programURL.path, arguments: arguments,
+                                environment: environment, barrelExecutable: barrel.resolvingSymlinksInPath())
+        let app = try Launcher.installer().install(spec, icon: icon(from: iconFrom ?? programURL.path))
+        print("Created \(app.path)")
+    }
+
+    private func icon(from path: String) -> Data? {
+        guard path.lowercased().hasSuffix(".exe") else { return nil }
+        do {
+            guard let ico = try PEIcon.largestIcon(in: Data(contentsOf: URL(fileURLWithPath: path))) else { return nil }
+            return try IconConverter.icns(fromICO: ico)
+        } catch {
+            FileHandle.standardError.write(Data("warning: no icon from \(path): \(error)\n".utf8))
+            return nil
+        }
+    }
+}
+
+struct ListLaunchers: ParsableCommand {
+    static let configuration = CommandConfiguration(commandName: "list", abstract: "List launcher apps.")
+
+    func run() throws {
+        for name in try Launcher.installer().list() { print(name) }
+    }
+}
+
+struct RemoveLauncher: ParsableCommand {
+    static let configuration = CommandConfiguration(commandName: "remove", abstract: "Remove a launcher app.")
+
+    @Argument var name: String
+
+    func run() throws {
+        try Launcher.installer().remove(name)
+        print("Removed launcher '\(name)'")
     }
 }
 

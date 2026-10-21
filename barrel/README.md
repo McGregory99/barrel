@@ -1,7 +1,7 @@
 # barrel
 
 Command-line bottle manager for Wine on macOS (clean-room reimplementation of the
-CrossOver bottle workflow; see `../docs/feature-map.md`, features F1–F3).
+CrossOver bottle workflow; see `../docs/feature-map.md`, features F1–F4).
 
 ```sh
 swift build -c release
@@ -36,6 +36,20 @@ barrel recipes --recipes-dir ../recipes                 # list recipes ($BARREL_
 barrel install windows-app-base --recipes-dir ../recipes --bottle Office
 barrel install vcredist-x64 --recipes-dir ../recipes    # no --bottle: bottle 'vcredist-x64' is created
 ```
+
+macOS launchers (F4): an app in `~/Applications/Barrel` (or `$BARREL_LAUNCHERS`) that runs a
+program in a bottle, with the icon taken from a Windows executable:
+
+```sh
+S="$BARREL_HOME/Bottles/steam/drive_c/Program Files (x86)/Steam"
+barrel launcher create steam "$S/steam.exe" --name Stonewards \
+  --icon-from "$S/steamapps/common/Stonewards/Stonewards.exe" -- -applaunch 4502710
+barrel launcher list
+barrel launcher remove Stonewards
+```
+
+The launcher stores the current `BARREL_*` variables, because apps opened from Finder do not
+inherit the shell environment.
 
 Downloads are SHA-256 verified and cached in `$BARREL_HOME/Downloads`.
 
