@@ -16,7 +16,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 | T3 | S1 | inline | pending | gnutls + GStreamer x86_64 deps |
 | T4 | S2 | inline | done | `barrel` Swift package: create/list/info/copy/delete/default/templates — commit `6adcccf`, 13 tests |
 | T5 | S2 | inline | partial | export/restore/run done — commit `3c7d775`, 22 tests total; macOS launchers (F4) pending until Wine runs |
-| T6 | S3 | inline | in progress | MoltenVK 1.2.10-rc2 linked (rebuild running); DXVK 1.10.3 built x64+x32 (`upstream/dxvk-cx` `a7030e8`); DXMT, D3DMetal path, per-bottle selector pending |
+| T6 | S3 | inline | in progress | selector `barrel graphics` + `msync` (`7162ba4`, 32 tests); D3D11 smoke test `tools/d3d11-smoke`: wined3d OK (120 frames, FL 10.1, MSync up); DXVK built (`a7030e8`), awaiting Vulkan rebuild; DXMT build + D3DMetal (user GPTK) pending |
 
 ## Log
 - L1 (2026-10-21): "ponte con las fases 3,4,5"
@@ -28,3 +28,4 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - L7 (T6 license): D3DMetal (GPTK 3.0 in CrossOver) license reportedly grants use only to develop/test/evaluate games; redistribution is unclear (Apple forum thread 841547 asks Apple to clarify). Decision: do NOT bundle D3DMetal; the user points `barrel` at their own GPTK install downloaded from Apple. DXVK (zlib), DXMT and MoltenVK (Apache-2.0) can be bundled.
 - L8: Real-Wine smoke test passed (see T2). Wine needs `WINEDLLOVERRIDES=mscoree,mshtml=` during init until Mono/Gecko are provided, otherwise wineboot prompts for an installer.
 - L9: DXVK 1.10.3 does not build with mingw-w64 14 / GCC 16: fixed with `-include cstdint`, the upstream namespaced `D3DDEVINFO_RESOURCEMANAGER`, and a feature-detected guard for the `ID3D10StateBlock` UUID.
+- L10: MSync verified at runtime ("msync: up and running"). D3D11 smoke test passes on wined3d.
