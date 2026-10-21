@@ -68,3 +68,4 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
   - README notes on Mono/Gecko being skipped in maintenance commands and on d3dmetal needing our Wine.
 
   Not changed, with reasons: the DXMT x64/x32 layout never existed in a real build; WINEDLLPATH_PREPEND being specific to our Wine is now documented. Stonewards.app was regenerated.
+- L39: `scripts/smoke-backends.sh` is a regression check for phase 8. In a throwaway bottle, using dist/runtime when present, it runs the D3D11 smoke test on each backend. Result on the relocated runtime: wined3d, dxvk and dxmt all "Apple M2, 120 frames". S3 acceptance per backend: wined3d smoke OK; DXVK Stonewards played; DXMT Stonewards menu; D3DMetal blocked on the user's GPTK (L36–L37).
