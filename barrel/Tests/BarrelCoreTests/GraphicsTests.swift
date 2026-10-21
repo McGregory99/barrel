@@ -175,6 +175,12 @@ struct GraphicsFixture {
         #expect(env["DYLD_FALLBACK_FRAMEWORK_PATH"] == "/gptk/external")
     }
 
+    @Test(arguments: GraphicsBackend.allCases)
+    func moltenVKArgumentBuffersAreDisabled(backend: GraphicsBackend) {
+        let env = LaunchEnvironment.make(for: bottle(backend), components: components)
+        #expect(env["MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS"] == "0")
+    }
+
     @Test func msyncCanBeDisabled() {
         let env = LaunchEnvironment.make(for: bottle(.wined3d, msync: false), components: components)
         #expect(env["WINEMSYNC"] == nil)

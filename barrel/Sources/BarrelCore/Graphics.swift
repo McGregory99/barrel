@@ -102,7 +102,12 @@ public enum LaunchEnvironment {
     static let systemLibraryFallback = ["/usr/local/lib", "/usr/lib"]
 
     public static func make(for bottle: Bottle, components: RuntimeComponents) -> [String: String] {
-        var env: [String: String] = ["CX_ACTIVE_GRAPHICS_BACKEND": bottle.graphicsBackend.rawValue]
+        var env: [String: String] = [
+            "CX_ACTIVE_GRAPHICS_BACKEND": bottle.graphicsBackend.rawValue,
+            // With Metal argument buffers MoltenVK disables texel-buffer alignment emulation; Unity's
+            // GPU skinning then faults (GPU Address Fault → VK_ERROR_DEVICE_LOST, untextured models).
+            "MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS": "0",
+        ]
         var libraryPath = components.libraryDirectory.map { [$0.path] } ?? []
 
         if bottle.graphicsBackend == .d3dmetal, let gptk = components.gptkDirectory {
