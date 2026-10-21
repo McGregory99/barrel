@@ -16,7 +16,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 | T3 | S1 | inline | pending | gnutls + GStreamer x86_64 deps |
 | T4 | S2 | inline | done | `barrel` Swift package: create/list/info/copy/delete/default/templates — commit `6adcccf`, 13 tests |
 | T5 | S2 | inline | partial | export/restore/run done — commit `3c7d775`, 22 tests total; macOS launchers (F4) pending until Wine runs |
-| T6 | S3 | inline | in progress | selector `barrel graphics` + `msync` (`7162ba4`, 32 tests); D3D11 smoke test `tools/d3d11-smoke`: wined3d OK (120 frames, FL 10.1, MSync up); DXVK built (`a7030e8`), awaiting Vulkan rebuild; DXMT build + D3DMetal (user GPTK) pending |
+| T6 | S3 | inline | in progress | selector `barrel graphics` + `msync` (`7162ba4`, 32 tests); D3D11 smoke test `tools/d3d11-smoke`: wined3d OK (120 frames, FL 10.1, MSync up); DXVK OK with CX MoltenVK (Apple M2, FL 11_0, 120 frames); DXMT build + D3DMetal (user GPTK) pending |
 
 ## Log
 - L1 (2026-10-21): "ponte con las fases 3,4,5"
@@ -33,3 +33,4 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 - L12: Known issue: through `barrel run` (`wine start /wait`) the failing DXVK run did not return for >3 min, while a direct `wine` run exited with code 1. Investigate (likely a crash/error dialog waiting for input).
 - L13: L12 hang not reproduced: the same `barrel run` with DXVK returned exit 1 in <60 s. The first run started right after `make install`; kept as watch item.
 - L14: gnutls step: gmp OK; CX tarball lacks nettle's hand-written Makefile.in → build upstream GNU nettle-3.10 (sources identical apart from generated files; sha256 b4c518adb174e484cb4acea54118f02380c7133771e7e9beb98a0787194ee47c, signature not checked: no gpg).
+- L15: CX MoltenVK built (`upstream/moltenvk-cx`, SPIRV-Cross from CX tarball via --spirv-cross-root). Swapped in at runtime (Wine dlopens it): DXVK D3D11 smoke test → adapter "Apple M2", feature level 0xb000 (11_0), 120 frames, result OK, via `barrel run`. Official MoltenVK kept as build/deps/lib/libMoltenVK.official.dylib.

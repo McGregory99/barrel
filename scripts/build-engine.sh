@@ -5,7 +5,8 @@
 #   upstream/crossover-26.3/sources  CrossOver 26.3 source tarball
 #   upstream/wine-11.0               Wine 11.0 + CX patches (branch cx-26.3)
 #   upstream/dxvk-cx                 DXVK 1.10.3 from CX sources + mingw-w64 14 fixes
-#   upstream/moltenvk-1.2.10         MoltenVK v1.2.10-rc2 release (universal dylib)
+#   upstream/moltenvk-cx             MoltenVK 1.2.10 from CX sources (geometry shader emulation DXVK needs)
+#   upstream/spirv-cross-cx          SPIRV-Cross copied from CX sources (fetchDependencies deletes its root)
 set -eu
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 SRC=$ROOT/upstream/crossover-26.3/sources
@@ -21,7 +22,16 @@ deps() {
         -DFT_DISABLE_HARFBUZZ=ON -DFT_DISABLE_PNG=ON -DFT_DISABLE_BROTLI=ON -DFT_DISABLE_BZIP2=ON
     cmake --build "$ROOT/build/freetype-cmake" -j"$JOBS"
     cmake --install "$ROOT/build/freetype-cmake"
-    cp "$ROOT/upstream/moltenvk-1.2.10/MoltenVK/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib" "$DEPS/lib/"
+    moltenvk
+}
+
+# Upstream MoltenVK lacks geometry shaders, so DXVK cannot create a device; CX's fork emulates them.
+moltenvk() {
+    mvk=$ROOT/upstream/moltenvk-cx
+    [ -d "$ROOT/upstream/spirv-cross-cx" ] || cp -R "$SRC/moltenvk/External/SPIRV-Cross" "$ROOT/upstream/spirv-cross-cx"
+    (cd "$mvk" && ./fetchDependencies --macos --spirv-cross-root "$ROOT/upstream/spirv-cross-cx" && make macos)
+    mkdir -p "$DEPS/lib"
+    cp "$mvk/Package/Release/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib" "$DEPS/lib/"
 }
 
 # gmp → nettle → gnutls (with bundled libtasn1), all x86_64, for Wine's schannel/bcrypt.
@@ -69,9 +79,10 @@ dxvk() {
 
 case $step in
     deps) deps ;;
+    moltenvk) moltenvk ;;
     gnutls) gnutls ;;
     wine) wine ;;
     dxvk) dxvk ;;
     all) deps; gnutls; wine; dxvk ;;
-    *) echo "usage: $0 [deps|gnutls|wine|dxvk|all]" >&2; exit 2 ;;
+    *) echo "usage: $0 [deps|moltenvk|gnutls|wine|dxvk|all]" >&2; exit 2 ;;
 esac
