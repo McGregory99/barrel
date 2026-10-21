@@ -2,3 +2,7 @@ upstream/
 build/
 .build/
 .DS_Store
+.atl/
+.claude/
+tools/d3d11-smoke/*.log
+tools/d3d11-smoke/*.dxvk-cache
