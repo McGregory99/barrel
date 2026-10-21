@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "id": "steam",
   "name": "Steam",
-  "description": "Valve's Steam client, installed silently into a Windows 10 bottle using DXVK. The installer URL always serves the latest SteamSetup.exe, so the pinned sha256 goes stale when Valve publishes a new one: re-download, verify the signature and update the hash. Steam updates itself after the first launch. Two Steam-specific fixes are applied: CoreAudio is disabled for steam.exe only (its microphone format probing crashes CoreAudio inside Wine and kills Steam; games keep audio), and steamwebhelper.exe gets --no-sandbox --in-process-gpu --disable-gpu via AppDefaults\\<exe>\\AppendCommandLine (without --in-process-gpu the CEF login window paints black). Steam's own UI (steamwebhelper.exe) stays on wined3d: with --in-process-gpu it loads D3D11 in-process and hangs on DXVK, while games use the bottle's DXVK.",
+  "description": "Valve's Steam client, installed silently into a Windows 10 bottle using DXVK. The installer URL always serves the latest SteamSetup.exe, so the pinned sha256 goes stale when Valve publishes a new one: re-download, verify the signature and update the hash. Steam updates itself after the first launch. Two Steam-specific fixes are applied: CoreAudio is disabled for steam.exe only (its microphone format probing crashes CoreAudio inside Wine and kills Steam; games keep audio), and steamwebhelper.exe gets --no-sandbox --in-process-gpu --disable-gpu via AppDefaults\\<exe>\\AppendCommandLine (without --in-process-gpu the CEF login window paints black). Steam's own UI (steamwebhelper.exe) stays on wined3d: with --in-process-gpu it loads D3D11 in-process and hangs on DXVK, while games use the bottle's DXVK. The Steam in-game overlay (gameoverlayrenderer/gameoverlayrenderer64) is disabled: it hooks the game's main thread and deadlocks it under Wine (frozen game, hidden cursor).",
   "bottle": {
     "windowsVersion": "win10",
     "graphicsBackend": "dxvk",
@@ -39,6 +39,16 @@
       "name": "AppendCommandLine",
       "type": "REG_SZ",
       "data": "--no-sandbox --in-process-gpu --disable-gpu"
+    },
+    {
+      "kind": "dllOverride",
+      "dll": "gameoverlayrenderer",
+      "mode": "disabled"
+    },
+    {
+      "kind": "dllOverride",
+      "dll": "gameoverlayrenderer64",
+      "mode": "disabled"
     }
   ]
 }
