@@ -107,6 +107,20 @@ struct GraphicsFixture {
         #expect(env["WINEMSYNC"] == nil)
     }
 
+    @Test func mergesCallerDllOverridesInsteadOfReplacingThem() {
+        let merged = LaunchEnvironment.merge(
+            ["WINEDLLOVERRIDES": "d3d9,d3d10core,d3d11,dxgi=b", "WINEMSYNC": "1"],
+            into: ["WINEDLLOVERRIDES": "mscoree,mshtml=", "HOME": "/Users/x"])
+        #expect(merged["WINEDLLOVERRIDES"] == "mscoree,mshtml=;d3d9,d3d10core,d3d11,dxgi=b")
+        #expect(merged["WINEMSYNC"] == "1")
+        #expect(merged["HOME"] == "/Users/x")
+    }
+
+    @Test func mergeUsesBottleOverridesWhenCallerHasNone() {
+        let merged = LaunchEnvironment.merge(["WINEDLLOVERRIDES": "dxgi=n,b"], into: ["HOME": "/Users/x"])
+        #expect(merged["WINEDLLOVERRIDES"] == "dxgi=n,b")
+    }
+
     @Test func runPassesBottleEnvironmentToWine() throws {
         let f = try GraphicsFixture()
         _ = try f.service.create(name: "Game", version: .win10)

@@ -56,7 +56,7 @@ public struct ProcessWineRuntime: WineRuntime {
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments
-        var environment = ProcessInfo.processInfo.environment.merging(extraEnvironment) { _, new in new }
+        var environment = LaunchEnvironment.merge(extraEnvironment, into: ProcessInfo.processInfo.environment)
         environment["WINEPREFIX"] = prefix.path
         environment["WINEDEBUG"] = environment["WINEDEBUG"] ?? "-all"
         process.environment = environment

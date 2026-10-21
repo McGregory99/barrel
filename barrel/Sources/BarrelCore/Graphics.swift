@@ -114,4 +114,15 @@ public enum LaunchEnvironment {
         }
         return env
     }
+
+    /// Applies `bottle` variables over `base`. `WINEDLLOVERRIDES` is combined, not replaced,
+    /// so caller overrides (e.g. `mscoree,mshtml=` to skip Mono/Gecko) survive.
+    public static func merge(_ bottle: [String: String], into base: [String: String]) -> [String: String] {
+        var merged = base.merging(bottle) { _, new in new }
+        if let callerOverrides = base["WINEDLLOVERRIDES"], !callerOverrides.isEmpty,
+           let bottleOverrides = bottle["WINEDLLOVERRIDES"] {
+            merged["WINEDLLOVERRIDES"] = "\(callerOverrides);\(bottleOverrides)"
+        }
+        return merged
+    }
 }
