@@ -6,3 +6,4 @@ build/
 .claude/
 tools/d3d11-smoke/*.log
 tools/d3d11-smoke/*.dxvk-cache
+dist/

@@ -183,6 +183,14 @@ struct GraphicsFixture {
         #expect(env["MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS"] == "0")
     }
 
+    @Test func gstreamerPluginsComeFromTheLibraryDirectory() {
+        let env = LaunchEnvironment.make(for: bottle(.wined3d), components: components)
+        #expect(env["GST_PLUGIN_SYSTEM_PATH_1_0"] == "/rt/lib/gstreamer-1.0")
+        #expect(env["GST_PLUGIN_SCANNER_1_0"] == "/rt/libexec/gstreamer-1.0/gst-plugin-scanner")
+        let bare = LaunchEnvironment.make(for: bottle(.wined3d), components: RuntimeComponents())
+        #expect(bare["GST_PLUGIN_SYSTEM_PATH_1_0"] == nil)
+    }
+
     @Test func gstreamerRegistryCacheIsBarrelsOwn() {
         let env = LaunchEnvironment.make(for: bottle(.wined3d), components: components)
         let expected = FileManager.default.homeDirectoryForCurrentUser

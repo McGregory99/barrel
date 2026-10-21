@@ -125,6 +125,13 @@ public enum LaunchEnvironment {
             "GST_REGISTRY_1_0": gstreamerRegistry.path,
         ]
         var libraryPath = components.libraryDirectory.map { [$0.path] } ?? []
+        if let lib = components.libraryDirectory {
+            // GStreamer's compiled-in plugin and scanner paths point at the build tree; a relocated
+            // runtime (Barrel.app) keeps them next to its libraries.
+            env["GST_PLUGIN_SYSTEM_PATH_1_0"] = lib.appendingPathComponent("gstreamer-1.0").path
+            env["GST_PLUGIN_SCANNER_1_0"] = lib.deletingLastPathComponent()
+                .appendingPathComponent("libexec/gstreamer-1.0/gst-plugin-scanner").path
+        }
         var dllPath: [String] = []
 
         if bottle.graphicsBackend == .d3dmetal, let gptk = components.gptkDirectory {

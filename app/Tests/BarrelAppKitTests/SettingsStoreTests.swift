@@ -43,3 +43,43 @@ struct SettingsStoreTests {
         #expect(settings.dataDirectory.path.hasSuffix("Library/Application Support/Barrel"))
     }
 }
+
+struct BundledRuntimeSettingsTests {
+    private func defaults() -> UserDefaults {
+        let suite = "barrel-tests-\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suite)!
+        defaults.removePersistentDomain(forName: suite)
+        return defaults
+    }
+
+    let bundle = URL(fileURLWithPath: "/Applications/Barrel.app/Contents/Resources")
+
+    @Test func bundledRuntimeFillsUnsetValues() {
+        let settings = SettingsStore(defaults: defaults(), environment: [:], bundleResources: bundle).load()
+        #expect(settings.wineBinary == bundle.path + "/runtime/wine/bin/wine")
+        #expect(settings.librariesDirectory == bundle.path + "/runtime/deps/lib")
+        #expect(settings.dxvkDirectory == bundle.path + "/runtime/dxvk")
+        #expect(settings.dxmtDirectory == bundle.path + "/runtime/dxmt")
+        #expect(settings.recipesDirectory == bundle.path + "/recipes")
+        #expect(settings.gptkDirectory == "")
+    }
+
+    @Test func environmentAndSavedValuesWinOverTheBundle() {
+        let defaults = defaults()
+        let store = SettingsStore(defaults: defaults, environment: ["BARREL_WINE": "/env/wine"], bundleResources: bundle)
+        #expect(store.load().wineBinary == "/env/wine")
+        var settings = store.load()
+        settings.dxvkDirectory = "/saved/dxvk"
+        store.save(settings)
+        #expect(store.load().dxvkDirectory == "/saved/dxvk")
+    }
+
+    @Test func emptySavedValuesCountAsUnset() {
+        let defaults = defaults()
+        let store = SettingsStore(defaults: defaults, environment: [:], bundleResources: bundle)
+        var settings = AppSettings()
+        settings.wineBinary = ""
+        store.save(settings)
+        #expect(store.load().wineBinary == bundle.path + "/runtime/wine/bin/wine")
+    }
+}

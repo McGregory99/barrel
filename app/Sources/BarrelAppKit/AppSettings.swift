@@ -43,10 +43,20 @@ public struct AppSettings: Equatable, Sendable {
     }
 }
 
-/// Persists `AppSettings` in UserDefaults; the CLI's BARREL_* variables seed unset values.
+/// Persists `AppSettings` in UserDefaults. Unset (missing or empty) values come from the CLI's
+/// BARREL_* variables, then from the runtime bundled in Barrel.app (`Resources/runtime`).
 public struct SettingsStore {
     private let defaults: UserDefaults
     private let environment: [String: String]
+    private let bundleResources: URL?
+
+    /// The app bundle's Resources folder when it ships a runtime, else nil (e.g. `swift run`).
+    public static var bundledResources: URL? {
+        guard let resources = Bundle.main.resourceURL,
+              FileManager.default.fileExists(atPath: resources.appendingPathComponent("runtime").path)
+        else { return nil }
+        return resources
+    }
 
     private enum Key {
         static let wine = "wineBinary", home = "dataDirectory", libs = "librariesDirectory"
@@ -54,24 +64,28 @@ public struct SettingsStore {
         static let recipes = "recipesDirectory"
     }
 
-    public init(defaults: UserDefaults = .standard, environment: [String: String] = ProcessInfo.processInfo.environment) {
+    public init(defaults: UserDefaults = .standard, environment: [String: String] = ProcessInfo.processInfo.environment,
+                bundleResources: URL? = SettingsStore.bundledResources) {
         self.defaults = defaults
         self.environment = environment
+        self.bundleResources = bundleResources
     }
 
     public func load() -> AppSettings {
-        func value(_ key: String, _ env: String) -> String {
-            defaults.string(forKey: key) ?? environment[env] ?? ""
+        func value(_ key: String, _ env: String, bundled: String? = nil) -> String {
+            let candidates = [defaults.string(forKey: key), environment[env],
+                              bundled.flatMap { path in bundleResources.map { $0.appendingPathComponent(path).path } }]
+            return candidates.compactMap { $0 }.first { !$0.isEmpty } ?? ""
         }
         var settings = AppSettings()
         let home = value(Key.home, "BARREL_HOME")
         if !home.isEmpty { settings.dataDirectory = URL(fileURLWithPath: home, isDirectory: true) }
-        settings.wineBinary = value(Key.wine, "BARREL_WINE")
-        settings.librariesDirectory = value(Key.libs, "BARREL_LIBS")
-        settings.dxvkDirectory = value(Key.dxvk, "BARREL_DXVK")
-        settings.dxmtDirectory = value(Key.dxmt, "BARREL_DXMT")
+        settings.wineBinary = value(Key.wine, "BARREL_WINE", bundled: "runtime/wine/bin/wine")
+        settings.librariesDirectory = value(Key.libs, "BARREL_LIBS", bundled: "runtime/deps/lib")
+        settings.dxvkDirectory = value(Key.dxvk, "BARREL_DXVK", bundled: "runtime/dxvk")
+        settings.dxmtDirectory = value(Key.dxmt, "BARREL_DXMT", bundled: "runtime/dxmt")
         settings.gptkDirectory = value(Key.gptk, "BARREL_GPTK")
-        settings.recipesDirectory = value(Key.recipes, "BARREL_RECIPES")
+        settings.recipesDirectory = value(Key.recipes, "BARREL_RECIPES", bundled: "recipes")
         return settings
     }
 
