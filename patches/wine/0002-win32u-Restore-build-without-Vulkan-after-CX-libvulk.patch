@@ -1,0 +1,45 @@
+From b4af2ac449c2bdf6297ff8f83e2cf7374d444091 Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Wed, 21 Oct 2026 11:46:24 +0200
+Subject: [PATCH 2/4] win32u: Restore build without Vulkan after CX libvulkan
+ override
+
+---
+ dlls/win32u/vulkan.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
+
+diff --git a/dlls/win32u/vulkan.c b/dlls/win32u/vulkan.c
+index 49eac27..cd11559 100644
+--- a/dlls/win32u/vulkan.c
++++ b/dlls/win32u/vulkan.c
+@@ -3003,12 +3003,22 @@ static void vulkan_init_once(void)
+     const char *libvulkan, *graphics_backend;
+ 
+     /* CW HACK 25909: Allow specifying libvulkan */
+-    if (!(libvulkan = getenv( "CX_LIBVULKAN" )) ||
+-        !(graphics_backend = getenv( "CX_ACTIVE_GRAPHICS_BACKEND" )) ||
+-        strcmp( graphics_backend, "wined3d" ))
+-        libvulkan = SONAME_LIBVULKAN;
+-    else
++    if ((libvulkan = getenv( "CX_LIBVULKAN" )) &&
++        (graphics_backend = getenv( "CX_ACTIVE_GRAPHICS_BACKEND" )) &&
++        !strcmp( graphics_backend, "wined3d" ))
+         ERR( "Using %s\n", libvulkan );
++    else
++#ifdef SONAME_LIBVULKAN
++        libvulkan = SONAME_LIBVULKAN;
++#else
++        libvulkan = NULL;
++#endif
++
++    if (!libvulkan)
++    {
++        ERR( "Wine was built without Vulkan support.\n" );
++        return;
++    }
+ 
+     if (!(vulkan_handle = dlopen( libvulkan, RTLD_NOW )))
+     {
+-- 
+2.47.0
+

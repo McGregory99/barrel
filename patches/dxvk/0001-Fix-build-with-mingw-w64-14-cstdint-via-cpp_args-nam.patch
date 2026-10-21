@@ -1,0 +1,50 @@
+From a7030e83e0bc39765bedd828dc32ca8a526bbea8 Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Wed, 21 Oct 2026 12:08:59 +0200
+Subject: [PATCH] Fix build with mingw-w64 14 (cstdint via cpp_args, namespaced
+ D3DDEVINFO_RESOURCEMANAGER, guarded ID3D10StateBlock UUID)
+
+---
+ src/d3d10/d3d10_interfaces.h |  3 ++-
+ src/d3d9/d3d9_include.h      | 12 ++++++++----
+ 2 files changed, 10 insertions(+), 5 deletions(-)
+
+diff --git a/src/d3d10/d3d10_interfaces.h b/src/d3d10/d3d10_interfaces.h
+index aa028ab..6e41b85 100644
+--- a/src/d3d10/d3d10_interfaces.h
++++ b/src/d3d10/d3d10_interfaces.h
+@@ -4,6 +4,7 @@
+ 
+ #ifdef _MSC_VER
+ struct __declspec(uuid("0803425a-57f5-4dd6-9465-a87570834a08")) ID3D10StateBlock;
+-#else
++#elif !defined(__ID3D10StateBlock_INTERFACE_DEFINED__)
++// Newer mingw-w64 headers declare this UUID together with the interface.
+ __CRT_UUID_DECL(ID3D10StateBlock, 0x0803425a,0x57f5,0x4dd6,0x94,0x65,0xa8,0x75,0x70,0x83,0x4a,0x08);
+ #endif
+diff --git a/src/d3d9/d3d9_include.h b/src/d3d9/d3d9_include.h
+index 8762265..5e28178 100644
+--- a/src/d3d9/d3d9_include.h
++++ b/src/d3d9/d3d9_include.h
+@@ -79,10 +79,14 @@
+ 
+ // MinGW headers are broken. Who'dve guessed?
+ #ifndef _MSC_VER
+-typedef struct _D3DDEVINFO_RESOURCEMANAGER
+-{
+-  char dummy;
+-} D3DDEVINFO_RESOURCEMANAGER, * LPD3DDEVINFO_RESOURCEMANAGER;
++// Backported from upstream DXVK: namespaced so it no longer clashes with
++// mingw-w64 >= 14, which defines its own D3DDEVINFO_RESOURCEMANAGER.
++namespace dxvk {
++  typedef struct _D3DDEVINFO_RESOURCEMANAGER
++  {
++    char dummy;
++  } D3DDEVINFO_RESOURCEMANAGER, * LPD3DDEVINFO_RESOURCEMANAGER;
++}
+ 
+ #ifndef __WINE__
+ extern "C" WINUSERAPI WINBOOL WINAPI SetProcessDPIAware(VOID);
+-- 
+2.47.0
+

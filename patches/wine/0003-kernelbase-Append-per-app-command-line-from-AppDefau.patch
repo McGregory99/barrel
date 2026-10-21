@@ -1,0 +1,60 @@
+From 589cf0527f330a97f3283b001bf7956f7e8272b7 Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Wed, 21 Oct 2026 14:57:48 +0200
+Subject: [PATCH 3/4] kernelbase: Append per-app command line from
+ AppDefaults\<exe>\AppendCommandLine
+
+---
+ dlls/kernelbase/process.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/dlls/kernelbase/process.c b/dlls/kernelbase/process.c
+index 867964e..09938c5 100644
+--- a/dlls/kernelbase/process.c
++++ b/dlls/kernelbase/process.c
+@@ -28,6 +28,7 @@
+ #include "winnls.h"
+ #include "wincontypes.h"
+ #include "winternl.h"
++#include "winreg.h"
+ 
+ #include "kernelbase.h"
+ #include "wine/debug.h"
+@@ -567,6 +568,34 @@ BOOL WINAPI DECLSPEC_HOTPATCH CreateProcessInternalW( HANDLE token, const WCHAR
+         }
+     }
+ 
++    /* Barrel: open replacement for CrossOver's cxcompatdb "append_cmd_line" hacks.
++     * HKCU\Software\Wine\AppDefaults\<exe>\AppendCommandLine (REG_SZ) is appended to the
++     * command line of every process started from <exe>, e.g. steamwebhelper.exe needs
++     * "--no-sandbox --in-process-gpu --disable-gpu" so CEF draws into its own windows. */
++    if (tidy_cmdline && app_name)
++    {
++        const WCHAR *exe = app_name, *sep;
++        WCHAR key[MAX_PATH + 32], extra[1024], *new_cmdline;
++        DWORD size = sizeof(extra);
++
++        if ((sep = wcsrchr( exe, '\\' ))) exe = sep + 1;
++        if ((sep = wcsrchr( exe, '/' ))) exe = sep + 1;
++        swprintf( key, ARRAY_SIZE(key), L"Software\\Wine\\AppDefaults\\%s", exe );
++        if (!RegGetValueW( HKEY_CURRENT_USER, key, L"AppendCommandLine", RRF_RT_REG_SZ, NULL, extra, &size )
++            && extra[0] && !wcsstr( tidy_cmdline, extra ))
++        {
++            SIZE_T len = lstrlenW( tidy_cmdline ) + 1 + lstrlenW( extra ) + 1;
++
++            if ((new_cmdline = RtlAllocateHeap( GetProcessHeap(), 0, len * sizeof(WCHAR) )))
++            {
++                swprintf( new_cmdline, len, L"%s %s", tidy_cmdline, extra );
++                TRACE( "appending %s for %s\n", debugstr_w(extra), debugstr_w(exe) );
++                if (tidy_cmdline != cmd_line) HeapFree( GetProcessHeap(), 0, tidy_cmdline );
++                tidy_cmdline = new_cmdline;
++            }
++        }
++    }
++
+     /* Warn if unsupported features are used */
+ 
+     if (flags & (IDLE_PRIORITY_CLASS | HIGH_PRIORITY_CLASS | REALTIME_PRIORITY_CLASS |
+-- 
+2.47.0
+

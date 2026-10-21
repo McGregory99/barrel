@@ -1,0 +1,53 @@
+From a8176e44017697ef51b3c949b351e6ee838cfef0 Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Thu, 22 Oct 2026 00:07:08 +0200
+Subject: [PATCH 4/4] ntdll: Search WINEDLLPATH_PREPEND directories before
+ Wine's own dll dir.
+
+---
+ dlls/ntdll/unix/loader.c | 22 +++++++++++++++++++---
+ 1 file changed, 19 insertions(+), 3 deletions(-)
+
+diff --git a/dlls/ntdll/unix/loader.c b/dlls/ntdll/unix/loader.c
+index 494e056..c62b213 100644
+--- a/dlls/ntdll/unix/loader.c
++++ b/dlls/ntdll/unix/loader.c
+@@ -384,16 +384,32 @@ void prepend_dll_path(const char *path)
+         dll_path_maxlen = path_len;
+ }
+ 
++static int count_path_entries( const char *path )
++{
++    int count = 1;
++    if (!path) return 0;
++    for (; *path; path++) if (*path == ':') count++;
++    return count;
++}
++
+ static void set_dll_path(void)
+ {
+     char *p, *path = getenv( "WINEDLLPATH" );
+-    int i, count = 0;
+-
+-    if (path) for (p = path, count = 1; *p; p++) if (*p == ':') count++;
++    /* barrel: WINEDLLPATH_PREPEND lists directories searched *before* Wine's own dll dir, so
++     * replacement builtins (e.g. Apple's D3DMetal d3d11/dxgi) win over Wine's of the same name. */
++    char *prepend = getenv( "WINEDLLPATH_PREPEND" );
++    int i, count = count_path_entries( path ) + count_path_entries( prepend );
+ 
+     dll_paths = malloc( (count + 2) * sizeof(*dll_paths) );
+     count = 0;
+ 
++    if (prepend)
++    {
++        prepend = strdup( prepend );
++        for (p = strtok( prepend, ":" ); p; p = strtok( NULL, ":" )) dll_paths[count++] = strdup( p );
++        free( prepend );
++    }
++
+     if (!build_dir) dll_paths[count++] = dll_dir;
+ 
+     if (path)
+-- 
+2.47.0
+
