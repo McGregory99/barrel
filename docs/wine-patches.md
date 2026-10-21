@@ -23,6 +23,13 @@ Totals: 204 files, +10,194 / -662 (includes regenerated `configure`).
 | **Printing** | `localspl/cups.c` | CUPS printing |
 | **Misc compat** | win32u, wined3d, kernelbase, user32, shell32, mshtml, winhttp, msctf, ole32… | App-specific fixes |
 
+## Our own patches (branch `cx-26.3` in `upstream/wine-11.0`, on top of the CX patches)
+| Commit | Area | Purpose |
+|---|---|---|
+| `b4af2ac` | win32u | Restore the `SONAME_LIBVULKAN` guard so the build works without a system Vulkan loader |
+| `589cf05` | kernelbase | `AppDefaults\<exe>\AppendCommandLine`: append per-app arguments (Steam's CEF flags) |
+| `a8176e4` | ntdll | `WINEDLLPATH_PREPEND`: directories searched before Wine's own dll dir, so replacement builtins (D3DMetal's d3d11/dxgi) win. CX exports `prepend_dll_path` for this purpose |
+
 ## Next steps
 - Split the patch per area (`filterdiff`/`splitdiff`) to study each independently.
 - Prioritize for the reimplementation: MSync + D3DMetal glue + winemac.drv are the

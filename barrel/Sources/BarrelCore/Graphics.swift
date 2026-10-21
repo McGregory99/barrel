@@ -129,7 +129,9 @@ public enum LaunchEnvironment {
 
         if bottle.graphicsBackend == .d3dmetal, let gptk = components.gptkDirectory {
             let external = gptk.appendingPathComponent("external").path
-            dllPath.append(gptk.appendingPathComponent("wine").path)
+            // GPTK's d3d11/dxgi/d3d12 are builtins with Wine's own names; our Wine searches
+            // WINEDLLPATH_PREPEND before its dll dir (WINEDLLPATH comes after it).
+            env["WINEDLLPATH_PREPEND"] = gptk.appendingPathComponent("wine").path
             env["DYLD_FALLBACK_FRAMEWORK_PATH"] = external
             libraryPath.append(external)
         }

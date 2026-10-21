@@ -170,7 +170,9 @@ struct GraphicsFixture {
     @Test func d3dmetalAddsToolkitPaths() {
         let env = LaunchEnvironment.make(for: bottle(.d3dmetal), components: components)
         #expect(env["CX_ACTIVE_GRAPHICS_BACKEND"] == "d3dmetal")
-        #expect(env["WINEDLLPATH"] == "/gptk/wine")
+        // Searched before Wine's own dll dir, so GPTK's d3d11/dxgi replace Wine's builtins.
+        #expect(env["WINEDLLPATH_PREPEND"] == "/gptk/wine")
+        #expect(env["WINEDLLPATH"] == nil)
         #expect(env["DYLD_FALLBACK_LIBRARY_PATH"] == "/rt/lib:/gptk/external:/usr/local/lib:/usr/lib")
         #expect(env["DYLD_FALLBACK_FRAMEWORK_PATH"] == "/gptk/external")
     }
@@ -279,8 +281,9 @@ struct GraphicsFixture {
         #expect(env["WINEDLLPATH"] == nil)
     }
 
-    @Test func d3dmetalAndDxmtPathsAreCombined() {
+    @Test func d3dmetalAndDxmtPathsAreKeptApart() {
         let env = LaunchEnvironment.make(for: bottle(.d3dmetal, apps: ["Game.exe": .dxmt]), components: components)
-        #expect(env["WINEDLLPATH"] == "/gptk/wine:/rt/dxmt")
+        #expect(env["WINEDLLPATH_PREPEND"] == "/gptk/wine")
+        #expect(env["WINEDLLPATH"] == "/rt/dxmt")
     }
 }
