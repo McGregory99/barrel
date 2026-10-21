@@ -11,10 +11,11 @@ Branch: `feat/engine-cli-graphics` (shared with phases 3–5) · Delivery: ask-o
 ## Tasks
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1 | delegated (writer A, parallel with T2) | in progress | surface: `app/**` |
-| T2 | S2 | delegated (writer B, parallel with T1) | in progress | surface: `barrel/Sources/BarrelRecipes/**`, `barrel/Tests/BarrelRecipesTests/**`, `barrel/Sources/barrel/main.swift`, `barrel/README.md`, `recipes/**`, `docs/recipes.md` |
-| T3 | S1,S2 | inline | pending | seam check: full `swift test` in both packages + GUI uses recipes |
+| T1 | S1 | delegated (writer A, parallel with T2) | done | `app/` SwiftUI + BarrelAppKit view models, 16 tests (RED→GREEN), Swift 5 mode; GUI not launched yet |
+| T2 | S2 | delegated (writer B, parallel with T1) | done (27 tests, RED→GREEN) | surface: `barrel/Sources/BarrelRecipes/**`, `barrel/Tests/BarrelRecipesTests/**`, `barrel/Sources/barrel/main.swift`, `barrel/README.md`, `recipes/**`, `docs/recipes.md` |
+| T3 | S1,S2 | inline | partial | seam check passed: barrel 54 tests, app 16 tests; parent reviewed SHA-256 cache + fileName validation; GUI does not yet expose recipes |
 
 ## Log
 - L1 (2026-10-21): "Podemos empezar y paralelizar algunas de las tareas que faltan? sobretodo la 6 y 7 que son las mas importantes"
 - L2: Route evidence — Writer trigger (a): two independent units with disjoint edit surfaces, each heavier than a subagent start, launched together. Parent owns git and `barrel/Package.swift` (pre-wired the `BarrelRecipes` target before launch) and keeps working on phases 3–5 in `BarrelCore`.
+- L3: Both writers stayed inside their surfaces. Requested follow-ups: make BottleService/ports Sendable (drop Swift 5 mode), expose prefixURL on BottleService, recipe steps copyFile/extract, non-C: drive mapping, VC++ hashes go stale when aka.ms updates.
