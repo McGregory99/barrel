@@ -9,15 +9,27 @@ struct Barrel: ParsableCommand {
             Environment:
               BARREL_HOME  Data directory (default: ~/Library/Application Support/Barrel)
               BARREL_WINE  Path to the wine binary (default: 'wine' found in PATH)
+              BARREL_LIBS  Directory with native libraries such as libMoltenVK.dylib
+              BARREL_DXVK  DXVK build directory (x64/, x32/)
+              BARREL_DXMT  DXMT build directory (x64/, x32/)
+              BARREL_GPTK  Your Apple Game Porting Toolkit directory (wine/, external/)
             """,
         subcommands: [Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self,
-                      Export.self, Restore.self, Run.self]
+                      Export.self, Restore.self, Run.self, Graphics.self, MSync.self]
     )
 }
 
 struct Environment {
     static func service() throws -> BottleService {
-        BottleService(store: try FileBottleStore(root: home()), runtime: ProcessWineRuntime(wineBinary: try wine()))
+        BottleService(store: try FileBottleStore(root: home()), runtime: ProcessWineRuntime(wineBinary: try wine()),
+                      components: components())
+    }
+
+    static func components() -> RuntimeComponents {
+        let env = ProcessInfo.processInfo.environment
+        func directory(_ key: String) -> URL? { env[key].map { URL(fileURLWithPath: $0, isDirectory: true) } }
+        return RuntimeComponents(libraryDirectory: directory("BARREL_LIBS"), dxvkDirectory: directory("BARREL_DXVK"),
+                                 dxmtDirectory: directory("BARREL_DXMT"), gptkDirectory: directory("BARREL_GPTK"))
     }
 
     static func home() -> URL {
@@ -82,6 +94,8 @@ struct Info: ParsableCommand {
             windows:     \(bottle.windowsVersion.rawValue)
             description: \(bottle.description ?? "-")
             created:     \(bottle.createdAt.ISO8601Format())
+            graphics:    \(bottle.graphicsBackend.rawValue)
+            msync:       \(bottle.msync ? "on" : "off")
             prefix:      \(prefix.path)
             """)
     }
@@ -176,6 +190,43 @@ struct Run: ParsableCommand {
     func run() throws {
         let status = try Environment.service().run(path, arguments: arguments, bottle: bottle)
         if status != 0 { throw ExitCode(status) }
+    }
+}
+
+struct Graphics: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Show or set a bottle's Direct3D backend.",
+        discussion: """
+            Backends: wined3d (built in), dxvk (needs BARREL_DXVK and libMoltenVK in BARREL_LIBS),
+            dxmt (needs BARREL_DXMT), d3dmetal (needs BARREL_GPTK pointing to your own copy of
+            Apple's Game Porting Toolkit; it is not redistributable).
+            """)
+
+    @Argument var name: String
+    @Argument(help: "wined3d, dxvk, dxmt or d3dmetal.") var backend: String?
+
+    func run() throws {
+        let service = try Environment.service()
+        guard let backend else {
+            print(try service.info(name).graphicsBackend.rawValue)
+            return
+        }
+        try service.setGraphics(name, backend: try GraphicsBackend(name: backend))
+        print("Bottle '\(name)' now uses \(backend.lowercased())")
+    }
+}
+
+struct MSync: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "msync", abstract: "Enable or disable MSync (faster synchronization) for a bottle.")
+
+    @Argument var name: String
+    @Argument(help: "on or off.") var state: String
+
+    func run() throws {
+        guard ["on", "off"].contains(state) else { throw ValidationError("state must be 'on' or 'off'") }
+        try Environment.service().setMSync(name, enabled: state == "on")
+        print("MSync \(state) for '\(name)'")
     }
 }
 

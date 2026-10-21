@@ -6,7 +6,7 @@ public protocol WineRuntime {
     func setWindowsVersion(_ version: WindowsVersion, prefix: URL) throws
     func shutdown(prefix: URL) throws
     /// Opens a program or document through Windows associations and waits for it; returns its exit status.
-    func start(_ path: String, arguments: [String], prefix: URL) throws -> Int32
+    func start(_ path: String, arguments: [String], prefix: URL, environment: [String: String]) throws -> Int32
 }
 
 public enum WineRuntimeError: Error, Equatable, CustomStringConvertible {
@@ -41,8 +41,9 @@ public struct ProcessWineRuntime: WineRuntime {
         try run(wineserver, ["-k"], prefix: prefix, allowFailure: true)
     }
 
-    public func start(_ path: String, arguments: [String], prefix: URL) throws -> Int32 {
-        try run(wineBinary, ["start", "/wait", "/unix", path] + arguments, prefix: prefix, allowFailure: true)
+    public func start(_ path: String, arguments: [String], prefix: URL, environment: [String: String]) throws -> Int32 {
+        try run(wineBinary, ["start", "/wait", "/unix", path] + arguments, prefix: prefix,
+                extraEnvironment: environment, allowFailure: true)
     }
 
     private var wineserver: URL {
@@ -50,11 +51,12 @@ public struct ProcessWineRuntime: WineRuntime {
     }
 
     @discardableResult
-    private func run(_ executable: URL, _ arguments: [String], prefix: URL, allowFailure: Bool = false) throws -> Int32 {
+    private func run(_ executable: URL, _ arguments: [String], prefix: URL,
+                     extraEnvironment: [String: String] = [:], allowFailure: Bool = false) throws -> Int32 {
         let process = Process()
         process.executableURL = executable
         process.arguments = arguments
-        var environment = ProcessInfo.processInfo.environment
+        var environment = ProcessInfo.processInfo.environment.merging(extraEnvironment) { _, new in new }
         environment["WINEPREFIX"] = prefix.path
         environment["WINEDEBUG"] = environment["WINEDEBUG"] ?? "-all"
         process.environment = environment

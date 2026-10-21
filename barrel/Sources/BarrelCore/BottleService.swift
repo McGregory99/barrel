@@ -5,11 +5,17 @@ public struct BottleService {
     let store: BottleStore
     let runtime: WineRuntime
     let archiver: Archiver
+    let graphics: GraphicsInstaller
+    let components: RuntimeComponents
 
-    public init(store: BottleStore, runtime: WineRuntime, archiver: Archiver = TarArchiver()) {
+    public init(store: BottleStore, runtime: WineRuntime, archiver: Archiver = TarArchiver(),
+                graphics: GraphicsInstaller = FileGraphicsInstaller(),
+                components: RuntimeComponents = RuntimeComponents()) {
         self.store = store
         self.runtime = runtime
         self.archiver = archiver
+        self.graphics = graphics
+        self.components = components
     }
 
     @discardableResult
@@ -97,8 +103,23 @@ public struct BottleService {
     /// Opens a program or document in `bottle`, or in the default bottle when nil.
     public func run(_ path: String, arguments: [String], bottle: String?) throws -> Int32 {
         guard let name = try bottle ?? store.defaultBottleName() else { throw BottleError.noDefaultBottle }
-        guard store.exists(name) else { throw BottleError.notFound(name) }
-        return try runtime.start(path, arguments: arguments, prefix: store.prefixURL(for: name))
+        let selected = try store.load(name)
+        return try runtime.start(path, arguments: arguments, prefix: store.prefixURL(for: name),
+                                 environment: LaunchEnvironment.make(for: selected, components: components))
+    }
+
+    public func setGraphics(_ name: String, backend: GraphicsBackend) throws {
+        var bottle = try store.load(name)
+        guard components.isAvailable(backend) else { throw BottleError.backendUnavailable(backend) }
+        try graphics.install(backend, into: store.prefixURL(for: name), components: components)
+        bottle.graphicsBackend = backend
+        try store.save(bottle)
+    }
+
+    public func setMSync(_ name: String, enabled: Bool) throws {
+        var bottle = try store.load(name)
+        bottle.msync = enabled
+        try store.save(bottle)
     }
 
     public func setDefault(_ name: String?) throws {

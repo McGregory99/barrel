@@ -18,7 +18,19 @@ barrel copy Office Office-backup
 barrel export Office office.tar.gz
 barrel restore office.tar.gz --as Office2 # new name ⇒ new identity
 barrel delete Office-backup --force
+
+# Graphics (per bottle) and MSync
+export BARREL_LIBS=…/build/deps/lib       # libMoltenVK.dylib for Vulkan/DXVK
+export BARREL_DXVK=…/build/dxvk/install   # x64/ and x32/ DLLs
+export BARREL_GPTK=~/GPTK                 # your own Apple Game Porting Toolkit (not bundled)
+barrel graphics Office                    # show: wined3d | dxvk | dxmt | d3dmetal
+barrel graphics Office dxvk               # copies DXVK DLLs into the prefix
+barrel msync Office off                   # MSync is on by default
 ```
+
+`run` launches Wine with the bottle's environment: `WINEDLLOVERRIDES` for the D3D DLLs,
+`CX_ACTIVE_GRAPHICS_BACKEND`, `WINEMSYNC=1`, and `DYLD_FALLBACK_LIBRARY_PATH` so Wine
+can `dlopen` MoltenVK.
 
 Layout: `$BARREL_HOME/Bottles/<name>/` is the Wine prefix plus `barrel.json` metadata;
 `$BARREL_HOME/settings.json` holds the default bottle.

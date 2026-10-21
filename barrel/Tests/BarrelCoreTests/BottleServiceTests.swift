@@ -28,8 +28,11 @@ final class FakeWineRuntime: WineRuntime {
         calls.append(.shutdown(prefix.lastPathComponent))
     }
 
-    func start(_ path: String, arguments: [String], prefix: URL) throws -> Int32 {
+    var lastEnvironment: [String: String] = [:]
+
+    func start(_ path: String, arguments: [String], prefix: URL, environment: [String: String]) throws -> Int32 {
         calls.append(.start(prefix.lastPathComponent, path, arguments))
+        lastEnvironment = environment
         return 0
     }
 }
