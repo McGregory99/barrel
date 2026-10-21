@@ -9,10 +9,11 @@ struct Barrel: ParsableCommand {
         discussion: """
             Environment:
               BARREL_HOME  Data directory (default: ~/Library/Application Support/Barrel)
-              BARREL_WINE  Path to the wine binary (default: 'wine' found in PATH)
+              BARREL_WINE  Path to the wine binary (default: Barrel.app's runtime, else 'wine' in PATH)
               BARREL_LIBS  Directory with native libraries such as libMoltenVK.dylib
               BARREL_DXVK  DXVK build directory (x64/, x32/)
               BARREL_DXMT  DXMT install directory (system32/, syswow64/, x86_64-unix/, …)
+              (BARREL_LIBS/DXVK/DXMT also default to Barrel.app's runtime when run from the app)
               BARREL_GPTK  Your Apple Game Porting Toolkit directory (wine/, external/)
               BARREL_LAUNCHERS  Where 'barrel launcher' puts apps (default: ~/Applications/Barrel)
             """,
@@ -28,11 +29,25 @@ struct Environment {
                       components: components())
     }
 
+    /// `Resources/runtime` when this binary runs from Barrel.app (`Contents/MacOS/barrel`).
+    static var bundledRuntime: URL? {
+        guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else { return nil }
+        let runtime = executable.deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Resources/runtime", isDirectory: true)
+        return FileManager.default.fileExists(atPath: runtime.path) ? runtime : nil
+    }
+
+    /// BARREL_* variables win; otherwise the runtime bundled with Barrel.app is used.
     static func components() -> RuntimeComponents {
         let env = ProcessInfo.processInfo.environment
-        func directory(_ key: String) -> URL? { env[key].map { URL(fileURLWithPath: $0, isDirectory: true) } }
-        return RuntimeComponents(libraryDirectory: directory("BARREL_LIBS"), dxvkDirectory: directory("BARREL_DXVK"),
-                                 dxmtDirectory: directory("BARREL_DXMT"), gptkDirectory: directory("BARREL_GPTK"))
+        func directory(_ key: String, bundled: String? = nil) -> URL? {
+            if let path = env[key] { return URL(fileURLWithPath: path, isDirectory: true) }
+            return bundled.flatMap { path in bundledRuntime?.appendingPathComponent(path, isDirectory: true) }
+        }
+        return RuntimeComponents(libraryDirectory: directory("BARREL_LIBS", bundled: "deps/lib"),
+                                 dxvkDirectory: directory("BARREL_DXVK", bundled: "dxvk"),
+                                 dxmtDirectory: directory("BARREL_DXMT", bundled: "dxmt"),
+                                 gptkDirectory: directory("BARREL_GPTK"))
     }
 
     static func home() -> URL {
@@ -46,6 +61,10 @@ struct Environment {
     static func wine() throws -> URL {
         if let path = ProcessInfo.processInfo.environment["BARREL_WINE"] {
             return URL(fileURLWithPath: path)
+        }
+        if let bundled = bundledRuntime?.appendingPathComponent("wine/bin/wine"),
+           FileManager.default.isExecutableFile(atPath: bundled.path) {
+            return bundled
         }
         let searchPath = ProcessInfo.processInfo.environment["PATH"] ?? ""
         for directory in searchPath.split(separator: ":") {
