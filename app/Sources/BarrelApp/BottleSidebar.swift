@@ -19,16 +19,25 @@ struct BottleSidebar: View {
                 }
             }
         }
+        // Wide enough for the sidebar toolbar (sidebar toggle + two actions) without an overflow menu.
+        .navigationSplitViewColumnWidth(min: 220, ideal: 240)
         .navigationTitle("Bottles")
         .toolbar {
             ToolbarItem {
-                Button(action: onCreate) { Label("New Bottle", systemImage: "plus") }
+                // Click creates a bottle; the menu also offers restoring one from an archive.
+                Menu {
+                    Button("New Bottle…", action: onCreate)
+                    Button("Restore Bottle…", action: onRestore)
+                } label: {
+                    Label("New Bottle", systemImage: "plus")
+                } primaryAction: {
+                    onCreate()
+                }
+                .help("New Bottle")
             }
             ToolbarItem {
                 Button(action: onInstall) { Label("Install Software…", systemImage: "shippingbox") }
-            }
-            ToolbarItem {
-                Button(action: onRestore) { Label("Restore Bottle…", systemImage: "arrow.down.doc") }
+                    .help("Install Software…")
             }
         }
     }
