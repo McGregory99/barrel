@@ -310,8 +310,9 @@ def render_graphics_demo():
     hover = [334, 368, 402, 288]  # the order the pointer visits them
     hy = ";".join(str(y - 16) for y in hover[:1] + hover)
     # One 8-second loop: open the menu, hover DXVK, DXMT and wined3d, choose Automatic, menu closes.
-    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480" role="img" aria-label="The pointer opens a game's Graphics menu, moves over DXVK, DXMT and wined3d, and chooses Automatic">
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="680" height="440" viewBox="20 30 680 440" role="img" aria-label="The pointer opens a game's Graphics menu, moves over DXVK, DXMT and wined3d, and chooses Automatic">
 <defs>
+  <filter id="card" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-opacity=".06"/><feDropShadow dx="0" dy="18" stdDeviation="22" flood-opacity=".12"/></filter>
   <filter id="menu" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".16"/></filter>
 </defs>
 <style>
@@ -320,8 +321,7 @@ text{{font-family:{SANS}}}
 .l{{font-size:19px;fill:#3a3a3e}} .p{{font-size:18px;font-weight:500;fill:#1c1c1e}} .m{{font-size:18px;fill:#1c1c1e}}
 .btn{{font-size:18px;font-weight:550}}
 </style>
-<rect width="720" height="480" fill="#fff"/>
-<rect x="70" y="70" width="580" height="290" rx="22" fill="#f4f4f6"/>
+<rect x="70" y="70" width="580" height="290" rx="22" fill="#fff" filter="url(#card)"/>
 <image x="100" y="100" width="96" height="96" href="{game}"/>
 <text x="220" y="140" class="t">Stonewards</text>
 <circle cx="228" cy="167" r="8" fill="#2f9a55"/><path d="M224.2 167l2.6 2.6 5-5.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>

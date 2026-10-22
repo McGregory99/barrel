@@ -117,8 +117,8 @@ h3 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.025em; lin
 .split--top { align-items: end; grid-template-columns: 1fr 1fr; }
 .split__media { margin: 0; }
 .split__media img { width: 100%; border-radius: 14px; box-shadow: 0 24px 60px -24px rgb(0 0 0 / 0.4); }
-.split__media--detail { padding: clamp(20px, 3vw, 36px); border-radius: 22px; background: var(--paper); box-shadow: 0 0 0 1px var(--line); }
-.split__media--detail img { box-shadow: none; border-radius: 10px; }
+/* A transparent animation that draws its own card and shadow */
+.split__media--detail img { box-shadow: none; border-radius: 0; }
 .split__media figcaption { margin-top: 18px; font-size: 13px; color: var(--muted); text-align: center; }
 .split__media.is-photo img { border-radius: 14px; box-shadow: 0 0 0 1px rgb(0 0 0 / 0.06), 0 24px 60px -24px rgb(28 28 30 / 0.3); }
 
