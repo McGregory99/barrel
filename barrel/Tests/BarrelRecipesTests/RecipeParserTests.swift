@@ -33,6 +33,14 @@ func recipeJSON(id: String = "app", dependencies: String = "[]", steps: String =
         #expect(recipe.steps[3] == .dllOverride(DLLOverrideStep(dll: "d3dcompiler_47", mode: .nativeBuiltin)))
     }
 
+    @Test func acceptsMaintainerNotesAlongsideTheDescription() throws {
+        let data = Data("""
+            {"formatVersion":1,"id":"app","name":"App","description":"Short.","notes":"Why the fixes exist.",
+             "steps":[]}
+            """.utf8)
+        #expect(try RecipeParser.parse(data).description == "Short.")
+    }
+
     @Test func parsesPerAppGraphics() throws {
         let recipe = try RecipeParser.parse(recipeJSON(bottle: #"{"graphicsBackend":"dxvk","appGraphics":{"steamwebhelper.exe":"wined3d"}}"#))
         #expect(recipe.bottle.graphicsBackend == .dxvk)

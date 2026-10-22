@@ -10,6 +10,7 @@ original to this project (it is not CodeWeavers' CrossTie/C4P format).
   "id": "windows-app-base",
   "name": "Windows app base",
   "description": "optional",
+  "notes": "optional",
   "bottle": { "windowsVersion": "win10", "graphicsBackend": "wined3d", "msync": true },
   "dependencies": ["vcredist-x64"],
   "steps": [ ... ]
@@ -20,7 +21,8 @@ original to this project (it is not CodeWeavers' CrossTie/C4P format).
 |---|---|
 | `formatVersion` | required, must be `1` |
 | `id` | required; lowercase letters, digits, `.` `-` `_`; unique across recipe directories |
-| `name`, `description` | `name` required, `description` optional |
+| `name`, `description` | `name` required, `description` optional: one or two sentences shown to users in the app's Install Software sheet |
+| `notes` | optional, for recipe maintainers (why a fix exists, how to refresh a pinned hash); never shown in the app |
 | `bottle` | optional. `windowsVersion` (`barrel templates`), `graphicsBackend` (`wined3d`, `dxvk`, `dxmt`, `d3dmetal`), `msync` (bool), `appGraphics` (object of executable file name → `wined3d`/`dxvk`/`dxmt`, applied after `graphicsBackend`, e.g. `{"steamwebhelper.exe": "wined3d"}`). Only the recipe you install applies these; dependencies' `bottle` blocks are ignored. `windowsVersion` is used only when the bottle is created. |
 | `dependencies` | ids of recipes installed first, each once, in dependency order. Unknown ids and cycles are errors. |
 | `steps` | run in order, numbered from 1 in error messages |

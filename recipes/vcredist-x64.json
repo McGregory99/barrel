@@ -2,7 +2,8 @@
   "formatVersion": 1,
   "id": "vcredist-x64",
   "name": "Microsoft Visual C++ 2015-2022 Redistributable (x64)",
-  "description": "Microsoft's redistributable from aka.ms. The aka.ms link always serves the latest build, so the pinned sha256 goes stale when Microsoft publishes a new one: re-download, verify the signature and update the hash.",
+  "description": "Microsoft Visual C++ 2015-2022 runtime (64-bit), needed by most Windows apps and games.",
+  "notes": "Microsoft's redistributable from aka.ms. The aka.ms link always serves the latest build, so the pinned sha256 goes stale when Microsoft publishes a new one: re-download, verify the signature and update the hash.",
   "dependencies": [],
   "steps": [
     {
@@ -14,8 +15,16 @@
     {
       "kind": "run",
       "file": "vc_redist.x64.exe",
-      "arguments": ["/install", "/quiet", "/norestart"],
-      "expectedExitCodes": [0, 1638, 3010]
+      "arguments": [
+        "/install",
+        "/quiet",
+        "/norestart"
+      ],
+      "expectedExitCodes": [
+        0,
+        1638,
+        3010
+      ]
     }
   ]
 }
