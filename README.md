@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://mcgregory99.github.io/barrel/">Website</a> ·
+  <a href="https://barrel.goyocancio.es/">Website</a> ·
   <a href="#play-your-steam-games">Play</a> ·
   <a href="#how-it-works">How it works</a> ·
   <a href="#advanced">Advanced</a> ·
