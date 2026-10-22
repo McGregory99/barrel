@@ -25,6 +25,8 @@ jobs:
       - uses: actions/checkout@v4
       # The page reuses the README's media (screenshots and animations).
       - run: cp -R docs/media site/media
+      # New asset URLs on every deploy, so browsers never pair new HTML with cached CSS/JS.
+      - run: sed -i "s/__V__/${GITHUB_SHA::7}/g" site/index.html
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
