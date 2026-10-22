@@ -1,0 +1,9 @@
+$ barrel graphics steam
+dxvk
+  steamwebhelper.exe: wined3d
+$ barrel graphics steam dxmt --app Stonewards.exe
+'Stonewards.exe' in bottle 'steam' now uses dxmt
+$ barrel graphics steam
+dxvk
+  Stonewards.exe: dxmt
+  steamwebhelper.exe: wined3d

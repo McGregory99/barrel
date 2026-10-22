@@ -1,0 +1,15 @@
+$ barrel create Office --template win11
+Created bottle 'Office' (win11)  @25 s
+$ barrel list
+  Office	win11
+  steam	win10	Steam
+$ barrel info steam
+name:        steam
+uuid:        0F3773E0-C303-46F1-ADFF-8C71D6075ACD
+windows:     win10
+description: Steam
+created:     2026-10-22T08:44:15Z
+graphics:    dxvk
+msync:       on
+per-app:     Stonewards.exe=dxmt, steamwebhelper.exe=wined3d
+prefix:      ~/Library/Application Support/Barrel/Bottles/steam

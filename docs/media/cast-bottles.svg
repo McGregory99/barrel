@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="637" height="389" viewBox="0 0 637 389" role="img" aria-label="Terminal: bottles">
+<style>
+text{font:13px ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;white-space:pre}
+.p{fill:#e07a45} .c{fill:#f4f4f5} .o{fill:#8e8e99} .ok{fill:#7cc79a}
+.n{fill:#5c5c66} .bg{fill:#101014} .cur{fill:#f4f4f5;opacity:.85}
+.t{font:600 12px -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;fill:#8e8e99}
+@keyframes v0{0%,6.250%{opacity:0}6.260%,95.833%{opacity:1}100%{opacity:0}}
+.l0{animation:v0 9.60s infinite}
+@keyframes t0{0%,6.250%{transform:translateX(0);opacity:1;animation-timing-function:steps(37,end)}19.354%{transform:translateX(288.6px);opacity:1}21.437%,100%{transform:translateX(288.6px);opacity:0}}
+.k0{animation:t0 9.60s infinite}
+@keyframes v1{0%,22.687%{opacity:0}22.697%,95.833%{opacity:1}100%{opacity:0}}
+.l1{animation:v1 9.60s infinite}
+@keyframes v2{0%,37.792%{opacity:0}37.802%,95.833%{opacity:1}100%{opacity:0}}
+.l2{animation:v2 9.60s infinite}
+@keyframes t2{0%,37.792%{transform:translateX(0);opacity:1;animation-timing-function:steps(11,end)}41.687%{transform:translateX(85.8px);opacity:1}43.771%,100%{transform:translateX(85.8px);opacity:0}}
+.k2{animation:t2 9.60s infinite}
+@keyframes v3{0%,45.021%{opacity:0}45.031%,95.833%{opacity:1}100%{opacity:0}}
+.l3{animation:v3 9.60s infinite}
+@keyframes v4{0%,45.750%{opacity:0}45.760%,95.833%{opacity:1}100%{opacity:0}}
+.l4{animation:v4 9.60s infinite}
+@keyframes v5{0%,51.479%{opacity:0}51.489%,95.833%{opacity:1}100%{opacity:0}}
+.l5{animation:v5 9.60s infinite}
+@keyframes t5{0%,51.479%{transform:translateX(0);opacity:1;animation-timing-function:steps(17,end)}57.500%{transform:translateX(132.6px);opacity:1}59.583%,100%{transform:translateX(132.6px);opacity:0}}
+.k5{animation:t5 9.60s infinite}
+@keyframes v6{0%,60.833%{opacity:0}60.843%,95.833%{opacity:1}100%{opacity:0}}
+.l6{animation:v6 9.60s infinite}
+@keyframes v7{0%,61.562%{opacity:0}61.572%,95.833%{opacity:1}100%{opacity:0}}
+.l7{animation:v7 9.60s infinite}
+@keyframes v8{0%,62.292%{opacity:0}62.302%,95.833%{opacity:1}100%{opacity:0}}
+.l8{animation:v8 9.60s infinite}
+@keyframes v9{0%,63.021%{opacity:0}63.031%,95.833%{opacity:1}100%{opacity:0}}
+.l9{animation:v9 9.60s infinite}
+@keyframes v10{0%,63.750%{opacity:0}63.760%,95.833%{opacity:1}100%{opacity:0}}
+.l10{animation:v10 9.60s infinite}
+@keyframes v11{0%,64.479%{opacity:0}64.489%,95.833%{opacity:1}100%{opacity:0}}
+.l11{animation:v11 9.60s infinite}
+@keyframes v12{0%,65.208%{opacity:0}65.218%,95.833%{opacity:1}100%{opacity:0}}
+.l12{animation:v12 9.60s infinite}
+@keyframes v13{0%,65.938%{opacity:0}65.948%,95.833%{opacity:1}100%{opacity:0}}
+.l13{animation:v13 9.60s infinite}
+@keyframes v14{0%,66.667%{opacity:0}66.677%,95.833%{opacity:1}100%{opacity:0}}
+.l14{animation:v14 9.60s infinite}</style>
+<rect width="637" height="389" rx="14" fill="#101014" stroke="#26262c"/>
+<circle cx="22" cy="20" r="6" fill="#ff5f57"/><circle cx="42" cy="20" r="6" fill="#febc2e"/><circle cx="62" cy="20" r="6" fill="#28c840"/>
+<text x="318.5" y="24" text-anchor="middle" class="t">barrel — zsh</text>
+<g class="l0"><text x="22" y="52" class="p">❯</text><text x="37.6" y="52" class="c" xml:space="preserve">barrel create Office --template win11</text><g class="k0"><rect x="37.6" y="37" width="7.8" height="19" class="cur"/><rect x="45.4" y="37" width="637" height="19" class="bg"/></g></g>
+<g class="l1"><text x="22" y="73" class="ok" xml:space="preserve">Created bottle 'Office' (win11)</text>
+<text x="279.4" y="73" class="n">· 25 s</text>
+</g>
+<g class="l2"><text x="22" y="94" class="p">❯</text><text x="37.6" y="94" class="c" xml:space="preserve">barrel list</text><g class="k2"><rect x="37.6" y="79" width="7.8" height="19" class="cur"/><rect x="45.4" y="79" width="637" height="19" class="bg"/></g></g>
+<g class="l3"><text x="22" y="115" class="o" xml:space="preserve">  Office        win11</text>
+</g>
+<g class="l4"><text x="22" y="136" class="o" xml:space="preserve">  steam win10   Steam</text>
+</g>
+<g class="l5"><text x="22" y="157" class="p">❯</text><text x="37.6" y="157" class="c" xml:space="preserve">barrel info steam</text><g class="k5"><rect x="37.6" y="142" width="7.8" height="19" class="cur"/><rect x="45.4" y="142" width="637" height="19" class="bg"/></g></g>
+<g class="l6"><text x="22" y="178" class="o" xml:space="preserve">name:        steam</text>
+</g>
+<g class="l7"><text x="22" y="199" class="o" xml:space="preserve">uuid:        0F3773E0-C303-46F1-ADFF-8C71D6075ACD</text>
+</g>
+<g class="l8"><text x="22" y="220" class="o" xml:space="preserve">windows:     win10</text>
+</g>
+<g class="l9"><text x="22" y="241" class="o" xml:space="preserve">description: Steam</text>
+</g>
+<g class="l10"><text x="22" y="262" class="o" xml:space="preserve">created:     2026-10-22T08:44:15Z</text>
+</g>
+<g class="l11"><text x="22" y="283" class="o" xml:space="preserve">graphics:    dxvk</text>
+</g>
+<g class="l12"><text x="22" y="304" class="o" xml:space="preserve">msync:       on</text>
+</g>
+<g class="l13"><text x="22" y="325" class="o" xml:space="preserve">per-app:     Stonewards.exe=dxmt, steamwebhelper.exe=wined3d</text>
+</g>
+<g class="l14"><text x="22" y="346" class="o" xml:space="preserve">prefix:      ~/Library/Application Support/Barrel/Bottles/steam</text>
+</g>
+</svg>

@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="637" height="389" viewBox="0 0 637 389" role="img" aria-label="Terminal: play-steam">
+<style>
+text{font:13px ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;white-space:pre}
+.p{fill:#e07a45} .c{fill:#f4f4f5} .o{fill:#8e8e99} .ok{fill:#7cc79a}
+.n{fill:#5c5c66} .bg{fill:#101014} .cur{fill:#f4f4f5;opacity:.85}
+.t{font:600 12px -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;fill:#8e8e99}
+@keyframes v0{0%,4.604%{opacity:0}4.614%,96.931%{opacity:1}100%{opacity:0}}
+.l0{animation:v0 13.03s infinite}
+@keyframes t0{0%,4.604%{transform:translateX(0);opacity:1;animation-timing-function:steps(20,end)}9.822%{transform:translateX(156.0px);opacity:1}11.357%,100%{transform:translateX(156.0px);opacity:0}}
+.k0{animation:t0 13.03s infinite}
+@keyframes v1{0%,12.277%{opacity:0}12.287%,96.931%{opacity:1}100%{opacity:0}}
+.l1{animation:v1 13.03s infinite}
+@keyframes v2{0%,12.815%{opacity:0}12.825%,96.931%{opacity:1}100%{opacity:0}}
+.l2{animation:v2 13.03s infinite}
+@keyframes v3{0%,13.352%{opacity:0}13.362%,96.931%{opacity:1}100%{opacity:0}}
+.l3{animation:v3 13.03s infinite}
+@keyframes v4{0%,13.889%{opacity:0}13.899%,96.931%{opacity:1}100%{opacity:0}}
+.l4{animation:v4 13.03s infinite}
+@keyframes v5{0%,14.426%{opacity:0}14.436%,96.931%{opacity:1}100%{opacity:0}}
+.l5{animation:v5 13.03s infinite}
+@keyframes v6{0%,14.963%{opacity:0}14.973%,96.931%{opacity:1}100%{opacity:0}}
+.l6{animation:v6 13.03s infinite}
+@keyframes v7{0%,15.500%{opacity:0}15.510%,96.931%{opacity:1}100%{opacity:0}}
+.l7{animation:v7 13.03s infinite}
+@keyframes v8{0%,16.037%{opacity:0}16.047%,96.931%{opacity:1}100%{opacity:0}}
+.l8{animation:v8 13.03s infinite}
+@keyframes v9{0%,16.575%{opacity:0}16.585%,96.931%{opacity:1}100%{opacity:0}}
+.l9{animation:v9 13.03s infinite}
+@keyframes v10{0%,17.112%{opacity:0}17.122%,96.931%{opacity:1}100%{opacity:0}}
+.l10{animation:v10 13.03s infinite}
+@keyframes v11{0%,28.238%{opacity:0}28.248%,96.931%{opacity:1}100%{opacity:0}}
+.l11{animation:v11 13.03s infinite}
+@keyframes t11{0%,28.238%{transform:translateX(0);opacity:1;animation-timing-function:steps(74,end)}47.545%{transform:translateX(577.2px);opacity:1}47.698%,100%{transform:translateX(577.2px);opacity:0}}
+.k11{animation:t11 13.03s infinite}
+@keyframes v12{0%,47.545%{opacity:0}47.555%,96.931%{opacity:1}100%{opacity:0}}
+.l12{animation:v12 13.03s infinite}
+@keyframes t12{0%,47.545%{transform:translateX(0);opacity:1;animation-timing-function:steps(18,end)}52.241%{transform:translateX(140.4px);opacity:1}53.775%,100%{transform:translateX(140.4px);opacity:0}}
+.k12{animation:t12 13.03s infinite}
+@keyframes v13{0%,58.379%{opacity:0}58.389%,96.931%{opacity:1}100%{opacity:0}}
+.l13{animation:v13 13.03s infinite}
+@keyframes t13{0%,58.379%{transform:translateX(0);opacity:1;animation-timing-function:steps(56,end)}72.990%{transform:translateX(436.8px);opacity:1}74.524%,100%{transform:translateX(436.8px);opacity:0}}
+.k13{animation:t13 13.03s infinite}
+@keyframes v14{0%,75.445%{opacity:0}75.455%,96.931%{opacity:1}100%{opacity:0}}
+.l14{animation:v14 13.03s infinite}</style>
+<rect width="637" height="389" rx="14" fill="#101014" stroke="#26262c"/>
+<circle cx="22" cy="20" r="6" fill="#ff5f57"/><circle cx="42" cy="20" r="6" fill="#febc2e"/><circle cx="62" cy="20" r="6" fill="#28c840"/>
+<text x="318.5" y="24" text-anchor="middle" class="t">barrel — zsh</text>
+<g class="l0"><text x="22" y="52" class="p">❯</text><text x="37.6" y="52" class="c" xml:space="preserve">barrel install steam</text><g class="k0"><rect x="37.6" y="37" width="7.8" height="19" class="cur"/><rect x="45.4" y="37" width="637" height="19" class="bg"/></g></g>
+<g class="l1"><text x="22" y="73" class="o" xml:space="preserve">Creating bottle 'steam'</text>
+</g>
+<g class="l2"><text x="22" y="94" class="o" xml:space="preserve">Recipe steam: Steam</text>
+</g>
+<g class="l3"><text x="22" y="115" class="o" xml:space="preserve">Downloading SteamSetup.exe</text>
+</g>
+<g class="l4"><text x="22" y="136" class="o" xml:space="preserve">Running ~/Library/Application Support/Barrel/Downloads/SteamSetup.exe</text>
+</g>
+<g class="l5"><text x="22" y="157" class="o" xml:space="preserve">Registry HKCU\Software\Wine\AppDefaults\steam.exe\DllOverrides\winecoreaudio</text>
+</g>
+<g class="l6"><text x="22" y="178" class="o" xml:space="preserve">.drv</text>
+</g>
+<g class="l7"><text x="22" y="199" class="o" xml:space="preserve">Registry HKCU\Software\Wine\AppDefaults\steamwebhelper.exe\AppendCommandLine</text>
+</g>
+<g class="l8"><text x="22" y="220" class="o" xml:space="preserve">Registry HKCU\Software\Wine\DllOverrides\gameoverlayrenderer</text>
+</g>
+<g class="l9"><text x="22" y="241" class="o" xml:space="preserve">Registry HKCU\Software\Wine\DllOverrides\gameoverlayrenderer64</text>
+</g>
+<g class="l10"><text x="22" y="262" class="ok" xml:space="preserve">Installed 'steam' into bottle 'steam'</text>
+<text x="326.2" y="262" class="n">· 45 s</text>
+</g>
+<g class="l11"><text x="22" y="283" class="p">❯</text><text x="37.6" y="283" class="c" xml:space="preserve">S="$HOME/Library/Application Support/Barrel/Bottles/steam/drive_c/Program </text><g class="k11"><rect x="37.6" y="268" width="7.8" height="19" class="cur"/><rect x="45.4" y="268" width="637" height="19" class="bg"/></g></g>
+<g class="l12"><text x="22.0" y="304" class="c" xml:space="preserve">Files (x86)/Steam"</text><g class="k12"><rect x="22.0" y="289" width="7.8" height="19" class="cur"/><rect x="29.8" y="289" width="637" height="19" class="bg"/></g></g>
+<g class="l13"><text x="22" y="325" class="p">❯</text><text x="37.6" y="325" class="c" xml:space="preserve">barrel launcher create steam "$S/steam.exe" --name Steam</text><g class="k13"><rect x="37.6" y="310" width="7.8" height="19" class="cur"/><rect x="45.4" y="310" width="637" height="19" class="bg"/></g></g>
+<g class="l14"><text x="22" y="346" class="ok" xml:space="preserve">Created ~/Applications/Barrel/Steam.app</text>
+</g>
+</svg>

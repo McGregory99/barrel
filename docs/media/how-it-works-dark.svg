@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="360" viewBox="0 0 960 360" role="img" aria-label="How barrel runs a Windows game: system calls go through Wine to macOS, Direct3D goes through DXVK or DXMT to Metal">
+<style>
+.h{font:650 17px -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;fill:#f4f4f5;letter-spacing:-.02em}
+.s{font:13px -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;fill:#a1a1aa}
+.m{font:12px ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;fill:#a1a1aa}
+.e{font:600 10px -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;fill:#e07a45;letter-spacing:.08em}
+.flow{stroke-dasharray:6 14;animation:f 1.2s linear infinite;opacity:.55}
+@keyframes f{to{stroke-dashoffset:-20}}
+</style>
+<path id="a" d="M 236 190 C 290 190, 290 98, 344 98 L 574 98 L 650 98" fill="none" stroke="#34343c" stroke-width="2"/>
+<path d="M 236 190 C 290 190, 290 98, 344 98 L 574 98 L 650 98" fill="none" stroke="#e07a45" stroke-width="2" class="flow"/>
+<circle r="4" fill="#e07a45"><animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#a"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.4s" begin="0s" repeatCount="indefinite"/></circle>
+<circle r="4" fill="#e07a45"><animateMotion dur="2.4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#a"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.4s" begin="0.8s" repeatCount="indefinite"/></circle>
+<circle r="4" fill="#e07a45"><animateMotion dur="2.4s" begin="1.6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#a"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.4s" begin="1.6s" repeatCount="indefinite"/></circle>
+<text x="360" y="44" class="m">CreateWindowEx · ReadFile · XInput</text>
+<path id="b" d="M 236 190 C 290 190, 290 282, 344 282 L 574 282 L 650 282" fill="none" stroke="#34343c" stroke-width="2"/>
+<path d="M 236 190 C 290 190, 290 282, 344 282 L 574 282 L 650 282" fill="none" stroke="#5aa2f5" stroke-width="2" class="flow"/>
+<circle r="4" fill="#5aa2f5"><animateMotion dur="2.4s" begin="0s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#b"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.4s" begin="0s" repeatCount="indefinite"/></circle>
+<circle r="4" fill="#5aa2f5"><animateMotion dur="2.4s" begin="0.8s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#b"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.4s" begin="0.8s" repeatCount="indefinite"/></circle>
+<circle r="4" fill="#5aa2f5"><animateMotion dur="2.4s" begin="1.6s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="linear"><mpath href="#b"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" dur="2.4s" begin="1.6s" repeatCount="indefinite"/></circle>
+<text x="360" y="346" class="m">ID3D11DeviceContext::Draw</text>
+<rect x="20" y="132" width="230" height="116" rx="18" fill="none" stroke="#e07a45" stroke-dasharray="5 5" opacity=".6"/><text x="36" y="236" class="e">BOTTLE · C: DRIVE · REGISTRY</text>
+<rect x="36" y="150" width="200" height="66" rx="12" fill="#16161c" stroke="#34343c"/><rect x="54" y="168" width="13" height="13" rx="2" fill="#5aa2f5"/><rect x="70" y="168" width="13" height="13" rx="2" fill="#5aa2f5" opacity=".7"/><rect x="54" y="184" width="13" height="13" rx="2" fill="#5aa2f5" opacity=".7"/><rect x="70" y="184" width="13" height="13" rx="2" fill="#5aa2f5" opacity=".45"/><text x="98" y="181" class="h">Game.exe</text><text x="98" y="201" class="s">Windows x64</text>
+<g><rect x="344" y="60" width="230" height="76" rx="14" fill="#16161c" stroke="#e07a45"/><text x="364" y="92" class="h">Wine 11</text><text x="364" y="115" class="s">Windows API → macOS</text></g>
+<g><rect x="650" y="60" width="230" height="76" rx="14" fill="#16161c" stroke="#34343c"/><text x="670" y="92" class="h">macOS</text><text x="670" y="115" class="s">windows · files · input · audio</text></g>
+<g><rect x="344" y="244" width="230" height="76" rx="14" fill="#16161c" stroke="#e07a45"/><text x="364" y="276" class="h">DXVK  ·  DXMT</text><text x="364" y="299" class="s">Direct3D → Vulkan / Metal</text></g>
+<g><rect x="650" y="244" width="230" height="76" rx="14" fill="#16161c" stroke="#34343c"/><text x="670" y="276" class="h">Metal</text><text x="670" y="299" class="s">Apple GPU</text></g>
+</svg>

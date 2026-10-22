@@ -1,0 +1,14 @@
+# Recorded with Barrel.app's barrel on an Apple M2 (BARREL_HOME at its default, shown as ~).
+$ barrel install steam
+Creating bottle 'steam'
+Recipe steam: Steam
+Downloading SteamSetup.exe
+Running ~/Library/Application Support/Barrel/Downloads/SteamSetup.exe
+Registry HKCU\Software\Wine\AppDefaults\steam.exe\DllOverrides\winecoreaudio.drv
+Registry HKCU\Software\Wine\AppDefaults\steamwebhelper.exe\AppendCommandLine
+Registry HKCU\Software\Wine\DllOverrides\gameoverlayrenderer
+Registry HKCU\Software\Wine\DllOverrides\gameoverlayrenderer64
+Installed 'steam' into bottle 'steam'  @45 s
+$ S="$HOME/Library/Application Support/Barrel/Bottles/steam/drive_c/Program Files (x86)/Steam"
+$ barrel launcher create steam "$S/steam.exe" --name Steam
+Created ~/Applications/Barrel/Steam.app
