@@ -1,49 +1,46 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="637" height="263" viewBox="0 0 637 263" role="img" aria-label="Terminal: per-game-graphics">
+<svg xmlns="http://www.w3.org/2000/svg" width="637" height="242" viewBox="0 0 637 242" role="img" aria-label="Terminal: per-game-graphics">
 <style>
 text{font:13px ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;white-space:pre}
 .p{fill:#e07a45} .c{fill:#f4f4f5} .o{fill:#8e8e99} .ok{fill:#7cc79a}
 .n{fill:#5c5c66} .bg{fill:#101014} .cur{fill:#f4f4f5;opacity:.85}
 .t{font:600 12px -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif;fill:#8e8e99}
-@keyframes v0{0%,6.596%{opacity:0}6.606%,95.602%{opacity:1}100%{opacity:0}}
-.l0{animation:v0 9.10s infinite}
-@keyframes t0{0%,6.596%{transform:translateX(0);opacity:1;animation-timing-function:steps(21,end)}14.446%{transform:translateX(163.8px);opacity:1}16.645%,100%{transform:translateX(163.8px);opacity:0}}
-.k0{animation:t0 9.10s infinite}
-@keyframes v1{0%,17.964%{opacity:0}17.974%,95.602%{opacity:1}100%{opacity:0}}
-.l1{animation:v1 9.10s infinite}
-@keyframes v2{0%,18.734%{opacity:0}18.744%,95.602%{opacity:1}100%{opacity:0}}
-.l2{animation:v2 9.10s infinite}
-@keyframes v3{0%,24.780%{opacity:0}24.790%,95.602%{opacity:1}100%{opacity:0}}
-.l3{animation:v3 9.10s infinite}
-@keyframes t3{0%,24.780%{transform:translateX(0);opacity:1;animation-timing-function:steps(47,end)}42.348%{transform:translateX(366.6px);opacity:1}44.547%,100%{transform:translateX(366.6px);opacity:0}}
-.k3{animation:t3 9.10s infinite}
-@keyframes v4{0%,45.866%{opacity:0}45.876%,95.602%{opacity:1}100%{opacity:0}}
-.l4{animation:v4 9.10s infinite}
-@keyframes v5{0%,51.913%{opacity:0}51.923%,95.602%{opacity:1}100%{opacity:0}}
-.l5{animation:v5 9.10s infinite}
-@keyframes t5{0%,51.913%{transform:translateX(0);opacity:1;animation-timing-function:steps(21,end)}59.763%{transform:translateX(163.8px);opacity:1}61.961%,100%{transform:translateX(163.8px);opacity:0}}
-.k5{animation:t5 9.10s infinite}
-@keyframes v6{0%,63.281%{opacity:0}63.291%,95.602%{opacity:1}100%{opacity:0}}
-.l6{animation:v6 9.10s infinite}
-@keyframes v7{0%,64.050%{opacity:0}64.060%,95.602%{opacity:1}100%{opacity:0}}
-.l7{animation:v7 9.10s infinite}
-@keyframes v8{0%,64.820%{opacity:0}64.830%,95.602%{opacity:1}100%{opacity:0}}
-.l8{animation:v8 9.10s infinite}</style>
-<rect width="637" height="263" rx="14" fill="#101014" stroke="#26262c"/>
+@keyframes v0{0%,5.586%{opacity:0}5.596%,96.276%{opacity:1}100%{opacity:0}}
+.l0{animation:v0 10.74s infinite}
+@keyframes t0{0%,5.586%{transform:translateX(0);opacity:1;animation-timing-function:steps(12,end)}9.384%{transform:translateX(93.6px);opacity:1}11.246%,100%{transform:translateX(93.6px);opacity:0}}
+.k0{animation:t0 10.74s infinite}
+@keyframes v1{0%,12.363%{opacity:0}12.373%,96.276%{opacity:1}100%{opacity:0}}
+.l1{animation:v1 10.74s infinite}
+@keyframes v2{0%,17.483%{opacity:0}17.493%,96.276%{opacity:1}100%{opacity:0}}
+.l2{animation:v2 10.74s infinite}
+@keyframes t2{0%,17.483%{transform:translateX(0);opacity:1;animation-timing-function:steps(47,end)}32.359%{transform:translateX(366.6px);opacity:1}34.221%,100%{transform:translateX(366.6px);opacity:0}}
+.k2{animation:t2 10.74s infinite}
+@keyframes v3{0%,35.338%{opacity:0}35.348%,96.276%{opacity:1}100%{opacity:0}}
+.l3{animation:v3 10.74s infinite}
+@keyframes v4{0%,40.458%{opacity:0}40.468%,96.276%{opacity:1}100%{opacity:0}}
+.l4{animation:v4 10.74s infinite}
+@keyframes t4{0%,40.458%{transform:translateX(0);opacity:1;animation-timing-function:steps(12,end)}44.256%{transform:translateX(93.6px);opacity:1}46.118%,100%{transform:translateX(93.6px);opacity:0}}
+.k4{animation:t4 10.74s infinite}
+@keyframes v5{0%,47.235%{opacity:0}47.245%,96.276%{opacity:1}100%{opacity:0}}
+.l5{animation:v5 10.74s infinite}
+@keyframes v6{0%,52.355%{opacity:0}52.365%,96.276%{opacity:1}100%{opacity:0}}
+.l6{animation:v6 10.74s infinite}
+@keyframes t6{0%,52.355%{transform:translateX(0);opacity:1;animation-timing-function:steps(47,end)}67.231%{transform:translateX(366.6px);opacity:1}69.093%,100%{transform:translateX(366.6px);opacity:0}}
+.k6{animation:t6 10.74s infinite}
+@keyframes v7{0%,70.210%{opacity:0}70.220%,96.276%{opacity:1}100%{opacity:0}}
+.l7{animation:v7 10.74s infinite}</style>
+<rect width="637" height="242" rx="14" fill="#101014" stroke="#26262c"/>
 <circle cx="22" cy="20" r="6" fill="#ff5f57"/><circle cx="42" cy="20" r="6" fill="#febc2e"/><circle cx="62" cy="20" r="6" fill="#28c840"/>
 <text x="318.5" y="24" text-anchor="middle" class="t">barrel — zsh</text>
-<g class="l0"><text x="22" y="52" class="p">❯</text><text x="37.6" y="52" class="c" xml:space="preserve">barrel graphics steam</text><g class="k0"><rect x="37.6" y="37" width="7.8" height="19" class="cur"/><rect x="45.4" y="37" width="637" height="19" class="bg"/></g></g>
-<g class="l1"><text x="22" y="73" class="o" xml:space="preserve">dxvk</text>
+<g class="l0"><text x="22" y="52" class="p">❯</text><text x="37.6" y="52" class="c" xml:space="preserve">barrel games</text><g class="k0"><rect x="37.6" y="37" width="7.8" height="19" class="cur"/><rect x="45.4" y="37" width="637" height="19" class="bg"/></g></g>
+<g class="l1"><text x="22" y="73" class="o" xml:space="preserve">4502710 Stonewards      dxvk (profile)  profile: works</text>
 </g>
-<g class="l2"><text x="22" y="94" class="o" xml:space="preserve">  steamwebhelper.exe: wined3d</text>
+<g class="l2"><text x="22" y="94" class="p">❯</text><text x="37.6" y="94" class="c" xml:space="preserve">barrel graphics steam dxmt --app Stonewards.exe</text><g class="k2"><rect x="37.6" y="79" width="7.8" height="19" class="cur"/><rect x="45.4" y="79" width="637" height="19" class="bg"/></g></g>
+<g class="l3"><text x="22" y="115" class="ok" xml:space="preserve">'Stonewards.exe' in bottle 'steam' now uses dxmt</text>
 </g>
-<g class="l3"><text x="22" y="115" class="p">❯</text><text x="37.6" y="115" class="c" xml:space="preserve">barrel graphics steam dxmt --app Stonewards.exe</text><g class="k3"><rect x="37.6" y="100" width="7.8" height="19" class="cur"/><rect x="45.4" y="100" width="637" height="19" class="bg"/></g></g>
-<g class="l4"><text x="22" y="136" class="ok" xml:space="preserve">'Stonewards.exe' in bottle 'steam' now uses dxmt</text>
+<g class="l4"><text x="22" y="136" class="p">❯</text><text x="37.6" y="136" class="c" xml:space="preserve">barrel games</text><g class="k4"><rect x="37.6" y="121" width="7.8" height="19" class="cur"/><rect x="45.4" y="121" width="637" height="19" class="bg"/></g></g>
+<g class="l5"><text x="22" y="157" class="o" xml:space="preserve">4502710 Stonewards      dxmt (player)   profile: works</text>
 </g>
-<g class="l5"><text x="22" y="157" class="p">❯</text><text x="37.6" y="157" class="c" xml:space="preserve">barrel graphics steam</text><g class="k5"><rect x="37.6" y="142" width="7.8" height="19" class="cur"/><rect x="45.4" y="142" width="637" height="19" class="bg"/></g></g>
-<g class="l6"><text x="22" y="178" class="o" xml:space="preserve">dxvk</text>
-</g>
-<g class="l7"><text x="22" y="199" class="o" xml:space="preserve">  Stonewards.exe: dxmt</text>
-</g>
-<g class="l8"><text x="22" y="220" class="o" xml:space="preserve">  steamwebhelper.exe: wined3d</text>
+<g class="l6"><text x="22" y="178" class="p">❯</text><text x="37.6" y="178" class="c" xml:space="preserve">barrel graphics steam auto --app Stonewards.exe</text><g class="k6"><rect x="37.6" y="163" width="7.8" height="19" class="cur"/><rect x="45.4" y="163" width="637" height="19" class="bg"/></g></g>
+<g class="l7"><text x="22" y="199" class="o" xml:space="preserve">'Stonewards.exe' in bottle 'steam' is back to automatic graphics</text>
 </g>
 </svg>

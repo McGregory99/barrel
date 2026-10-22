@@ -1,9 +1,8 @@
-$ barrel graphics steam
-dxvk
-  steamwebhelper.exe: wined3d
+$ barrel games
+4502710	Stonewards	dxvk (profile)	profile: works
 $ barrel graphics steam dxmt --app Stonewards.exe
 'Stonewards.exe' in bottle 'steam' now uses dxmt
-$ barrel graphics steam
-dxvk
-  Stonewards.exe: dxmt
-  steamwebhelper.exe: wined3d
+$ barrel games
+4502710	Stonewards	dxmt (player)	profile: works
+$ barrel graphics steam auto --app Stonewards.exe
+'Stonewards.exe' in bottle 'steam' is back to automatic graphics

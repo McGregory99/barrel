@@ -98,7 +98,7 @@ def render_cast(name, rows):
             # The command is revealed by sliding a background-coloured cover (led by a cursor) off it.
             body.append(
                 f'<g class="l{i}">{prompt}'
-                f'<text x="{x0:.1f}" y="{y}" class="c" xml:space="preserve">{esc(row["text"])}</text>'
+                f'<text x="{x0:.1f}" y="{y}" class="{"n" if row["text"].startswith("#") else "c"}" xml:space="preserve">{esc(row["text"])}</text>'
                 f'<g class="k{i}"><rect x="{x0:.1f}" y="{y - 15}" width="{CHAR_W:.1f}" height="19" class="cur"/>'
                 f'<rect x="{x0 + CHAR_W:.1f}" y="{y - 15}" width="{width}" height="19" class="bg"/></g></g>')
             row.update(start=t, end=end, typed=typed)

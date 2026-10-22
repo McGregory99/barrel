@@ -7,7 +7,7 @@
   <meta name="description" content="Barrel runs Windows games and apps on Apple Silicon Macs. Free and open source, built on Wine, DXVK and DXMT.">
   <meta property="og:title" content="Barrel — Windows games and apps on your Mac">
   <meta property="og:description" content="Free and open source. Bottles, recipes, per-game graphics and Mac launchers, built on Wine, DXVK and DXMT.">
-  <meta property="og:image" content="media/app-01-bottle.png">
+  <meta property="og:image" content="media/app-library.png">
   <link rel="icon" href="media/logo.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,6 +26,7 @@
         <a href="#how-it-works" data-i18n="nav.how">How it works</a>
         <a href="#performance" data-i18n="nav.perf">Performance</a>
         <a href="#compare" data-i18n="nav.cmp">Compare</a>
+        <a href="#advanced" data-i18n="nav.adv">Advanced</a>
         <a href="#open-source" data-i18n="nav.oss">Open source</a>
       </nav>
       <div class="lang" role="group" aria-label="Language / Idioma">
@@ -60,7 +61,7 @@
       <div class="wrap">
         <p class="eyebrow" data-i18n="hero.eyebrow">Barrel for Apple Silicon Macs</p>
         <h1 class="display" data-i18n="hero.title">Windows games.<br>At home on your Mac.</h1>
-        <p class="lede" data-i18n="hero.lede">Barrel runs Windows games and apps with Wine, DXVK and DXMT. Free, open source, and no trial to run out.</p>
+        <p class="lede" data-i18n="hero.lede">Barrel installs Steam for Windows, finds your games and plays them with the right graphics for each one. Free, open source, and no trial to run out.</p>
         <div class="cta">
           <a class="btn btn--dark" href="https://github.com/McGregory99/barrel#build-it" data-i18n="hero.get">Get Barrel</a>
           <a class="btn btn--line" href="#how-it-works" data-i18n="hero.see">See how it works</a>
@@ -68,8 +69,8 @@
         <a class="textlink" href="https://github.com/McGregory99/barrel" data-i18n="hero.source">Read the source on GitHub <span aria-hidden="true">→</span></a>
 
         <div class="stage">
-          <img class="stage__app" src="media/app-01-bottle.png" width="1600" height="1003" alt="Barrel.app showing the steam bottle: Windows 10, DXVK graphics, MSync on, and buttons to run a program or create a launcher" data-i18n-alt="alt.hero.app">
-          <img class="stage__term" src="media/cast-play-steam.svg" width="637" height="389" alt="Terminal: barrel install steam, then barrel launcher create" data-i18n-alt="alt.hero.term">
+          <img class="stage__app" src="media/app-library.png" width="1600" height="992" alt="Barrel.app library with Stonewards: tested profile, automatic DXVK graphics, Play and Add to Dock" data-i18n-alt="alt.hero.app">
+          <img class="stage__term" src="media/cast-play-steam.svg" width="637" height="389" alt="Terminal: barrel install steam, barrel games, then barrel launcher game" data-i18n-alt="alt.hero.term">
         </div>
       </div>
     </section>
@@ -81,33 +82,27 @@
           <div class="tabs" role="tablist" aria-label="Use cases" data-i18n-aria-label="aria.tabs">
             <button role="tab" aria-selected="true" aria-controls="p-steam" id="t-steam">Steam</button>
             <button role="tab" aria-selected="false" aria-controls="p-graphics" id="t-graphics" tabindex="-1" data-i18n="tab.graphics">Graphics</button>
-            <button role="tab" aria-selected="false" aria-controls="p-bottles" id="t-bottles" tabindex="-1" data-i18n="tab.bottles">Bottles</button>
-            <button role="tab" aria-selected="false" aria-controls="p-app" id="t-app" tabindex="-1" data-i18n="tab.app">The app</button>
+            <button role="tab" aria-selected="false" aria-controls="p-dock" id="t-dock" tabindex="-1" data-i18n="tab.dock">Dock</button>
           </div>
 
-          <div class="panel" role="tabpanel" id="p-steam" aria-labelledby="t-steam" data-media="media/cast-play-steam.svg" data-alt="Terminal: barrel install steam installs Steam into a new bottle in 45 seconds" data-i18n-data-alt="alt.steam">
-            <h3 data-i18n="steam.h">Your Steam library, one command away.</h3>
-            <p data-i18n="steam.p">Barrel creates a Windows 10 bottle, installs Steam silently and applies the fixes Steam needs under Wine. Then it turns Steam into a Mac app with its own icon.</p>
-            <p class="check" data-i18n="steam.c">Recipes check every download against a pinned SHA-256.</p>
+          <div class="panel" role="tabpanel" id="p-steam" aria-labelledby="t-steam" data-media="media/app-welcome-detail.png" data-alt="Barrel.app welcome screen with the Install Steam button" data-i18n-data-alt="alt.steam">
+            <h3 data-i18n="steam.h">Your Steam library, one click away.</h3>
+            <p data-i18n="steam.p">Click Install Steam: Barrel sets up the Windows version of Steam with the fixes it needs on a Mac. Sign in, install your games, and they appear in the library.</p>
+            <p class="check" data-i18n="steam.c">It is the real Steam: your account, your games, your cloud saves.</p>
           </div>
-          <div class="panel" role="tabpanel" id="p-graphics" aria-labelledby="t-graphics" data-media="media/cast-per-game-graphics.svg" data-alt="Terminal: barrel graphics switches one game to DXMT" data-i18n-data-alt="alt.graphics" hidden>
+          <div class="panel" role="tabpanel" id="p-graphics" aria-labelledby="t-graphics" data-media="media/app-game-card.png" data-alt="A game's Graphics menu: Automatic, DXVK, DXMT and wined3d" data-i18n-data-alt="alt.graphics" hidden>
             <h3 data-i18n="graphics.h">The right engine for each game.</h3>
-            <p data-i18n="graphics.p">Keep a bottle on DXVK and move one game to DXMT, or send an old launcher back to wined3d. Overrides are per executable, so nothing else changes.</p>
+            <p data-i18n="graphics.p">Automatic uses the game's tested profile when there is one. Prefer another? Pick DXVK, DXMT or wined3d for that game, and nothing else changes.</p>
             <p class="check" data-i18n="graphics.c">DXVK, DXMT and wined3d ship inside the app.</p>
           </div>
-          <div class="panel" role="tabpanel" id="p-bottles" aria-labelledby="t-bottles" data-media="media/cast-bottles.svg" data-alt="Terminal: barrel create, list and info" data-i18n-data-alt="alt.bottles" hidden>
-            <h3 data-i18n="bottles.h">Every app in its own Windows.</h3>
-            <p data-i18n="bottles.p">A bottle has its own C: drive, registry and settings, so a broken install never touches anything else. Copy it, export it, restore it on another Mac.</p>
-            <p class="check" data-i18n="bottles.c">Windows 98 to Windows 11 templates.</p>
-          </div>
-          <div class="panel" role="tabpanel" id="p-app" aria-labelledby="t-app" data-media="media/app-02-install.png" data-alt="Barrel.app Install Software sheet with the Steam recipe selected" data-i18n-data-alt="alt.app" hidden>
-            <h3 data-i18n="app.h">Prefer clicking? Same power.</h3>
-            <p data-i18n="app.p">Barrel.app covers the everyday work: create bottles, install software, pick a graphics backend, run a program or drop it into a launcher.</p>
-            <p class="check" data-i18n="app.c">A native SwiftUI app. No Electron.</p>
+          <div class="panel" role="tabpanel" id="p-dock" aria-labelledby="t-dock" data-media="media/cast-play-steam.svg" data-alt="Terminal: barrel install steam, barrel games and barrel launcher game" data-i18n-data-alt="alt.dock" hidden>
+            <h3 data-i18n="dock.h">Your games, in the Dock.</h3>
+            <p data-i18n="dock.p">Add to Dock turns a game into a Mac app with its own icon. One click and it starts, with its profile applied.</p>
+            <p class="check" data-i18n="dock.c">Also from the terminal: barrel launcher game.</p>
           </div>
         </div>
-        <figure class="split__media">
-          <img id="tab-media" src="media/cast-play-steam.svg" alt="Terminal: barrel install steam installs Steam into a new bottle in 45 seconds">
+        <figure class="split__media is-photo">
+          <img id="tab-media" src="media/app-welcome-detail.png" alt="Barrel.app welcome screen with the Install Steam button">
         </figure>
       </div>
     </section>
@@ -133,7 +128,7 @@
         <article class="col">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10c2 3 3 6 3 9s-1 6-3 9H7c-2-3-3-6-3-9s1-6 3-9z"/><path d="M4.5 8h15M4.5 16h15"/></svg>
           <h3>Barrel</h3>
-          <p data-i18n="barrel.p">Everything around them: bottles, recipes, per-game settings, Mac launchers and a self-contained runtime inside the app.</p>
+          <p data-i18n="barrel.p">Everything around them: Steam's setup, the library, game profiles, Mac launchers and a self-contained runtime inside the app.</p>
         </article>
       </div>
     </section>
@@ -218,30 +213,65 @@
           <h2 class="display display--md" data-i18n="care.title">Small things,<br>done properly.</h2>
           <div class="grid">
             <article class="cell">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/></svg>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.4 1.8 3-.2.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.2L12 21l-2.4-1.8-3 .2-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .2z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+              <h3 data-i18n="care.p.h">Profiles from real play.</h3>
+              <p data-i18n="care.p.p">A profile only exists when someone played the game and wrote down what it needed. Most games need none.</p>
+            </article>
+            <article class="cell">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M6 20h12M7 12h2M11 12h2M15 12h2"/></svg>
               <h3 data-i18n="care.l.h">Launchers that look right.</h3>
-              <p data-i18n="care.l.p">A launcher is a real Mac app. Barrel reads the icon out of the Windows executable, so it looks right in the Dock and Spotlight.</p>
+              <p data-i18n="care.l.p">A launcher is a real Mac app. Barrel reads the icon out of the game's executable, so it looks right in the Dock and Spotlight.</p>
             </article>
             <article class="cell">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"/></svg>
-              <h3 data-i18n="care.r.h">Recipes you can read.</h3>
-              <p data-i18n="care.r.p">Installs are short JSON files: downloads with a pinned hash, silent installers, registry tweaks. Write your own in minutes.</p>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 18h10a4 4 0 0 0 .5-8 6 6 0 0 0-11.5 1.5A3.3 3.3 0 0 0 7 18z"/></svg>
+              <h3 data-i18n="care.s.h">Your Steam, as it is.</h3>
+              <p data-i18n="care.s.p">Barrel runs Valve's own Windows client, so your account, purchases and cloud saves are simply there.</p>
             </article>
             <article class="cell">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
-              <h3 data-i18n="care.b.h">Bottles you can take with you.</h3>
-              <p data-i18n="care.b.p">Export a bottle to a single .tar.gz, restore it on another Mac, or copy it before you try something risky.</p>
-            </article>
-            <article class="cell">
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-              <h3 data-i18n="care.c.h">A command line, too.</h3>
-              <p data-i18n="care.c.p">Everything in the app is one <code>barrel</code> command away, for scripts and for people who live in the terminal.</p>
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>
+              <h3 data-i18n="care.r.h">Nothing else to install.</h3>
+              <p data-i18n="care.r.p">Wine, DXVK and DXMT ship inside Barrel.app. The only extra piece is Apple's Rosetta 2.</p>
             </article>
           </div>
         </div>
         <figure class="split__media split__media--detail">
-          <img src="media/app-graphics-detail.png" width="1312" height="264" alt="Barrel.app's graphics backend menu: wined3d, DXVK, DXMT, and D3DMetal when installed" data-i18n-alt="alt.detail">
-          <figcaption data-i18n="care.caption">Switch a bottle between wined3d, DXVK and DXMT from the app.</figcaption>
+          <img src="media/app-game-card.png" width="720" height="480" alt="A game card in Barrel.app with its Graphics menu open" data-i18n-alt="alt.detail">
+          <figcaption data-i18n="care.caption">Automatic uses the game's profile; pick an engine to override it.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section class="band band--warm" id="advanced">
+      <div class="wrap split">
+        <div>
+          <p class="eyebrow" data-i18n="adv.eyebrow">Advanced</p>
+          <h2 class="display display--md" data-i18n="adv.title">Want to<br>go deeper?</h2>
+          <p class="lede lede--side adv__lede" data-i18n="adv.lede">Under the hood, Steam lives in a bottle: a self-contained Windows with its own C: drive and registry. Make more of them, for any Windows program, not just games.</p>
+          <div class="grid">
+            <article class="cell">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>
+              <h3 data-i18n="adv.b.h">Bottles.</h3>
+              <p data-i18n="adv.b.p">Create, copy, export to a .tar.gz and restore them, each with its own Windows version and settings.</p>
+            </article>
+            <article class="cell">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"/></svg>
+              <h3 data-i18n="adv.r.h">Recipes.</h3>
+              <p data-i18n="adv.r.p">One-click installers written as short JSON files. Steam is one of them; write your own.</p>
+            </article>
+            <article class="cell">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
+              <h3 data-i18n="adv.c.h">A command line.</h3>
+              <p data-i18n="adv.c.p">Everything the app does is a <code>barrel</code> command, for scripts and for people who live in the terminal.</p>
+            </article>
+            <article class="cell">
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.4 1.8 3-.2.9 2.9 2.4 1.8-1 2.8 1 2.8-2.4 1.8-.9 2.9-3-.2L12 21l-2.4-1.8-3 .2-.9-2.9-2.4-1.8 1-2.8-1-2.8 2.4-1.8.9-2.9 3 .2z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>
+              <h3 data-i18n="adv.p.h">Your own profiles.</h3>
+              <p data-i18n="adv.p.p">Got a game working? A guide walks you, or an AI agent such as Claude Code, through testing it and sharing its profile.</p>
+            </article>
+          </div>
+        </div>
+        <figure class="split__media">
+          <img src="media/cast-bottles.svg" width="637" height="389" alt="Terminal: barrel create, barrel list and barrel info" data-i18n-alt="alt.bottles">
         </figure>
       </div>
     </section>

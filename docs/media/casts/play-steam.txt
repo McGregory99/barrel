@@ -1,4 +1,5 @@
-# Recorded with Barrel.app's barrel on an Apple M2 (BARREL_HOME at its default, shown as ~).
+# Recorded with Barrel.app's barrel on an Apple M2 (home folder shown as ~). The install ran in a fresh
+# data folder; 'games' and 'launcher game' ran on a bottle where Stonewards was installed through Steam.
 $ barrel install steam
 Creating bottle 'steam'
 Recipe steam: Steam
@@ -9,6 +10,8 @@ Registry HKCU\Software\Wine\AppDefaults\steamwebhelper.exe\AppendCommandLine
 Registry HKCU\Software\Wine\DllOverrides\gameoverlayrenderer
 Registry HKCU\Software\Wine\DllOverrides\gameoverlayrenderer64
 Installed 'steam' into bottle 'steam'  @45 s
-$ S="$HOME/Library/Application Support/Barrel/Bottles/steam/drive_c/Program Files (x86)/Steam"
-$ barrel launcher create steam "$S/steam.exe" --name Steam
-Created ~/Applications/Barrel/Steam.app
+$ # sign in to Steam and install a game, then:
+$ barrel games
+4502710	Stonewards	dxvk (profile)	profile: works
+$ barrel launcher game Stonewards
+Created ~/Applications/Barrel/Stonewards.app
