@@ -154,6 +154,27 @@ h3 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.025em; lin
 .bar__value { font: 500 14px var(--mono); color: var(--muted); text-align: right; }
 .bars figcaption { margin-top: 10px; font-size: 13px; color: var(--muted); }
 
+/* Comparison */
+.compare { margin-top: clamp(44px, 6vw, 64px); overflow-x: auto; border-radius: 18px; box-shadow: 0 0 0 1px var(--line); }
+.compare:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+.compare table { width: 100%; min-width: 720px; border-collapse: collapse; font-size: 14.5px; line-height: 1.5; }
+.compare th, .compare td { padding: 18px 22px; text-align: left; vertical-align: top; border-top: 1px solid var(--line); }
+.compare thead th, .compare thead td { border-top: 0; padding-top: 22px; padding-bottom: 18px; }
+.compare thead th { font-size: 16px; font-weight: 650; letter-spacing: -0.02em; }
+.compare tbody th { width: 22%; font-weight: 550; letter-spacing: -0.01em; }
+.compare td { width: 26%; color: var(--muted); }
+.compare .us { background: rgb(183 76 27 / 0.045); color: var(--ink); }
+.compare thead .us { border-radius: 0; }
+.who { display: inline-flex; align-items: center; gap: 10px; }
+.mono { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: #e4e4e1; color: #6b6b70; font-size: 12px; font-weight: 700; }
+.yes, .no { display: inline-block; width: 18px; height: 18px; vertical-align: -3px; }
+.yes { background: var(--accent); -webkit-mask: var(--tick) center / contain no-repeat; mask: var(--tick) center / contain no-repeat; }
+.compare td:not(.us) .yes { background: var(--muted); }
+.no { position: relative; }
+.no::before { content: ""; position: absolute; left: 3px; right: 3px; top: 8px; height: 2px; border-radius: 2px; background: #c4c4c0; }
+:root { --tick: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2 8.5l4 4 8-9" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); }
+.footnote { margin: 16px 0 0; font-size: 13px; color: var(--muted); }
+
 /* Feature grid */
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 36px; margin-top: 44px; }
 .cell h3 { font-size: 17px; }
@@ -167,6 +188,8 @@ h3 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.025em; lin
 .footer { border-top: 1px solid var(--line); padding: 30px 0 40px; }
 .footer__inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; }
 .footer p { margin: 0; font-size: 13px; color: var(--muted); }
+.footer a { text-decoration: none; }
+.footer a:hover { color: var(--ink); }
 
 @media (max-width: 900px) {
   .nav__links { display: none; }

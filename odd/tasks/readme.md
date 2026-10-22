@@ -9,6 +9,9 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 - S2: "Tambien quiero que hagas una landing page, inspirandote en esta estetica: https://lapis.lvrpiz.com/"
   - Reference aesthetic (observed): Inter, very tight display type (-0.04em), small burnt-orange eyebrow labels (#b74c1b), ink #1c1c1e, muted #595d63, hairlines #e7e7e5, alternating white / #f5f6f7 / warm #f7f6f2 sections, real product shots, tabbed feature block, 3-column features with a hairline above each, dark pill primary button + outline secondary.
   - Assumption: hosted on GitHub Pages from this repo; English; reuses the README animations.
+- S4: "dentro de la landing me gustaría poner algún apartado que diferencie de la competencia, que es crossover y proton [...] la típica tabla de diferencias [...] y pongas sus logotipos y el de barrel"
+  - "proton ... Steam que es para Mac" resolved to NotProton (Steam Play on the Mac Steam client; needs CrossOver 26.3). Competitor logos left out on purpose (trademark risk on a public page); Barrel's logo plus neutral initials instead.
+- S5: "quiero que quites esta frase del footer: Un proyecto independiente, sin relación con CodeWeavers, Valve ni Apple ni respaldado por ellos."
 - S3: "podrias meter un iconito con dos lenguajes epanol ingles y que se cambie el idioma en la landing?"
 
 ## Tasks
@@ -21,6 +24,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 | T5 | S1 | inline | done `1b9b4cd` | README.md rewrite, pushed, verified rendering on github.com |
 | T6 | S2 | inline | done `8da91fe` | landing page `site/` + GitHub Pages workflow, verified live |
 | T7 | S3 | inline | done | ES/EN switch (globe + ES / EN) in the landing nav; Spanish copy in `site/i18n-es.js` |
+| T8 | S4, S5 | inline | done | comparison table (Barrel / CrossOver 26 / NotProton, 9 rows, sources dated) + nav link; footer disclaimer removed |
 | T0 | S1 | inline | done `fix(cli)` ×2 | fixes found while recording: CLI from Barrel.app ignored bundled recipes; maintenance commands flooded the terminal with MoltenVK/msync output |
 
 ## Log
@@ -35,3 +39,4 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 - L9: 2026-10-22 user: "podrias meter un iconito con dos lenguajes epanol ingles y que se cambie el idioma en la landing?"
 - L10: T7. English stays the page's own text; 62 strings (text, alt, data-alt, aria-label) carry data-i18n keys and Spanish lives in `site/i18n-es.js`. First visit follows the browser language, the choice is kept in localStorage (wrapped in try/catch); <html lang>, title and meta description switch too. Checks: es-ES browser opens in Spanish, en-US in English; clicking ES then EN restores the page byte-for-byte (body innerHTML equal, 18115 chars); Spanish layout checked at 1440 px and 390 px.
 - L11: 2026-10-22 user (screenshot): "no aparece una bandera de España ni una de Inglaterra, simplemente aparece es en, súper feo, además aparece un botón que pone GitHub y aparece un círculo en negro que no tengo ni idea de lo que es". Cause, verified: Pages serves CSS with max-age=600, so the browser paired the new HTML with its cached styles.css; the unstyled globe SVG filled black and ES/EN fell back to default buttons. Fix: round Spain/UK flag buttons (inline size and colours, so they degrade gracefully) in a pill, inactive flag greyed; the deploy workflow stamps `?v=<commit>` on styles.css and i18n-es.js so new HTML never meets stale assets.
+- L12: T8. Facts checked: codeweavers.com/store lists CrossOver+ €74 (12 months), Life €484, 14-day free trial; CrossOver bundles lib/dxmt and apple_gptk D3DMetal (docs/feature-map.md); NotProton per ithinkdiff (Oct 2026): GPL-3.0 with Valve-licensed parts, needs CrossOver 26.3 or Preview, launches games through CrossOver, early release. Rows where CrossOver is ahead are kept (tested titles, installers, support, signed download). Footer now shows only brand, GitHub link and license (user request); the README keeps its non-affiliation note.
