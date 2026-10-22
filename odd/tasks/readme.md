@@ -17,8 +17,8 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 | T2 | S1 | inline | done | animated SVG: how it works (Windows .exe → Wine → DXVK/DXMT → Metal) |
 | T3 | S1 | inline | done | animated SVG terminal casts per use case (play Steam games, per-game graphics, launchers) |
 | T4 | S1 | inline | done | GIF of the real Barrel.app (bottles, Install Software, Create Launcher) |
-| T5 | S1 | inline | pending | README.md rewrite, pushed, verified rendering on github.com |
-| T6 | S2 | inline | pending | landing page `site/` + GitHub Pages workflow, verified live |
+| T5 | S1 | inline | done `1b9b4cd` | README.md rewrite, pushed, verified rendering on github.com |
+| T6 | S2 | inline | done `8da91fe` | landing page `site/` + GitHub Pages workflow, verified live |
 | T0 | S1 | inline | done `fix(cli)` ×2 | fixes found while recording: CLI from Barrel.app ignored bundled recipes; maintenance commands flooded the terminal with MoltenVK/msync output |
 
 ## Log
@@ -29,3 +29,4 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 - L5: T0 cont. Screenshots exposed two app defects, fixed: the sidebar's New/Install/Restore buttons sat in a toolbar overflow (») — sidebar now 220–240 pt wide and Restore folded into a New Bottle split menu (32acb19); Install Software showed maintainer notes (stale-hash advice) as descriptions — recipes now carry a short `description` plus a `notes` field the app never shows (885093a, parser test added; 99 barrel tests pass, 29 app tests pass).
 - L6: T1–T4. Real session recorded in a scratch BARREL_HOME (later moved to /Users/Shared/Barrel so screenshots show a neutral path). `scripts/render_media.py` turns `docs/media/casts/*.txt` (verbatim output; home shown as ~, wrapped at 76 columns) into CSS-animated terminal SVGs and draws `how-it-works-{light,dark}.svg` (SMIL dots + CSS dash flow). Checked by freezing animations at chosen times in headless Chrome. App tour GIF (842 KB, 3 real screenshots with crossfades) and 1600 px PNGs via ffmpeg. A Finder screenshot of the launcher was discarded because it showed the user's home folder name.
 - L7: T5/T6. README rewritten (hero GIF, four use cases, backend table, how-it-works with <picture> light/dark, performance table with the one-scene caveat, build steps, layout, license). Landing `site/` follows the Lapis tokens; verified at 1440 px and in a 390 px iframe (no horizontal overflow). Copy claims checked against the code: app does not expose per-app graphics, so the page says "covers the everyday work"; memory claim is 1.00 vs 1.65 GB ("about 40% less").
+- L8: Published. README renders on github.com with all animations playing; landing live at https://mcgregory99.github.io/barrel/ (HTTP 200 for page and media). Pages enabled with build_type=workflow; the push-triggered run failed only because Pages was not enabled yet and passed on re-run. Demo data in /Users/Shared/Barrel removed afterwards.
