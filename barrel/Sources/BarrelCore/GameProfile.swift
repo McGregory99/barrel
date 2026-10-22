@@ -33,12 +33,38 @@ public struct GameProfile: Equatable, Sendable {
         self.launchArguments = launchArguments
         self.notes = notes
     }
+}
 
-    /// Identifies the settings written into a bottle, so an unchanged profile is not rewritten.
-    func fingerprint(executable: String) -> String {
-        let overrides = dllOverrides.sorted { $0.key < $1.key }.map { "\($0.key)=\($0.value)" }
-        return ([executable, graphics?.rawValue ?? "-"] + overrides).joined(separator: "|")
+/// The part of a profile Barrel writes into a bottle, recorded so an unchanged profile is not
+/// rewritten and a changed one can remove what it no longer sets.
+struct AppliedProfile: Equatable {
+    var executable: String
+    var graphics: GraphicsBackend?
+    var dllOverrides: [(dll: String, mode: String)]
+
+    init(profile: GameProfile, executable: String) {
+        self.executable = executable
+        graphics = profile.graphics
+        dllOverrides = profile.dllOverrides.sorted { $0.key < $1.key }.map { ($0.key, $0.value) }
     }
+
+    /// `executable|graphics or -|dll=mode|…`
+    var fingerprint: String {
+        ([executable, graphics?.rawValue ?? "-"] + dllOverrides.map { "\($0.dll)=\($0.mode)" }).joined(separator: "|")
+    }
+
+    init?(fingerprint: String) {
+        let parts = fingerprint.split(separator: "|", omittingEmptySubsequences: false).map(String.init)
+        guard parts.count >= 2, !parts[0].isEmpty else { return nil }
+        executable = parts[0]
+        graphics = parts[1] == "-" ? nil : GraphicsBackend(rawValue: parts[1])
+        dllOverrides = parts.dropFirst(2).compactMap { entry in
+            guard let eq = entry.firstIndex(of: "=") else { return nil }
+            return (String(entry[..<eq]), String(entry[entry.index(after: eq)...]))
+        }
+    }
+
+    static func == (a: AppliedProfile, b: AppliedProfile) -> Bool { a.fingerprint == b.fingerprint }
 }
 
 public enum GameProfileError: Error, Equatable, CustomStringConvertible {

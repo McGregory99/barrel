@@ -158,4 +158,52 @@ struct PlayFixture {
         _ = try f.service.play(f.game, profile: profile, bottle: "steam", arguments: [])
         #expect(f.graphics.installer.installed.map(\.0) == [.dxmt])
     }
+
+    @Test func aChangedProfileIsReappliedAndDropsSettingsItNoLongerHas() throws {
+        let f = try PlayFixture()
+        _ = try f.service.play(f.game, profile: profile, bottle: "steam", arguments: [])
+        f.runtime.calls.removeAll()
+
+        var updated = profile
+        updated.graphics = nil
+        updated.dllOverrides = ["dinput8": "native"]
+        _ = try f.service.play(f.game, profile: updated, bottle: "steam", arguments: [])
+
+        let key = #"HKCU\Software\Wine\AppDefaults\Stonewards.exe\DllOverrides"#
+        let deletes = f.runtime.calls.compactMap { call -> String? in
+            if case let .deleteRegistry(_, k, name) = call, k == key { return name } else { return nil }
+        }
+        #expect(Set(deletes) == Set(LaunchEnvironment.direct3DLibraries + ["xinput1_3"]))
+        #expect(f.runtime.registryWrites()["\(key)\\dinput8"] == "native")
+    }
+
+    @Test func aMissingBackendDoesNotStopTheGame() throws {
+        let f = try PlayFixture()
+        var needsGPTK = profile
+        needsGPTK.graphics = .dxmt
+        let bare = try GraphicsFixture(components: RuntimeComponents())
+        _ = try bare.service.create(name: "steam", version: .win10)
+        bare.base.runtime.calls.removeAll()
+
+        let status = try bare.service.play(f.game, profile: needsGPTK, bottle: "steam", arguments: [])
+
+        #expect(status == 0)
+        #expect(bare.installer.installed.isEmpty)
+        #expect(bare.base.runtime.registryWrites()[#"HKCU\Software\Wine\AppDefaults\Stonewards.exe\DllOverrides\xinput1_3"#]
+                == "native,builtin")
+        // Not recorded as applied, so the graphics are written once the backend is available.
+        #expect(try bare.base.store.load("steam").appliedProfiles.isEmpty)
+        #expect(bare.base.runtime.calls.last.map { if case .start = $0 { true } else { false } } == true)
+    }
+}
+
+@Suite struct ExecutableGuessTests {
+    @Test func namesThatCouldEscapeTheRegistryKeyAreIgnored() throws {
+        let fake = FakeSteamPrefix()
+        let dir = fake.prefix.appendingPathComponent("game")
+        try fake.write("MZ", to: dir.appendingPathComponent(#"..\Evil.exe"#))
+        try fake.write("MZ", to: dir.appendingPathComponent("Game.exe"))
+        let game = SteamGame(appID: 1, name: "Evil", installDirectory: dir)
+        #expect(SteamLibrary.mainExecutable(of: game)?.lastPathComponent == "Game.exe")
+    }
 }

@@ -110,32 +110,63 @@ public struct BottleService {
     }
 
     /// Launches a Steam game through the bottle's Steam client, first writing its profile's
-    /// settings into the bottle (once per profile change). A backend the player chose for the game
-    /// wins over the profile's.
+    /// settings into the bottle (once per profile change, removing what an earlier version of the
+    /// profile set and this one no longer does). A backend the player chose for the game wins over
+    /// the profile's; a profile backend that is not installed is skipped rather than blocking the game.
     public func play(_ game: SteamGame, profile: GameProfile?, bottle name: String, arguments: [String]) throws -> Int32 {
         var bottle = try store.load(name)
         let prefix = store.prefixURL(for: name)
-        if let profile, let executable = profile.executable ?? SteamLibrary.mainExecutable(of: game)?.lastPathComponent {
-            let fingerprint = profile.fingerprint(executable: executable)
-            if bottle.appliedProfiles[String(game.appID)] != fingerprint {
-                let key = #"HKCU\Software\Wine\AppDefaults\"# + executable + #"\DllOverrides"#
-                if let backend = profile.graphics, bottle.appGraphics[executable] == nil {
-                    guard components.isAvailable(backend) else { throw BottleError.backendUnavailable(backend) }
-                    try graphics.install(backend, into: prefix, components: components)
-                    try writeDirect3DOverrides(key: key, backend: backend, bottle: bottle)
+        let appID = String(game.appID)
+        let executable = profile.flatMap { $0.executable ?? SteamLibrary.mainExecutable(of: game)?.lastPathComponent }
+        var wanted: AppliedProfile?
+        if let profile, let executable { wanted = AppliedProfile(profile: profile, executable: executable) }
+        let previous = bottle.appliedProfiles[appID].flatMap(AppliedProfile.init(fingerprint:))
+        if wanted?.fingerprint != previous?.fingerprint {
+            let environment = LaunchEnvironment.make(for: bottle, components: components)
+            if let previous { try remove(previous, keeping: wanted, bottle: bottle, environment: environment) }
+            var complete = true
+            if let wanted {
+                let key = Self.appDefaultsKey(wanted.executable)
+                if let backend = wanted.graphics, bottle.appGraphics[wanted.executable] == nil {
+                    if components.isAvailable(backend) {
+                        try graphics.install(backend, into: prefix, components: components)
+                        try writeDirect3DOverrides(key: key, backend: backend, bottle: bottle)
+                    } else {
+                        complete = false  // written once the backend is installed
+                    }
                 }
-                let environment = LaunchEnvironment.make(for: bottle, components: components)
-                for (dll, mode) in profile.dllOverrides.sorted(by: { $0.key < $1.key }) {
+                for (dll, mode) in wanted.dllOverrides {
                     try runtime.setRegistryValue(key: key, name: dll, data: mode, prefix: prefix, environment: environment)
                 }
-                bottle.appliedProfiles[String(game.appID)] = fingerprint
-                try store.save(bottle)
             }
+            bottle.appliedProfiles[appID] = complete ? wanted?.fingerprint : nil
+            try store.save(bottle)
         }
         let steam = SteamLibrary.steamDirectory(prefix: prefix).appendingPathComponent("steam.exe")
         return try runtime.start(steam.path,
-                                 arguments: ["-applaunch", String(game.appID)] + (profile?.launchArguments ?? []) + arguments,
+                                 arguments: ["-applaunch", appID] + (profile?.launchArguments ?? []) + arguments,
                                  prefix: prefix, environment: LaunchEnvironment.make(for: bottle, components: components))
+    }
+
+    /// Deletes the per-executable values an applied profile wrote that `next` does not write again.
+    private func remove(_ old: AppliedProfile, keeping next: AppliedProfile?, bottle: Bottle,
+                        environment: [String: String]) throws {
+        let prefix = store.prefixURL(for: bottle.name)
+        let key = Self.appDefaultsKey(old.executable)
+        let sameExecutable = next?.executable == old.executable
+        var stale = old.dllOverrides.map(\.dll).filter { dll in
+            !(sameExecutable && next?.dllOverrides.contains { $0.dll == dll } == true)
+        }
+        if old.graphics != nil, bottle.appGraphics[old.executable] == nil, !(sameExecutable && next?.graphics != nil) {
+            stale += LaunchEnvironment.direct3DLibraries
+        }
+        for dll in stale {
+            try runtime.deleteRegistryValue(key: key, name: dll, prefix: prefix, environment: environment)
+        }
+    }
+
+    static func appDefaultsKey(_ executable: String) -> String {
+        #"HKCU\Software\Wine\AppDefaults\"# + executable + #"\DllOverrides"#
     }
 
     /// The Direct3D backend a game runs with, and whether the player, its profile or the bottle chose it.

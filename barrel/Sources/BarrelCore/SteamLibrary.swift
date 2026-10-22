@@ -90,7 +90,9 @@ public enum SteamLibrary {
         for case let url as URL in walker {
             if walker.level > 4 { walker.skipDescendants(); continue }
             let lower = url.lastPathComponent.lowercased()
-            guard lower.hasSuffix(".exe"), !helperNames.contains(where: lower.contains) else { continue }
+            // The name becomes part of a registry key path, so it must not contain a separator.
+            guard lower.hasSuffix(".exe"), !lower.contains("\\"), !helperNames.contains(where: lower.contains)
+            else { continue }
             let values = try? url.resourceValues(forKeys: [.fileSizeKey, .isRegularFileKey])
             guard values?.isRegularFile == true else { continue }
             candidates.append((url, values?.fileSize ?? 0))
