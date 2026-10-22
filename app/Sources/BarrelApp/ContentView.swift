@@ -11,15 +11,28 @@ struct ContentView: View {
     @State private var showCopy = false
     @State private var showInstall = false
     @State private var launcherProgram: URL?
+    @State private var sidebar: SidebarItem? = .library
 
     var body: some View {
         NavigationSplitView {
             BottleSidebar(
-                bottles: model.bottles, defaultName: model.defaultName, selection: $model.selection,
+                bottles: model.bottles, defaultName: model.defaultName, selection: $sidebar,
                 onCreate: { showCreate = true }, onRestore: chooseArchive,
                 onInstall: { showInstall = true; Task { await model.loadRecipes() } })
         } detail: {
-            if let bottle = model.selectedBottle {
+            if sidebar == .library {
+                LibraryView(
+                    steamBottle: model.steamBottle, games: model.games, isBusy: model.isBusy,
+                    isAvailable: model.isAvailable,
+                    actions: .init(
+                        installSteam: { Task { await model.installSteam() } },
+                        openSteam: { Task { await model.openSteam() } },
+                        refresh: { Task { await model.loadLibrary() } },
+                        play: { game in Task { await model.play(game) } },
+                        setGraphics: { game, backend in Task { await model.setGraphics(for: game, backend: backend) } },
+                        addToDock: { game in Task { await model.addToDock(game) } }))
+                    .task { await model.loadLibrary() }
+            } else if let bottle = model.selectedBottle {
                 BottleDetailView(
                     bottle: bottle, isDefault: model.isDefault(bottle),
                     prefixURL: model.prefixURL(for: bottle.name), isAvailable: model.isAvailable,
@@ -40,10 +53,21 @@ struct ContentView: View {
                         }))
             } else {
                 ContentUnavailableView("No bottle selected", systemImage: "wineglass",
-                                       description: Text("Create or select a bottle."))
+                                       description: Text("Choose Library to play, or a bottle under Advanced."))
             }
         }
-        .overlay(alignment: .bottom) { if let message = model.busyMessage ?? (model.isBusy ? "Working…" : nil) { BusyBanner(message: message) } }
+        .onChange(of: sidebar) { _, item in
+            if case .bottle(let name) = item { model.selection = name } else { model.selection = nil }
+        }
+        .onChange(of: model.selection) { _, name in
+            // Creating, copying or restoring a bottle selects it.
+            if let name, sidebar != .bottle(name) { sidebar = .bottle(name) }
+        }
+        .overlay(alignment: .bottom) {
+            if let message = model.busyMessage ?? model.launchMessage ?? (model.isBusy ? "Working…" : nil) {
+                BusyBanner(message: message)
+            }
+        }
         .sheet(isPresented: $showCreate) {
             CreateBottleSheet { name, version, description in
                 Task { await model.create(name: name, version: version, description: description) }

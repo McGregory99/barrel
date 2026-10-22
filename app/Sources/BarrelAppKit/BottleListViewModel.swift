@@ -14,6 +14,11 @@ public final class BottleListViewModel {
     public private(set) var recipes: [RecipeSummary] = []
     /// The launcher app created most recently, so the view can reveal it in Finder.
     public private(set) var lastLauncher: URL?
+    /// The bottle Steam runs in, or nil before Steam is installed.
+    public private(set) var steamBottle: String?
+    public private(set) var games: [GameSummary] = []
+    /// A short note while a game or Steam starts; launching never blocks the window.
+    public private(set) var launchMessage: String?
     public var selection: String?
     public var gateway: BottleGateway?
 
@@ -99,6 +104,66 @@ public final class BottleListViewModel {
         await perform("Creating launcher \(name)…") { gateway in
             try gateway.createLauncher(name: name, bottle: bottle, program: program.path)
         } apply: { [self] in lastLauncher = $0 }
+    }
+
+    // MARK: Steam library
+
+    public func loadLibrary() async {
+        await perform(nil) { gateway -> (String?, [GameSummary]) in
+            guard let steam = try gateway.steamBottle() else { return (nil, []) }
+            return (steam, try gateway.games(in: steam))
+        } apply: { [self] in
+            steamBottle = $0.0
+            games = $0.1
+        }
+    }
+
+    /// Installs Steam into its own bottle (created by the recipe), then shows the library.
+    public func installSteam() async {
+        await mutate("Installing Steam… (about a minute)") { try $0.install(recipe: "steam", bottle: nil) }
+        await loadLibrary()
+    }
+
+    public func play(_ game: GameSummary) async {
+        guard let bottle = steamBottle else { return }
+        await launch("Starting \(game.name)…") { try $0.play(appID: game.appID, in: bottle) }
+    }
+
+    public func openSteam() async {
+        guard let bottle = steamBottle else { return }
+        await launch("Opening Steam…") { try $0.openSteam(in: bottle) }
+    }
+
+    public func setGraphics(for game: GameSummary, backend: GraphicsBackend) async {
+        guard let bottle = steamBottle, let executable = game.executable else { return }
+        await perform("Applying \(backend.rawValue) to \(game.name)…") { gateway in
+            try gateway.setGameGraphics(bottle: bottle, executable: executable, backend: backend)
+            return try gateway.games(in: bottle)
+        } apply: { [self] in games = $0 }
+    }
+
+    public func addToDock(_ game: GameSummary) async {
+        guard let bottle = steamBottle else { return }
+        await perform("Creating \(game.name).app…") { gateway in
+            try gateway.createGameLauncher(appID: game.appID, name: game.name, bottle: bottle)
+        } apply: { [self] in lastLauncher = $0 }
+    }
+
+    /// Starts something long-running (Steam stays open) without the busy state; errors still surface.
+    private func launch(_ message: String, _ work: @escaping @Sendable (BottleGateway) throws -> Int32) async {
+        guard let gateway else { return }
+        launchMessage = message
+        let clear = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(4))
+            if self?.launchMessage == message { self?.launchMessage = nil }
+        }
+        do {
+            _ = try await Task.detached(priority: .userInitiated) { try work(gateway) }.value
+        } catch {
+            errorMessage = Self.describe(error)
+        }
+        clear.cancel()
+        if launchMessage == message { launchMessage = nil }
     }
 
     // MARK: Plumbing

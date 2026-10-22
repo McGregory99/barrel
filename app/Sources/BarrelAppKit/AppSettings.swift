@@ -11,6 +11,8 @@ public struct AppSettings: Equatable, Sendable {
     public var gptkDirectory = ""
     /// Extra recipe folder, e.g. the repository's `recipes/`; `<data>/Recipes` is always read.
     public var recipesDirectory = ""
+    /// Extra game-profile folder (Barrel.app's bundled profiles); `<data>/Profiles` is read first.
+    public var profilesDirectory = ""
 
     public static let defaultDataDirectory = FileManager.default.homeDirectoryForCurrentUser
         .appendingPathComponent("Library/Application Support/Barrel", isDirectory: true)
@@ -28,6 +30,12 @@ public struct AppSettings: Equatable, Sendable {
     public var recipeDirectories: [URL] {
         var directories = [dataDirectory.appendingPathComponent("Recipes", isDirectory: true)]
         if !recipesDirectory.isEmpty { directories.insert(URL(fileURLWithPath: recipesDirectory, isDirectory: true), at: 0) }
+        return directories
+    }
+
+    public var profileDirectories: [URL] {
+        var directories = [dataDirectory.appendingPathComponent("Profiles", isDirectory: true)]
+        if !profilesDirectory.isEmpty { directories.append(URL(fileURLWithPath: profilesDirectory, isDirectory: true)) }
         return directories
     }
 
@@ -61,7 +69,7 @@ public struct SettingsStore {
     private enum Key {
         static let wine = "wineBinary", home = "dataDirectory", libs = "librariesDirectory"
         static let dxvk = "dxvkDirectory", dxmt = "dxmtDirectory", gptk = "gptkDirectory"
-        static let recipes = "recipesDirectory"
+        static let recipes = "recipesDirectory", profiles = "profilesDirectory"
     }
 
     public init(defaults: UserDefaults = .standard, environment: [String: String] = ProcessInfo.processInfo.environment,
@@ -86,6 +94,7 @@ public struct SettingsStore {
         settings.dxmtDirectory = value(Key.dxmt, "BARREL_DXMT", bundled: "runtime/dxmt")
         settings.gptkDirectory = value(Key.gptk, "BARREL_GPTK")
         settings.recipesDirectory = value(Key.recipes, "BARREL_RECIPES", bundled: "recipes")
+        settings.profilesDirectory = value(Key.profiles, "BARREL_PROFILES", bundled: "profiles")
         return settings
     }
 
@@ -97,5 +106,6 @@ public struct SettingsStore {
         defaults.set(settings.dxmtDirectory, forKey: Key.dxmt)
         defaults.set(settings.gptkDirectory, forKey: Key.gptk)
         defaults.set(settings.recipesDirectory, forKey: Key.recipes)
+        defaults.set(settings.profilesDirectory, forKey: Key.profiles)
     }
 }

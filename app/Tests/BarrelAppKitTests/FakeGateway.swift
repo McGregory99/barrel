@@ -12,6 +12,12 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     var recipeList: [RecipeSummary] = []
     private(set) var installs: [(recipe: String, bottle: String?)] = []
     private(set) var launchers: [(name: String, bottle: String, program: String)] = []
+    var steam: String?
+    var gameList: [GameSummary] = []
+    private(set) var plays: [(appID: Int, bottle: String)] = []
+    private(set) var steamOpens: [String] = []
+    private(set) var gameGraphicsChanges: [(bottle: String, executable: String, backend: GraphicsBackend)] = []
+    private(set) var gameLaunchers: [(appID: Int, name: String, bottle: String)] = []
 
     init(bottles: [Bottle] = [], defaultName: String? = nil) {
         self.bottles = bottles
@@ -71,9 +77,26 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
         launchers.append((name, bottle, program))
         return URL(fileURLWithPath: "/Applications/Barrel/\(name).app")
     }
+    func steamBottle() throws -> String? { try check(); return steam }
+    func games(in bottle: String) throws -> [GameSummary] { try check(); return gameList }
+    func play(appID: Int, in bottle: String) throws -> Int32 { try check(); plays.append((appID, bottle)); return 0 }
+    func openSteam(in bottle: String) throws -> Int32 { try check(); steamOpens.append(bottle); return 0 }
+    func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws {
+        try check()
+        gameGraphicsChanges.append((bottle, executable, backend))
+        for i in gameList.indices where gameList[i].executable == executable {
+            gameList[i].graphics = GameGraphics(backend: backend, source: .player)
+        }
+    }
+    func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL {
+        try check()
+        gameLaunchers.append((appID, name, bottle))
+        return URL(fileURLWithPath: "/Applications/Barrel/\(name).app")
+    }
     func install(recipe: String, bottle: String?) throws -> String {
         try check()
         installs.append((recipe, bottle))
+        if recipe == "steam" { steam = bottle ?? "steam" }
         let name = bottle ?? recipe
         if !bottles.contains(where: { $0.name == name }) { bottles.append(Bottle(name: name, windowsVersion: .win10)) }
         return name

@@ -1,44 +1,54 @@
 import BarrelCore
 import SwiftUI
 
+/// What the sidebar can show: the Steam library, or one bottle (Advanced).
+enum SidebarItem: Hashable {
+    case library
+    case bottle(String)
+}
+
 struct BottleSidebar: View {
     let bottles: [Bottle]
     let defaultName: String?
-    @Binding var selection: String?
+    @Binding var selection: SidebarItem?
     let onCreate: () -> Void
     let onRestore: () -> Void
     let onInstall: () -> Void
 
     var body: some View {
-        List(bottles, id: \.name, selection: $selection) { bottle in
-            HStack {
-                Label(bottle.name, systemImage: "wineglass")
-                Spacer()
-                if bottle.name == defaultName {
-                    Image(systemName: "star.fill").foregroundStyle(.yellow).help("Default bottle")
+        List(selection: $selection) {
+            Section("Play") {
+                Label("Library", systemImage: "gamecontroller").tag(SidebarItem.library)
+            }
+            Section {
+                ForEach(bottles, id: \.name) { bottle in
+                    HStack {
+                        Label(bottle.name, systemImage: "wineglass")
+                        Spacer()
+                        if bottle.name == defaultName {
+                            Image(systemName: "star.fill").foregroundStyle(.yellow).help("Default bottle")
+                        }
+                    }
+                    .tag(SidebarItem.bottle(bottle.name))
+                }
+            } header: {
+                HStack {
+                    Text("Advanced")
+                    Spacer()
+                    Menu {
+                        Button("New Bottle…", action: onCreate)
+                        Button("Install Software…", action: onInstall)
+                        Button("Restore Bottle…", action: onRestore)
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .menuIndicator(.hidden)
+                    .fixedSize()
+                    .help("Bottles: create, install software, restore")
                 }
             }
         }
-        // Wide enough for the sidebar toolbar (sidebar toggle + two actions) without an overflow menu.
-        .navigationSplitViewColumnWidth(min: 220, ideal: 240)
-        .navigationTitle("Bottles")
-        .toolbar {
-            ToolbarItem {
-                // Click creates a bottle; the menu also offers restoring one from an archive.
-                Menu {
-                    Button("New Bottle…", action: onCreate)
-                    Button("Restore Bottle…", action: onRestore)
-                } label: {
-                    Label("New Bottle", systemImage: "plus")
-                } primaryAction: {
-                    onCreate()
-                }
-                .help("New Bottle")
-            }
-            ToolbarItem {
-                Button(action: onInstall) { Label("Install Software…", systemImage: "shippingbox") }
-                    .help("Install Software…")
-            }
-        }
+        .navigationSplitViewColumnWidth(min: 200, ideal: 220)
     }
 }
