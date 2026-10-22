@@ -165,15 +165,14 @@ h3 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.025em; lin
 .compare td { width: 26%; color: var(--muted); }
 .compare .us { background: rgb(183 76 27 / 0.045); color: var(--ink); }
 .compare thead .us { border-radius: 0; }
-.who { display: inline-flex; align-items: center; gap: 10px; }
-.mono { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 6px; background: #e4e4e1; color: #6b6b70; font-size: 12px; font-weight: 700; }
+.who { display: inline-flex; align-items: center; gap: 12px; }
+.who .logo { width: 36px; height: 36px; border-radius: 9px; }
 .yes, .no { display: inline-block; width: 18px; height: 18px; vertical-align: -3px; }
 .yes { background: var(--accent); -webkit-mask: var(--tick) center / contain no-repeat; mask: var(--tick) center / contain no-repeat; }
 .compare td:not(.us) .yes { background: var(--muted); }
 .no { position: relative; }
 .no::before { content: ""; position: absolute; left: 3px; right: 3px; top: 8px; height: 2px; border-radius: 2px; background: #c4c4c0; }
 :root { --tick: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path d="M2 8.5l4 4 8-9" fill="none" stroke="black" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>'); }
-.footnote { margin: 16px 0 0; font-size: 13px; color: var(--muted); }
 
 /* Feature grid */
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px 36px; margin-top: 44px; }
