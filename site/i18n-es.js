@@ -44,7 +44,7 @@ const ES = {
   "alt.graphics": "Menú Graphics de un juego: Automatic, DXVK, DXMT y wined3d",
   "alt.bottles": "Terminal: barrel create, barrel list y barrel info",
   "alt.diagram": "Las llamadas al sistema pasan por Wine hasta macOS; las de Direct3D pasan por DXVK o DXMT hasta Metal y la GPU de Apple",
-  "alt.detail": "Tarjeta de un juego en Barrel.app con su menú Graphics abierto",
+  "alt.detail": "El puntero abre el menú Graphics de un juego, pasa por DXVK, DXMT y wined3d y elige Automatic",
   "aria.tabs": "Casos de uso",
   "aria.bars": "Tiempo de GPU por fotograma, cuanto menos, mejor",
   "aria.stack": "Hecho con",

@@ -8,6 +8,8 @@
 - docs/media/how-it-works-{light,dark}.svg: the architecture diagram.
 - docs/media/dock-demo.svg: "Add to Dock" puts a game's icon in the Dock (icons from docs/media/logos,
   embedded because an SVG shown as an image cannot load other files).
+- docs/media/graphics-demo.svg: a game's Graphics menu opens, the pointer moves over each engine and
+  picks Automatic.
 
 The SVGs use only CSS and SMIL animation, so they play inside GitHub's <img> rendering.
 
@@ -298,14 +300,82 @@ text{{font-family:{SANS}}}
 """
 
 
+def render_graphics_demo():
+    game = data_uri(MEDIA / "logos" / "stonewards.png")
+    dur = "8s"
+    rep = f'dur="{dur}" repeatCount="indefinite"'
+    # Menu rows: (label, vertical centre); the player had picked DXMT before the loop starts.
+    rows = [("Automatic", 288), ("DXVK", 334), ("DXMT", 368), ("wined3d (OpenGL)", 402)]
+    items = "\n".join(f'  <text x="270" y="{y + 6}" class="m">{label}</text>' for label, y in rows)
+    hover = [334, 368, 402, 288]  # the order the pointer visits them
+    hy = ";".join(str(y - 16) for y in hover[:1] + hover)
+    # One 8-second loop: open the menu, hover DXVK, DXMT and wined3d, choose Automatic, menu closes.
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" width="720" height="480" viewBox="0 0 720 480" role="img" aria-label="The pointer opens a game's Graphics menu, moves over DXVK, DXMT and wined3d, and chooses Automatic">
+<defs>
+  <filter id="menu" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".16"/></filter>
+</defs>
+<style>
+text{{font-family:{SANS}}}
+.t{{font-size:24px;font-weight:650;fill:#1c1c1e}} .ok{{font-size:16px;font-weight:500;fill:#2f9a55}}
+.l{{font-size:19px;fill:#3a3a3e}} .p{{font-size:18px;font-weight:500;fill:#1c1c1e}} .m{{font-size:18px;fill:#1c1c1e}}
+.btn{{font-size:18px;font-weight:550}}
+</style>
+<rect width="720" height="480" fill="#fff"/>
+<rect x="70" y="70" width="580" height="290" rx="22" fill="#f4f4f6"/>
+<image x="100" y="100" width="96" height="96" href="{game}"/>
+<text x="220" y="140" class="t">Stonewards</text>
+<circle cx="228" cy="167" r="8" fill="#2f9a55"/><path d="M224.2 167l2.6 2.6 5-5.2" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="243" y="173" class="ok">Tested: works</text>
+<text x="100" y="248" class="l">Graphics</text>
+<!-- The pop-up button: the player's DXMT, then Automatic once chosen -->
+<g>
+  <animate attributeName="opacity" values="1;1;0;0;1" keyTimes="0;.755;.756;.97;1" {rep}/>
+  <rect x="200" y="224" width="112" height="34" rx="8" fill="#e2e2e6">
+    <animate attributeName="fill" values="#e2e2e6;#e2e2e6;#cfcfd5;#cfcfd5;#e2e2e6" keyTimes="0;.22;.23;.755;1" calcMode="discrete" {rep}/>
+  </rect>
+  <text x="216" y="247" class="p">DXMT</text>
+  <path d="M287 238l5 5 5-5" fill="none" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g opacity="0">
+  <animate attributeName="opacity" values="0;0;1;1;0" keyTimes="0;.755;.756;.97;1" {rep}/>
+  <rect x="200" y="224" width="226" height="34" rx="8" fill="#e2e2e6"/>
+  <text x="216" y="247" class="p">Automatic · DXVK</text>
+  <path d="M401 238l5 5 5-5" fill="none" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<rect x="100" y="286" width="330" height="48" rx="24" fill="#0a7cff"/>
+<path d="M243 299v22l17-11z" fill="#fff"/><text x="268" y="317" class="btn" fill="#fff">Play</text>
+<rect x="446" y="286" width="174" height="48" rx="24" fill="#e2e2e6"/>
+<text x="533" y="317" text-anchor="middle" class="btn" fill="#1c1c1e">Add to Dock</text>
+<!-- The menu -->
+<g opacity="0">
+  <animate attributeName="opacity" values="0;1;0" keyTimes="0;.255;.755" calcMode="discrete" {rep}/>
+  <rect x="200" y="262" width="262" height="160" rx="12" fill="#fbfbfc" stroke="#000" stroke-opacity=".08" filter="url(#menu)"/>
+  <rect x="206" width="250" height="32" rx="7" fill="#0a7cff" fill-opacity=".14" opacity="0">
+    <animate attributeName="y" values="{hy}" keyTimes="0;.34;.44;.54;.68" calcMode="discrete" {rep}/>
+    <animate attributeName="opacity" values="0;1;.4;1;0" keyTimes="0;.34;.735;.745;.755" calcMode="discrete" {rep}/>
+  </rect>
+  <line x1="220" y1="312" x2="442" y2="312" stroke="#000" stroke-opacity=".1"/>
+  <path d="M249 369l4 4 8-9" fill="none" stroke="#1c1c1e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+{items}
+</g>
+<!-- Pointer -->
+<g>
+  <path d="M0 0 L0 22 L6 16 L10 26 L14 24 L10 14 L18 14 Z" fill="#1c1c1e" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+  <animateTransform attributeName="transform" type="translate" values="600,430;600,430;262,236;262,236;330,328;330,328;318,362;318,362;340,396;340,396;300,282;300,282;600,430;600,430" keyTimes="0;.08;.21;.28;.34;.40;.44;.50;.54;.60;.68;.78;.92;1" {rep} calcMode="spline" keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"/>
+</g>
+</svg>
+"""
+
+
 def main():
     for cast in sorted((MEDIA / "casts").glob("*.txt")):
         out = MEDIA / f"cast-{cast.stem}.svg"
         out.write_text(render_cast(cast.stem, parse_cast(cast)))
         print("wrote", out.relative_to(ROOT))
-    out = MEDIA / "dock-demo.svg"
-    out.write_text(render_dock_demo())
-    print("wrote", out.relative_to(ROOT))
+    for name, render in (("dock-demo", render_dock_demo), ("graphics-demo", render_graphics_demo)):
+        out = MEDIA / f"{name}.svg"
+        out.write_text(render())
+        print("wrote", out.relative_to(ROOT))
     for theme in THEMES:
         out = MEDIA / f"how-it-works-{theme}.svg"
         out.write_text(render_how_it_works(theme))
