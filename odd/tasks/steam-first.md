@@ -1,0 +1,28 @@
+# Feature: Steam first, everything else in Advanced
+Objective: re-center Barrel on playing Windows Steam games (library, per-game profiles, Dock launchers); bottles, recipes and the CLI stay available as Advanced.
+Branch: `feat/steam-first` · Delivery: ask-on-risk · Test runner: `swift test` in barrel/ and app/.
+
+## Specs
+- S1: "Me parece bien tu propuesta de Steam primero y lo demás en avanzado" — the proposal accepted:
+  - "La primera vez, un botón: «Instalar Steam»."
+  - "Después, tu biblioteca de juegos instalados (Barrel puede leerla de los archivos de Steam)."
+  - "En cada juego: Jugar, motor gráfico (DXVK / DXMT) y «Añadir al Dock»."
+  - Bottles created automatically; manual bottle management, export/copy/restore go to "Avanzado"; recipes: only "Instalar Steam" visible, VC++ and the rest hidden.
+- S2: per-game profiles: "una ficha con los ajustes que necesita un juego concreto para funcionar bien en Mac", applied automatically when the game is launched; keyed by Steam app id; "La mayoría de juegos funcionan con los ajustes por defecto"; profiles are the exceptions.
+- S3: "en la landing page yo no enfocaría todo como que solamente es para Steam, pero al final pondría algo rollo si te quieres meter en serio en esta mierda, puedes hacer todo esto. En la parte de avanzado."
+- S4: a skill with clear instructions to create a tested game profile ("unas instrucciones claras de cómo tiene que hacerse y cómo tiene que crearse el JSON").
+  - Assumption: the skill lives in the repo (`skills/`), drives the `barrel` CLI; no MCP server.
+
+## Tasks
+| ID | Specs | Route | Status | Evidence |
+|----|-------|-------|--------|----------|
+| T1 | S1 | inline | done | Steam library reader: libraryfolders.vdf + appmanifest_*.acf → installed games (app id, name, install dir) |
+| T2 | S2 | inline | pending | game profiles: format, bundled `profiles/`, applied on launch; `barrel games` / `barrel play` |
+| T3 | S1 | inline | pending | recipes can be `hidden` (dependencies); VC++ hidden from app and `barrel recipes` |
+| T4 | S1 | inline | pending | app: Steam home (Install Steam → library → Play / graphics / Add to Dock); bottles under Advanced |
+| T5 | S4 | inline | pending | `skills/barrel-game-profile/SKILL.md` + docs/profiles.md |
+| T6 | S3 | inline | pending | landing + README: Steam-first story, new screenshots, "Advanced" section at the end |
+
+## Log
+- L1: 2026-10-22 user: "Me parece bien tu propuesta de Steam primero y lo demás en avanzado, y de hecho, en la landing page yo no enfocaría todo como que solamente es para Steam, pero al final pondría algo rollo si te quieres meter en serio en esta mierda, puedes hacer todo esto. En la parte de avanzado. por otro lado, si cada juego necesita un perfil me estás diciendo que tendríamos que probar todos los juegos del mundo para saber cuál es el perfil de cada uno."
+- L2: Steam data (user's bottle): `steamapps/libraryfolders.vdf` lists library paths (Windows paths) and app ids; `appmanifest_<id>.acf` has appid, name, installdir, StateFlags (4 = fully installed), LastOwner (a SteamID: never copy into fixtures).
