@@ -32,7 +32,7 @@ barrel msync Office off                   # MSync is on by default
 Install recipes (format: `../docs/recipes.md`; examples in `../recipes/`):
 
 ```sh
-barrel recipes --recipes-dir ../recipes                 # list recipes ($BARREL_HOME/Recipes is read too)
+barrel recipes --recipes-dir ../recipes                 # list recipes ($BARREL_HOME/Recipes and, from Barrel.app, its bundled recipes are read too)
 barrel install windows-app-base --recipes-dir ../recipes --bottle Office
 barrel install vcredist-x64 --recipes-dir ../recipes    # no --bottle: bottle 'vcredist-x64' is created
 ```

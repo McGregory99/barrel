@@ -29,13 +29,15 @@ struct Environment {
                       components: components())
     }
 
-    /// `Resources/runtime` when this binary runs from Barrel.app (`Contents/MacOS/barrel`).
-    static var bundledRuntime: URL? {
+    /// `Resources/<name>` when this binary runs from Barrel.app (`Contents/MacOS/barrel`).
+    static func bundledResource(_ name: String) -> URL? {
         guard let executable = Bundle.main.executableURL?.resolvingSymlinksInPath() else { return nil }
-        let runtime = executable.deletingLastPathComponent().deletingLastPathComponent()
-            .appendingPathComponent("Resources/runtime", isDirectory: true)
-        return FileManager.default.fileExists(atPath: runtime.path) ? runtime : nil
+        let resource = executable.deletingLastPathComponent().deletingLastPathComponent()
+            .appendingPathComponent("Resources/\(name)", isDirectory: true)
+        return FileManager.default.fileExists(atPath: resource.path) ? resource : nil
     }
+
+    static var bundledRuntime: URL? { bundledResource("runtime") }
 
     /// BARREL_* variables win; otherwise the runtime bundled with Barrel.app is used.
     static func components() -> RuntimeComponents {
@@ -270,6 +272,8 @@ extension Environment {
     static func catalog(extra: String?) -> RecipeCatalog {
         var directories = [home().appendingPathComponent("Recipes", isDirectory: true)]
         if let extra { directories.insert(URL(fileURLWithPath: extra, isDirectory: true), at: 0) }
+        // Barrel.app's recipes come last so the user's own recipes with the same id win.
+        if let bundled = bundledResource("recipes") { directories.append(bundled) }
         return RecipeCatalog.load(directories: directories)
     }
 }
@@ -277,7 +281,7 @@ extension Environment {
 struct Recipes: ParsableCommand {
     static let configuration = CommandConfiguration(abstract: "List available install recipes.")
 
-    @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes).") var recipesDir: String?
+    @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes and Barrel.app's recipes).") var recipesDir: String?
 
     func run() throws {
         let catalog = Environment.catalog(extra: recipesDir)
@@ -295,7 +299,7 @@ struct Install: ParsableCommand {
 
     @Argument(help: "Recipe id (see 'barrel recipes').") var recipe: String
     @Option(help: "Bottle to install into.") var bottle: String?
-    @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes).") var recipesDir: String?
+    @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes and Barrel.app's recipes).") var recipesDir: String?
 
     func run() throws {
         let catalog = Environment.catalog(extra: recipesDir)
