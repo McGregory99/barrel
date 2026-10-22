@@ -228,8 +228,24 @@ def data_uri(path):
 
 def render_dock_demo():
     logos = MEDIA / "logos"
-    barrel, steam, game = (data_uri(logos / n) for n in ("barrel.svg", "steam.png", "stonewards.png"))
+    game = data_uri(logos / "stonewards.png")
+    docked = [data_uri(logos / n) for n in ("barrel.svg", "steam.png", "cs2.png", "tf2.png", "warframe.png")]
     dur = "6s"
+    size, gap, pad = 54, 8, 12
+    def row(count):  # Dock x and width for `count` icons, centred at x=320
+        width = 2 * pad + count * size + (count - 1) * gap
+        return 320 - width // 2, width
+    (x0, w0), (x1, w1) = row(len(docked)), row(len(docked) + 1)
+    icons = []
+    for i, href in enumerate(docked):
+        a, b = x0 + pad + i * (size + gap), x1 + pad + i * (size + gap)
+        move = f'values="{a};{a};{b};{b};{a}" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"'
+        icons.append(f'<image y="318" width="{size}" height="{size}" href="{href}"><animate attributeName="x" {move}/></image>')
+        if i == 1:  # Steam is running
+            icons.append(f'<circle cy="379" r="2.2" fill="#3a3a3e"><animate attributeName="cx" '
+                         f'values="{a + 27};{a + 27};{b + 27};{b + 27};{a + 27}" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></circle>')
+    slot = x1 + pad + len(docked) * (size + gap)
+    icons = "\n".join(icons)
     # One 6-second loop: the cursor clicks "Add to Dock", the icon flies into the Dock, the Dock makes room.
     return f"""<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Clicking Add to Dock on Stonewards puts its icon in the macOS Dock">
 <defs>
@@ -259,19 +275,15 @@ text{{font-family:{SANS}}}
 <!-- Dock: grows to make room for the new icon -->
 <g filter="url(#shadow)">
   <rect y="306" height="78" rx="22" fill="#fff" fill-opacity=".55" stroke="#fff" stroke-opacity=".7">
-    <animate attributeName="x" values="250;250;219;219;250" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/>
-    <animate attributeName="width" values="140;140;202;202;140" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/>
+    <animate attributeName="x" values="{x0};{x0};{x1};{x1};{x0}" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/>
+    <animate attributeName="width" values="{w0};{w0};{w1};{w1};{w0}" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/>
   </rect>
 </g>
-<g>
-  <image y="318" width="54" height="54" href="{barrel}"><animate attributeName="x" values="262;262;231;231;262" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></image>
-  <image y="318" width="54" height="54" href="{steam}"><animate attributeName="x" values="324;324;293;293;324" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></image>
-  <circle cy="379" r="2.2" fill="#3a3a3e"><animate attributeName="cx" values="351;351;320;320;351" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></circle>
-</g>
+{icons}
 <!-- The game's icon flies from the card into the new slot -->
 <image width="64" height="64" href="{game}" opacity="0">
   <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;.33;.34;.92;.97;1" dur="{dur}" repeatCount="indefinite"/>
-  <animate attributeName="x" values="142;142;142;355;355;355" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;0 0 1 1;.4 0 .2 1;0 0 1 1;0 0 1 1"/>
+  <animate attributeName="x" values="142;142;142;{slot};{slot};{slot}" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;0 0 1 1;.4 0 .2 1;0 0 1 1;0 0 1 1"/>
   <animate attributeName="y" values="76;76;60;318;318;318" keyTimes="0;.33;.38;.6;.97;1" dur="{dur}" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.2 0 .6 1;.5 0 .9 1;0 0 1 1;0 0 1 1"/>
   <animate attributeName="width" values="64;64;64;54;54;54" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite"/>
   <animate attributeName="height" values="64;64;64;54;54;54" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite"/>

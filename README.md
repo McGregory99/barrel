@@ -18,7 +18,7 @@
 </p>
 
 <p align="center">
-  <img src="docs/media/app-tour.gif" width="820" alt="Barrel.app: the Install Steam welcome screen, the Steam library with Stonewards, and its graphics menu">
+  <img src="docs/media/app-tour.gif" width="820" alt="Barrel.app: the Install Steam welcome screen, then a Steam library with Counter-Strike 2, Stonewards, Team Fortress 2 and Warframe">
 </p>
 
 Barrel installs the Windows version of Steam, finds the games you install and plays them with the

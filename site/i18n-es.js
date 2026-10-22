@@ -38,7 +38,7 @@ const ES = {
   "oss.lede": "Barrel es GPL-3.0. Publicamos cada parche que hacemos a Wine y a DXVK, y cada componente incluido conserva su propia licencia.",
   "oss.gh": "Ver en GitHub",
   "oss.lic": "Licencias",
-  "alt.hero.app": "Biblioteca de Barrel.app con Stonewards: perfil probado, gráficos DXVK automáticos, Jugar y Añadir al Dock",
+  "alt.hero.app": "Biblioteca de Barrel.app con Counter-Strike 2, Stonewards, Team Fortress 2 y Warframe, cada uno con Jugar, gráficos y Añadir al Dock",
   "alt.hero.term": "Terminal: barrel install steam, barrel games y después barrel launcher game",
   "alt.steam": "Pantalla de bienvenida de Barrel.app con el botón Install Steam",
   "alt.graphics": "Menú Graphics de un juego: Automatic, DXVK, DXMT y wined3d",
