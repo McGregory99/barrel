@@ -25,9 +25,12 @@ public enum WineRuntimeError: Error, Equatable, CustomStringConvertible {
 /// Runs a Wine build installed at `wineBinary` (its sibling `wineserver` is used for shutdown).
 public struct ProcessWineRuntime: WineRuntime {
     public let wineBinary: URL
+    /// Where a failed maintenance command's Wine output goes (it is hidden when the command succeeds).
+    let diagnostics: FileHandle
 
-    public init(wineBinary: URL) {
+    public init(wineBinary: URL, diagnostics: FileHandle = .standardError) {
         self.wineBinary = wineBinary
+        self.diagnostics = diagnostics
     }
 
     public func initializePrefix(at prefix: URL, environment: [String: String]) throws {
@@ -80,9 +83,22 @@ public struct ProcessWineRuntime: WineRuntime {
         }
         environment["WINEPREFIX"] = prefix.path
         environment["WINEDEBUG"] = environment["WINEDEBUG"] ?? "-all"
+        // MoltenVK logs its whole feature list at the default level, on every Wine start.
+        environment["MVK_CONFIG_LOG_LEVEL"] = environment["MVK_CONFIG_LOG_LEVEL"] ?? "1"
         process.environment = environment
+        // Maintenance output (wineserver's msync banner, Wine fixme lines) is noise unless the command fails.
+        let captured = unattended ? FileManager.default.temporaryDirectory
+            .appendingPathComponent("barrel-wine-\(UUID().uuidString).log") : nil
+        if let captured {
+            FileManager.default.createFile(atPath: captured.path, contents: nil)
+            process.standardError = try FileHandle(forWritingTo: captured)
+        }
+        defer { captured.map { try? FileManager.default.removeItem(at: $0) } }
         try process.run()
         process.waitUntilExit()
+        if process.terminationStatus != 0, let captured, let output = try? Data(contentsOf: captured) {
+            diagnostics.write(output)
+        }
         if process.terminationStatus != 0 && !allowFailure {
             throw WineRuntimeError.commandFailed(
                 command: ([executable.lastPathComponent] + arguments).joined(separator: " "),

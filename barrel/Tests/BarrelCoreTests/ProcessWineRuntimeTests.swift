@@ -10,7 +10,7 @@ struct RecordingWine {
     let runtime: ProcessWineRuntime
     let prefix: URL
 
-    init() throws {
+    init(stderr: String = "", status: Int32 = 0, diagnostics: FileHandle = .standardError) throws {
         directory = FileManager.default.temporaryDirectory.appendingPathComponent("fake-wine-\(UUID().uuidString)")
         log = directory.appendingPathComponent("calls.log")
         prefix = directory.appendingPathComponent("prefix")
@@ -20,10 +20,12 @@ struct RecordingWine {
             try """
                 #!/bin/sh
                 printf '%s %s|%s\\n' '\(tool)' "$1" "${WINEDLLOVERRIDES-unset}" >> '\(log.path)'
+                printf '%s' "\(stderr)" >&2
+                exit \(status)
                 """.write(to: script, atomically: true, encoding: .utf8)
             try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: script.path)
         }
-        runtime = ProcessWineRuntime(wineBinary: directory.appendingPathComponent("wine"))
+        runtime = ProcessWineRuntime(wineBinary: directory.appendingPathComponent("wine"), diagnostics: diagnostics)
     }
 
     func calls() throws -> [String] {
@@ -59,4 +61,37 @@ struct RecordingWine {
         #expect(call.hasPrefix("wine start|"))
         #expect(!call.contains("mscoree"))
     }
+
+    @Test func maintenanceHidesWineChatterWhenItSucceeds() throws {
+        let sink = try CapturedOutput()
+        let wine = try RecordingWine(stderr: "msync: up and running.", diagnostics: sink.handle)
+        try wine.runtime.setRegistryValue(key: "HKCU\\X", name: "y", data: "z", prefix: wine.prefix, environment: [:])
+        #expect(try sink.text() == "")
+    }
+
+    @Test func maintenanceShowsWineOutputWhenItFails() throws {
+        let sink = try CapturedOutput()
+        let wine = try RecordingWine(stderr: "mvk=$MVK_CONFIG_LOG_LEVEL err:reg:failed", status: 1,
+                                     diagnostics: sink.handle)
+        #expect(throws: WineRuntimeError.commandFailed(command: "wine reg add HKCU\\X /v y /t REG_SZ /d z /f",
+                                                      status: 1)) {
+            try wine.runtime.setRegistryValue(key: "HKCU\\X", name: "y", data: "z", prefix: wine.prefix,
+                                              environment: [:])
+        }
+        // MoltenVK's info log is off unless the caller asks for it.
+        #expect(try sink.text() == "mvk=1 err:reg:failed")
+    }
+}
+
+/// A file standing in for stderr.
+struct CapturedOutput {
+    let url = FileManager.default.temporaryDirectory.appendingPathComponent("diagnostics-\(UUID().uuidString)")
+    let handle: FileHandle
+
+    init() throws {
+        FileManager.default.createFile(atPath: url.path, contents: nil)
+        handle = try FileHandle(forWritingTo: url)
+    }
+
+    func text() throws -> String { try String(contentsOf: url, encoding: .utf8) }
 }
