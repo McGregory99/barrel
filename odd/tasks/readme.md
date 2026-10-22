@@ -9,6 +9,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 - S2: "Tambien quiero que hagas una landing page, inspirandote en esta estetica: https://lapis.lvrpiz.com/"
   - Reference aesthetic (observed): Inter, very tight display type (-0.04em), small burnt-orange eyebrow labels (#b74c1b), ink #1c1c1e, muted #595d63, hairlines #e7e7e5, alternating white / #f5f6f7 / warm #f7f6f2 sections, real product shots, tabbed feature block, 3-column features with a hairline above each, dark pill primary button + outline secondary.
   - Assumption: hosted on GitHub Pages from this repo; English; reuses the README animations.
+- S3: "podrias meter un iconito con dos lenguajes epanol ingles y que se cambie el idioma en la landing?"
 
 ## Tasks
 | ID | Specs | Route | Status | Evidence |
@@ -19,6 +20,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 | T4 | S1 | inline | done | GIF of the real Barrel.app (bottles, Install Software, Create Launcher) |
 | T5 | S1 | inline | done `1b9b4cd` | README.md rewrite, pushed, verified rendering on github.com |
 | T6 | S2 | inline | done `8da91fe` | landing page `site/` + GitHub Pages workflow, verified live |
+| T7 | S3 | inline | done | ES/EN switch (globe + ES / EN) in the landing nav; Spanish copy in `site/i18n-es.js` |
 | T0 | S1 | inline | done `fix(cli)` ×2 | fixes found while recording: CLI from Barrel.app ignored bundled recipes; maintenance commands flooded the terminal with MoltenVK/msync output |
 
 ## Log
@@ -30,3 +32,5 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: none
 - L6: T1–T4. Real session recorded in a scratch BARREL_HOME (later moved to /Users/Shared/Barrel so screenshots show a neutral path). `scripts/render_media.py` turns `docs/media/casts/*.txt` (verbatim output; home shown as ~, wrapped at 76 columns) into CSS-animated terminal SVGs and draws `how-it-works-{light,dark}.svg` (SMIL dots + CSS dash flow). Checked by freezing animations at chosen times in headless Chrome. App tour GIF (842 KB, 3 real screenshots with crossfades) and 1600 px PNGs via ffmpeg. A Finder screenshot of the launcher was discarded because it showed the user's home folder name.
 - L7: T5/T6. README rewritten (hero GIF, four use cases, backend table, how-it-works with <picture> light/dark, performance table with the one-scene caveat, build steps, layout, license). Landing `site/` follows the Lapis tokens; verified at 1440 px and in a 390 px iframe (no horizontal overflow). Copy claims checked against the code: app does not expose per-app graphics, so the page says "covers the everyday work"; memory claim is 1.00 vs 1.65 GB ("about 40% less").
 - L8: Published. README renders on github.com with all animations playing; landing live at https://mcgregory99.github.io/barrel/ (HTTP 200 for page and media). Pages enabled with build_type=workflow; the push-triggered run failed only because Pages was not enabled yet and passed on re-run. Demo data in /Users/Shared/Barrel removed afterwards.
+- L9: 2026-10-22 user: "podrias meter un iconito con dos lenguajes epanol ingles y que se cambie el idioma en la landing?"
+- L10: T7. English stays the page's own text; 62 strings (text, alt, data-alt, aria-label) carry data-i18n keys and Spanish lives in `site/i18n-es.js`. First visit follows the browser language, the choice is kept in localStorage (wrapped in try/catch); <html lang>, title and meta description switch too. Checks: es-ES browser opens in Spanish, en-US in English; clicking ES then EN restores the page byte-for-byte (body innerHTML equal, 18115 chars); Spanish layout checked at 1440 px and 390 px.

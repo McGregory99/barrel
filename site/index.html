@@ -22,11 +22,17 @@
         <span>Barrel</span>
       </a>
       <nav class="nav__links" aria-label="Sections">
-        <a href="#use-cases">Use cases</a>
-        <a href="#how-it-works">How it works</a>
-        <a href="#performance">Performance</a>
-        <a href="#open-source">Open source</a>
+        <a href="#use-cases" data-i18n="nav.use">Use cases</a>
+        <a href="#how-it-works" data-i18n="nav.how">How it works</a>
+        <a href="#performance" data-i18n="nav.perf">Performance</a>
+        <a href="#open-source" data-i18n="nav.oss">Open source</a>
       </nav>
+      <div class="lang" role="group" aria-label="Language / Idioma">
+        <svg class="lang__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9s1.3-6.3 3.8-9z"/></svg>
+        <button type="button" data-lang="es" lang="es" aria-pressed="false" title="Español">ES</button>
+        <span aria-hidden="true">/</span>
+        <button type="button" data-lang="en" lang="en" aria-pressed="true" title="English">EN</button>
+      </div>
       <a class="btn btn--dark btn--small" href="https://github.com/McGregory99/barrel">
         <svg class="gh" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8a8 8 0 0 0 5.47 7.59c.4.07.55-.17.55-.38v-1.33c-2.23.48-2.7-1.07-2.7-1.07-.36-.92-.89-1.17-.89-1.17-.73-.5.05-.49.05-.49.8.06 1.23.83 1.23.83.72 1.22 1.88.87 2.34.66.07-.52.28-.87.5-1.07-1.78-.2-3.65-.89-3.65-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.6 7.6 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48v2.2c0 .21.15.46.55.38A8 8 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
         GitHub
@@ -37,18 +43,18 @@
   <main id="top">
     <section class="hero">
       <div class="wrap">
-        <p class="eyebrow">Barrel for Apple Silicon Macs</p>
-        <h1 class="display">Windows games.<br>At home on your Mac.</h1>
-        <p class="lede">Barrel runs Windows games and apps with Wine, DXVK and DXMT. Free, open source, and no trial to run out.</p>
+        <p class="eyebrow" data-i18n="hero.eyebrow">Barrel for Apple Silicon Macs</p>
+        <h1 class="display" data-i18n="hero.title">Windows games.<br>At home on your Mac.</h1>
+        <p class="lede" data-i18n="hero.lede">Barrel runs Windows games and apps with Wine, DXVK and DXMT. Free, open source, and no trial to run out.</p>
         <div class="cta">
-          <a class="btn btn--dark" href="https://github.com/McGregory99/barrel#build-it">Get Barrel</a>
-          <a class="btn btn--line" href="#how-it-works">See how it works</a>
+          <a class="btn btn--dark" href="https://github.com/McGregory99/barrel#build-it" data-i18n="hero.get">Get Barrel</a>
+          <a class="btn btn--line" href="#how-it-works" data-i18n="hero.see">See how it works</a>
         </div>
-        <a class="textlink" href="https://github.com/McGregory99/barrel">Read the source on GitHub <span aria-hidden="true">→</span></a>
+        <a class="textlink" href="https://github.com/McGregory99/barrel" data-i18n="hero.source">Read the source on GitHub <span aria-hidden="true">→</span></a>
 
         <div class="stage">
-          <img class="stage__app" src="media/app-01-bottle.png" width="1600" height="1003" alt="Barrel.app showing the steam bottle: Windows 10, DXVK graphics, MSync on, and buttons to run a program or create a launcher">
-          <img class="stage__term" src="media/cast-play-steam.svg" width="637" height="389" alt="Terminal: barrel install steam, then barrel launcher create">
+          <img class="stage__app" src="media/app-01-bottle.png" width="1600" height="1003" alt="Barrel.app showing the steam bottle: Windows 10, DXVK graphics, MSync on, and buttons to run a program or create a launcher" data-i18n-alt="alt.hero.app">
+          <img class="stage__term" src="media/cast-play-steam.svg" width="637" height="389" alt="Terminal: barrel install steam, then barrel launcher create" data-i18n-alt="alt.hero.term">
         </div>
       </div>
     </section>
@@ -56,33 +62,33 @@
     <section class="band band--soft" id="use-cases">
       <div class="wrap split">
         <div class="split__text">
-          <h2 class="display display--md">Install it.<br>Tune it. Play.</h2>
-          <div class="tabs" role="tablist" aria-label="Use cases">
+          <h2 class="display display--md" data-i18n="uc.title">Install it.<br>Tune it. Play.</h2>
+          <div class="tabs" role="tablist" aria-label="Use cases" data-i18n-aria-label="aria.tabs">
             <button role="tab" aria-selected="true" aria-controls="p-steam" id="t-steam">Steam</button>
-            <button role="tab" aria-selected="false" aria-controls="p-graphics" id="t-graphics" tabindex="-1">Graphics</button>
-            <button role="tab" aria-selected="false" aria-controls="p-bottles" id="t-bottles" tabindex="-1">Bottles</button>
-            <button role="tab" aria-selected="false" aria-controls="p-app" id="t-app" tabindex="-1">The app</button>
+            <button role="tab" aria-selected="false" aria-controls="p-graphics" id="t-graphics" tabindex="-1" data-i18n="tab.graphics">Graphics</button>
+            <button role="tab" aria-selected="false" aria-controls="p-bottles" id="t-bottles" tabindex="-1" data-i18n="tab.bottles">Bottles</button>
+            <button role="tab" aria-selected="false" aria-controls="p-app" id="t-app" tabindex="-1" data-i18n="tab.app">The app</button>
           </div>
 
-          <div class="panel" role="tabpanel" id="p-steam" aria-labelledby="t-steam" data-media="media/cast-play-steam.svg" data-alt="Terminal: barrel install steam installs Steam into a new bottle in 45 seconds">
-            <h3>Your Steam library, one command away.</h3>
-            <p>Barrel creates a Windows 10 bottle, installs Steam silently and applies the fixes Steam needs under Wine. Then it turns Steam into a Mac app with its own icon.</p>
-            <p class="check">Recipes check every download against a pinned SHA-256.</p>
+          <div class="panel" role="tabpanel" id="p-steam" aria-labelledby="t-steam" data-media="media/cast-play-steam.svg" data-alt="Terminal: barrel install steam installs Steam into a new bottle in 45 seconds" data-i18n-data-alt="alt.steam">
+            <h3 data-i18n="steam.h">Your Steam library, one command away.</h3>
+            <p data-i18n="steam.p">Barrel creates a Windows 10 bottle, installs Steam silently and applies the fixes Steam needs under Wine. Then it turns Steam into a Mac app with its own icon.</p>
+            <p class="check" data-i18n="steam.c">Recipes check every download against a pinned SHA-256.</p>
           </div>
-          <div class="panel" role="tabpanel" id="p-graphics" aria-labelledby="t-graphics" data-media="media/cast-per-game-graphics.svg" data-alt="Terminal: barrel graphics switches one game to DXMT" hidden>
-            <h3>The right engine for each game.</h3>
-            <p>Keep a bottle on DXVK and move one game to DXMT, or send an old launcher back to wined3d. Overrides are per executable, so nothing else changes.</p>
-            <p class="check">DXVK, DXMT and wined3d ship inside the app.</p>
+          <div class="panel" role="tabpanel" id="p-graphics" aria-labelledby="t-graphics" data-media="media/cast-per-game-graphics.svg" data-alt="Terminal: barrel graphics switches one game to DXMT" data-i18n-data-alt="alt.graphics" hidden>
+            <h3 data-i18n="graphics.h">The right engine for each game.</h3>
+            <p data-i18n="graphics.p">Keep a bottle on DXVK and move one game to DXMT, or send an old launcher back to wined3d. Overrides are per executable, so nothing else changes.</p>
+            <p class="check" data-i18n="graphics.c">DXVK, DXMT and wined3d ship inside the app.</p>
           </div>
-          <div class="panel" role="tabpanel" id="p-bottles" aria-labelledby="t-bottles" data-media="media/cast-bottles.svg" data-alt="Terminal: barrel create, list and info" hidden>
-            <h3>Every app in its own Windows.</h3>
-            <p>A bottle has its own C: drive, registry and settings, so a broken install never touches anything else. Copy it, export it, restore it on another Mac.</p>
-            <p class="check">Windows 98 to Windows 11 templates.</p>
+          <div class="panel" role="tabpanel" id="p-bottles" aria-labelledby="t-bottles" data-media="media/cast-bottles.svg" data-alt="Terminal: barrel create, list and info" data-i18n-data-alt="alt.bottles" hidden>
+            <h3 data-i18n="bottles.h">Every app in its own Windows.</h3>
+            <p data-i18n="bottles.p">A bottle has its own C: drive, registry and settings, so a broken install never touches anything else. Copy it, export it, restore it on another Mac.</p>
+            <p class="check" data-i18n="bottles.c">Windows 98 to Windows 11 templates.</p>
           </div>
-          <div class="panel" role="tabpanel" id="p-app" aria-labelledby="t-app" data-media="media/app-02-install.png" data-alt="Barrel.app Install Software sheet with the Steam recipe selected" hidden>
-            <h3>Prefer clicking? Same power.</h3>
-            <p>Barrel.app covers the everyday work: create bottles, install software, pick a graphics backend, run a program or drop it into a launcher.</p>
-            <p class="check">A native SwiftUI app. No Electron.</p>
+          <div class="panel" role="tabpanel" id="p-app" aria-labelledby="t-app" data-media="media/app-02-install.png" data-alt="Barrel.app Install Software sheet with the Steam recipe selected" data-i18n-data-alt="alt.app" hidden>
+            <h3 data-i18n="app.h">Prefer clicking? Same power.</h3>
+            <p data-i18n="app.p">Barrel.app covers the everyday work: create bottles, install software, pick a graphics backend, run a program or drop it into a launcher.</p>
+            <p class="check" data-i18n="app.c">A native SwiftUI app. No Electron.</p>
           </div>
         </div>
         <figure class="split__media">
@@ -93,26 +99,26 @@
 
     <section class="band" id="how-it-works">
       <div class="wrap center">
-        <p class="eyebrow">Under the hood</p>
-        <h2 class="display display--md">Two translators.<br>One Mac.</h2>
-        <p class="lede lede--narrow">A Windows game talks to Windows and to Direct3D. Barrel answers both: Wine speaks for Windows, DXVK or DXMT speak for Direct3D.</p>
-        <img class="diagram" src="media/how-it-works-light.svg" width="960" height="360" alt="System calls go through Wine to macOS; Direct3D calls go through DXVK or DXMT to Metal and the Apple GPU">
+        <p class="eyebrow" data-i18n="how.eyebrow">Under the hood</p>
+        <h2 class="display display--md" data-i18n="how.title">Two translators.<br>One Mac.</h2>
+        <p class="lede lede--narrow" data-i18n="how.lede">A Windows game talks to Windows and to Direct3D. Barrel answers both: Wine speaks for Windows, DXVK or DXMT speak for Direct3D.</p>
+        <img class="diagram" src="media/how-it-works-light.svg" width="960" height="360" alt="System calls go through Wine to macOS; Direct3D calls go through DXVK or DXMT to Metal and the Apple GPU" data-i18n-alt="alt.diagram">
       </div>
       <div class="wrap cols">
         <article class="col">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 8h18M7 21h10"/></svg>
           <h3>Wine 11</h3>
-          <p>Implements the Windows API on macOS: windows, files, input, audio and networking. Built with CrossOver 26.3's open-source patches and run under Rosetta 2.</p>
+          <p data-i18n="wine.p">Implements the Windows API on macOS: windows, files, input, audio and networking. Built with CrossOver 26.3's open-source patches and run under Rosetta 2.</p>
         </article>
         <article class="col">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/></svg>
-          <h3>DXVK and DXMT</h3>
-          <p>DXVK turns Direct3D 9–11 into Vulkan, which MoltenVK runs on Metal. DXMT goes from Direct3D 11 straight to Metal.</p>
+          <h3 data-i18n="dx.h">DXVK and DXMT</h3>
+          <p data-i18n="dx.p">DXVK turns Direct3D 9–11 into Vulkan, which MoltenVK runs on Metal. DXMT goes from Direct3D 11 straight to Metal.</p>
         </article>
         <article class="col">
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10c2 3 3 6 3 9s-1 6-3 9H7c-2-3-3-6-3-9s1-6 3-9z"/><path d="M4.5 8h15M4.5 16h15"/></svg>
           <h3>Barrel</h3>
-          <p>Everything around them: bottles, recipes, per-game settings, Mac launchers and a self-contained runtime inside the app.</p>
+          <p data-i18n="barrel.p">Everything around them: bottles, recipes, per-game settings, Mac launchers and a self-contained runtime inside the app.</p>
         </article>
       </div>
     </section>
@@ -121,16 +127,16 @@
       <div class="wrap">
         <div class="split split--top">
           <div>
-            <p class="eyebrow">Performance</p>
-            <h2 class="display display--md">Free doesn’t<br>mean slower.</h2>
+            <p class="eyebrow" data-i18n="nav.perf">Performance</p>
+            <h2 class="display display--md" data-i18n="perf.title">Free doesn’t<br>mean slower.</h2>
           </div>
-          <p class="lede lede--side">In the Stonewards main menu on an Apple M2, Barrel with DXMT spends less GPU time per frame than CrossOver 26 with D3DMetal, and uses about 40% less GPU memory than DXVK.</p>
+          <p class="lede lede--side" data-i18n="perf.lede">In the Stonewards main menu on an Apple M2, Barrel with DXMT spends less GPU time per frame than CrossOver 26 with D3DMetal, and uses about 40% less GPU memory than DXVK.</p>
         </div>
-        <figure class="bars" aria-label="GPU time per frame, lower is better">
+        <figure class="bars" aria-label="GPU time per frame, lower is better" data-i18n-aria-label="aria.bars">
           <div class="bar"><span class="bar__label">Barrel + DXMT</span><span class="bar__track"><span class="bar__fill bar__fill--accent" style="--v:2.64"></span></span><span class="bar__value">2.64 ms</span></div>
           <div class="bar"><span class="bar__label">Barrel + DXVK</span><span class="bar__track"><span class="bar__fill bar__fill--accent" style="--v:2.72"></span></span><span class="bar__value">2.72 ms</span></div>
           <div class="bar"><span class="bar__label">CrossOver 26 + D3DMetal</span><span class="bar__track"><span class="bar__fill" style="--v:2.87"></span></span><span class="bar__value">2.87 ms</span></div>
-          <figcaption>GPU time per frame from Apple’s Metal HUD, lower is better. One scene in one game, not a general benchmark.</figcaption>
+          <figcaption data-i18n="perf.caption">GPU time per frame from Apple’s Metal HUD, lower is better. One scene in one game, not a general benchmark.</figcaption>
         </figure>
       </div>
     </section>
@@ -138,48 +144,48 @@
     <section class="band band--soft">
       <div class="wrap split">
         <div>
-          <h2 class="display display--md">Small things,<br>done properly.</h2>
+          <h2 class="display display--md" data-i18n="care.title">Small things,<br>done properly.</h2>
           <div class="grid">
             <article class="cell">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 12h6M12 9v6"/></svg>
-              <h3>Launchers that look right.</h3>
-              <p>A launcher is a real Mac app. Barrel reads the icon out of the Windows executable, so it looks right in the Dock and Spotlight.</p>
+              <h3 data-i18n="care.l.h">Launchers that look right.</h3>
+              <p data-i18n="care.l.p">A launcher is a real Mac app. Barrel reads the icon out of the Windows executable, so it looks right in the Dock and Spotlight.</p>
             </article>
             <article class="cell">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-2"/></svg>
-              <h3>Recipes you can read.</h3>
-              <p>Installs are short JSON files: downloads with a pinned hash, silent installers, registry tweaks. Write your own in minutes.</p>
+              <h3 data-i18n="care.r.h">Recipes you can read.</h3>
+              <p data-i18n="care.r.p">Installs are short JSON files: downloads with a pinned hash, silent installers, registry tweaks. Write your own in minutes.</p>
             </article>
             <article class="cell">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg>
-              <h3>Bottles you can take with you.</h3>
-              <p>Export a bottle to a single .tar.gz, restore it on another Mac, or copy it before you try something risky.</p>
+              <h3 data-i18n="care.b.h">Bottles you can take with you.</h3>
+              <p data-i18n="care.b.p">Export a bottle to a single .tar.gz, restore it on another Mac, or copy it before you try something risky.</p>
             </article>
             <article class="cell">
               <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17l6-6-6-6M12 19h8"/></svg>
-              <h3>A command line, too.</h3>
-              <p>Everything in the app is one <code>barrel</code> command away, for scripts and for people who live in the terminal.</p>
+              <h3 data-i18n="care.c.h">A command line, too.</h3>
+              <p data-i18n="care.c.p">Everything in the app is one <code>barrel</code> command away, for scripts and for people who live in the terminal.</p>
             </article>
           </div>
         </div>
         <figure class="split__media split__media--detail">
-          <img src="media/app-graphics-detail.png" width="1312" height="264" alt="Barrel.app's graphics backend menu: wined3d, DXVK, DXMT, and D3DMetal when installed">
-          <figcaption>Switch a bottle between wined3d, DXVK and DXMT from the app.</figcaption>
+          <img src="media/app-graphics-detail.png" width="1312" height="264" alt="Barrel.app's graphics backend menu: wined3d, DXVK, DXMT, and D3DMetal when installed" data-i18n-alt="alt.detail">
+          <figcaption data-i18n="care.caption">Switch a bottle between wined3d, DXVK and DXMT from the app.</figcaption>
         </figure>
       </div>
     </section>
 
     <section class="band" id="open-source">
       <div class="wrap center">
-        <p class="eyebrow">Open source</p>
-        <h2 class="display display--md">Nothing hidden.<br>Nothing to renew.</h2>
-        <p class="lede lede--narrow">Barrel is GPL-3.0. Every patch we make to Wine and DXVK is published, and every bundled component keeps its own license.</p>
-        <ul class="stack" aria-label="Built on">
+        <p class="eyebrow" data-i18n="nav.oss">Open source</p>
+        <h2 class="display display--md" data-i18n="oss.title">Nothing hidden.<br>Nothing to renew.</h2>
+        <p class="lede lede--narrow" data-i18n="oss.lede">Barrel is GPL-3.0. Every patch we make to Wine and DXVK is published, and every bundled component keeps its own license.</p>
+        <ul class="stack" aria-label="Built on" data-i18n-aria-label="aria.stack">
           <li>Wine</li><li>DXVK</li><li>DXMT</li><li>MoltenVK</li><li>GStreamer</li><li>Swift</li>
         </ul>
         <div class="cta">
-          <a class="btn btn--dark" href="https://github.com/McGregory99/barrel">View on GitHub</a>
-          <a class="btn btn--line" href="https://github.com/McGregory99/barrel/blob/main/THIRD_PARTY_NOTICES.md">Licenses</a>
+          <a class="btn btn--dark" href="https://github.com/McGregory99/barrel" data-i18n="oss.gh">View on GitHub</a>
+          <a class="btn btn--line" href="https://github.com/McGregory99/barrel/blob/main/THIRD_PARTY_NOTICES.md" data-i18n="oss.lic">Licenses</a>
         </div>
       </div>
     </section>
@@ -188,11 +194,46 @@
   <footer class="footer">
     <div class="wrap footer__inner">
       <span class="brand brand--small"><img src="media/logo.svg" width="18" height="18" alt=""> Barrel</span>
-      <p>An independent project. Not affiliated with or endorsed by CodeWeavers, Valve or Apple.</p>
+      <p data-i18n="footer">An independent project. Not affiliated with or endorsed by CodeWeavers, Valve or Apple.</p>
     </div>
   </footer>
 
+  <script src="i18n-es.js"></script>
   <script>
+    // Language: English is the page's own text; Spanish comes from i18n-es.js. The choice is kept
+    // per browser, and the first visit follows the browser's language.
+    const META = {
+      en: { title: document.title, description: document.querySelector('meta[name="description"]').content },
+      es: { title: 'Barrel — Juegos y apps de Windows en tu Mac',
+            description: 'Barrel ejecuta juegos y apps de Windows en Mac con Apple Silicon. Gratis y de código abierto, con Wine, DXVK y DXMT.' },
+    };
+    const ATTRS = ['alt', 'data-alt', 'aria-label'];
+    const EN = new Map();
+    for (const el of document.querySelectorAll('[data-i18n]')) EN.set(el, el.innerHTML);
+    for (const attr of ATTRS) {
+      for (const el of document.querySelectorAll(`[data-i18n-${attr}]`)) {
+        EN.set(`${attr}:${el.getAttribute(`data-i18n-${attr}`)}`, el.getAttribute(attr));
+      }
+    }
+    function setLanguage(lang) {
+      for (const el of document.querySelectorAll('[data-i18n]')) {
+        el.innerHTML = lang === 'es' ? ES[el.dataset.i18n] : EN.get(el);
+      }
+      for (const attr of ATTRS) {
+        for (const el of document.querySelectorAll(`[data-i18n-${attr}]`)) {
+          const key = el.getAttribute(`data-i18n-${attr}`);
+          el.setAttribute(attr, lang === 'es' ? ES[key] : EN.get(`${attr}:${key}`));
+        }
+      }
+      document.documentElement.lang = lang;
+      document.title = META[lang].title;
+      document.querySelector('meta[name="description"]').content = META[lang].description;
+      for (const b of document.querySelectorAll('[data-lang]')) b.setAttribute('aria-pressed', b.dataset.lang === lang);
+      const open = document.querySelector('[role="tabpanel"]:not([hidden])');
+      if (open) media.alt = open.dataset.alt;
+      try { localStorage.setItem('barrel-lang', lang); } catch (_) {}
+    }
+
     // Tabs: swap the panel text and the media beside it; arrow keys move between tabs.
     const tabs = [...document.querySelectorAll('[role="tab"]')];
     const media = document.getElementById('tab-media');
@@ -208,6 +249,13 @@
       media.alt = panel.dataset.alt;
       media.parentElement.classList.toggle('is-photo', panel.dataset.media.endsWith('.png'));
     }
+    for (const b of document.querySelectorAll('[data-lang]')) b.addEventListener('click', () => setLanguage(b.dataset.lang));
+    let saved = null;
+    try { saved = localStorage.getItem('barrel-lang'); } catch (_) {}
+    const browser = (navigator.language || '').toLowerCase().startsWith('es') ? 'es' : 'en';
+    const initial = saved === 'es' || saved === 'en' ? saved : browser;
+    if (initial !== 'en') setLanguage(initial);
+
     tabs.forEach((tab, i) => {
       tab.addEventListener('click', () => select(tab));
       tab.addEventListener('keydown', (e) => {

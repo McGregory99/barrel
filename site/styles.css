@@ -42,6 +42,15 @@ code { font: 0.92em var(--mono); }
 .nav__links a { font-size: 14px; font-weight: 450; color: var(--muted); text-decoration: none; transition: color .15s; }
 .nav__links a:hover { color: var(--ink); }
 
+/* Language switch */
+.lang { display: inline-flex; align-items: center; gap: 6px; margin-left: auto; font-size: 13px; color: #b0b0b5; }
+.lang__icon { width: 15px; height: 15px; fill: none; stroke: var(--muted); stroke-width: 1.5; margin-right: 2px; }
+.lang button { padding: 4px 2px; border: 0; background: none; font: 500 13px var(--font); letter-spacing: .02em; color: var(--muted); cursor: pointer; }
+.lang button[aria-pressed="true"] { color: var(--ink); font-weight: 650; }
+.lang button:hover { color: var(--ink); }
+.lang button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.nav__links + .lang { margin-left: 0; }
+
 /* Buttons */
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
@@ -160,7 +169,8 @@ h3 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.025em; lin
 
 @media (max-width: 900px) {
   .nav__links { display: none; }
-  .nav__inner { justify-content: space-between; }
+  .nav__inner { justify-content: flex-start; gap: 16px; }
+  .nav__links + .lang { margin-left: auto; }
   .split, .split--top { grid-template-columns: 1fr; }
   .cols { grid-template-columns: 1fr; gap: 28px; }
   .stage__term { position: relative; right: auto; width: 100%; margin-top: -12%; }
