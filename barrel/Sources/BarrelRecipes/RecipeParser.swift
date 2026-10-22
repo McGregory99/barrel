@@ -35,8 +35,15 @@ public enum RecipeParser {
         let bottle = try parseBottle(root["bottle"])
         let dependencies = try stringArray(root["dependencies"], field: "dependencies")
         let steps = try parseSteps(root["steps"])
+        var hidden = false
+        if let value = root["hidden"] {
+            guard let flag = value as? Bool, CFGetTypeID(value as CFTypeRef) == CFBooleanGetTypeID() else {
+                throw RecipeError.invalidValue(field: "hidden", reason: "must be true or false")
+            }
+            hidden = flag
+        }
         return Recipe(id: id, name: name, description: description, bottle: bottle,
-                      dependencies: dependencies, steps: steps)
+                      dependencies: dependencies, steps: steps, hidden: hidden)
     }
 
     static func isValidID(_ id: String) -> Bool {

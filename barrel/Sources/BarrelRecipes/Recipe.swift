@@ -115,4 +115,6 @@ public struct Recipe: Equatable, Sendable {
     public var bottle: BottleSettings
     public var dependencies: [String]
     public var steps: [Step]
+    /// A building block other recipes depend on (e.g. a runtime): installable, but not offered in lists.
+    public var hidden = false
 }

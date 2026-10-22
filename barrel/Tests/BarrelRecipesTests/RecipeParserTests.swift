@@ -33,6 +33,20 @@ func recipeJSON(id: String = "app", dependencies: String = "[]", steps: String =
         #expect(recipe.steps[3] == .dllOverride(DLLOverrideStep(dll: "d3dcompiler_47", mode: .nativeBuiltin)))
     }
 
+    @Test func hiddenRecipesStayInstallableButOutOfTheList() throws {
+        let hidden = try RecipeParser.parse(Data("""
+            {"formatVersion":1,"id":"vcredist-x64","name":"VC++","hidden":true,"steps":[]}
+            """.utf8))
+        let shown = try RecipeParser.parse(recipeJSON(id: "steam"))
+        #expect(hidden.hidden && !shown.hidden)
+        let catalog = RecipeCatalog(recipes: [hidden, shown])
+        #expect(catalog.visible.map(\.id) == ["steam"])
+        #expect(catalog.sorted.map(\.id) == ["steam", "vcredist-x64"])
+        #expect(throws: RecipeError.self) {
+            try RecipeParser.parse(Data(#"{"formatVersion":1,"id":"x","name":"X","hidden":"yes","steps":[]}"#.utf8))
+        }
+    }
+
     @Test func acceptsMaintainerNotesAlongsideTheDescription() throws {
         let data = Data("""
             {"formatVersion":1,"id":"app","name":"App","description":"Short.","notes":"Why the fixes exist.",

@@ -33,6 +33,8 @@ public struct RecipeCatalog {
     }
 
     public var sorted: [Recipe] { recipes.values.sorted { $0.id < $1.id } }
+    /// The recipes to offer people: everything except hidden building blocks.
+    public var visible: [Recipe] { sorted.filter { !$0.hidden } }
 
     public func recipe(_ id: String) throws -> Recipe {
         guard let recipe = recipes[id] else { throw RecipeError.unknownRecipe(id) }

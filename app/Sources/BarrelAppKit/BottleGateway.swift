@@ -125,7 +125,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     public func setDefault(_ name: String?) throws { try service.setDefault(name) }
 
     public func recipes() throws -> [RecipeSummary] {
-        RecipeCatalog.load(directories: recipeDirectories).sorted
+        RecipeCatalog.load(directories: recipeDirectories).visible
             .map { RecipeSummary(id: $0.id, name: $0.name, description: $0.description) }
     }
 

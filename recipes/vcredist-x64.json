@@ -4,6 +4,7 @@
   "name": "Microsoft Visual C++ 2015-2022 Redistributable (x64)",
   "description": "Microsoft Visual C++ 2015-2022 runtime (64-bit), needed by most Windows apps and games.",
   "notes": "Microsoft's redistributable from aka.ms. The aka.ms link always serves the latest build, so the pinned sha256 goes stale when Microsoft publishes a new one: re-download, verify the signature and update the hash.",
+  "hidden": true,
   "dependencies": [],
   "steps": [
     {

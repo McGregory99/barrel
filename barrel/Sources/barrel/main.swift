@@ -368,10 +368,11 @@ struct Recipes: ParsableCommand {
     static let configuration = CommandConfiguration(abstract: "List available install recipes.")
 
     @Option(help: "Extra recipe directory (also reads $BARREL_HOME/Recipes and Barrel.app's recipes).") var recipesDir: String?
+    @Flag(help: "Also list hidden recipes (building blocks such as runtimes).") var all = false
 
     func run() throws {
         let catalog = Environment.catalog(extra: recipesDir)
-        for recipe in catalog.sorted { print("\(recipe.id)\t\(recipe.name)") }
+        for recipe in all ? catalog.sorted : catalog.visible { print("\(recipe.id)\t\(recipe.name)") }
         for problem in catalog.problems {
             FileHandle.standardError.write(Data("warning: \(problem.file): \(problem.message)\n".utf8))
         }
