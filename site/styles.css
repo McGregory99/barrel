@@ -38,8 +38,8 @@ code { font: 0.92em var(--mono); }
 .nav__inner { display: flex; align-items: center; gap: 24px; height: 64px; }
 .brand { display: inline-flex; align-items: center; gap: 9px; font-weight: 650; font-size: 19px; letter-spacing: -0.03em; text-decoration: none; }
 .brand--small { font-size: 15px; gap: 7px; }
-.nav__links { display: flex; gap: 26px; margin: 0 auto; }
-.nav__links a { font-size: 14px; font-weight: 450; color: var(--muted); text-decoration: none; transition: color .15s; }
+.nav__links { display: flex; gap: 22px; margin: 0 auto; }
+.nav__links a { white-space: nowrap; font-size: 14px; font-weight: 450; color: var(--muted); text-decoration: none; transition: color .15s; }
 .nav__links a:hover { color: var(--ink); }
 
 /* Language switch: two round flags, the current language in full colour */
@@ -200,6 +200,10 @@ h3 { margin: 0; font-size: 19px; font-weight: 650; letter-spacing: -0.025em; lin
 .footer a { text-decoration: none; }
 .footer a:hover { color: var(--ink); }
 
+/* Fewer section links as the bar narrows, so none ever wraps onto two lines. The GitHub button
+   stands in for Open source, and Performance sits right under How it works. */
+@media (max-width: 1180px) { .nav__links a[href="#open-source"] { display: none; } }
+@media (max-width: 1060px) { .nav__links a[href="#performance"] { display: none; } }
 @media (max-width: 900px) {
   .nav__links { display: none; }
   .nav__inner { justify-content: flex-start; gap: 16px; }
