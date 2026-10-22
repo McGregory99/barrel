@@ -12,7 +12,7 @@ Branch: `feat/engine-cli-graphics` · Delivery: ask-on-risk · Test runner: Swif
 ## Tasks
 | ID | Specs | Route | Status | Evidence |
 |---|---|---|---|---|
-| T1 | S1, S2 | inline | done `53e847a` | LGPL: our patches exported as files under `patches/`; `THIRD_PARTY_NOTICES.md` with each component's license and source |
+| T1 | S1, S2 | inline | done `381a134` | LGPL: our patches exported as files under `patches/`; `THIRD_PARTY_NOTICES.md` with each component's license and source |
 | T2 | S1 | inline | done | relocatable runtime: Wine + deps + DXVK + DXMT with `@loader_path`/`@rpath` links, no absolute `build/` paths |
 | T3 | S1 | inline | done | `scripts/package-app.sh` builds `Barrel.app` (BarrelApp + barrel CLI + runtime); the app defaults to the bundled runtime |
 | T4 | S1 | inline | blocked (no Developer ID) | signing: ad-hoc now; Developer ID + `notarytool` script ready, blocked on the user's certificate |
