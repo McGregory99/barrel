@@ -109,6 +109,43 @@ public struct BottleService {
                                  environment: LaunchEnvironment.make(for: selected, components: components))
     }
 
+    /// Launches a Steam game through the bottle's Steam client, first writing its profile's
+    /// settings into the bottle (once per profile change). A backend the player chose for the game
+    /// wins over the profile's.
+    public func play(_ game: SteamGame, profile: GameProfile?, bottle name: String, arguments: [String]) throws -> Int32 {
+        var bottle = try store.load(name)
+        let prefix = store.prefixURL(for: name)
+        if let profile, let executable = profile.executable ?? SteamLibrary.mainExecutable(of: game)?.lastPathComponent {
+            let fingerprint = profile.fingerprint(executable: executable)
+            if bottle.appliedProfiles[String(game.appID)] != fingerprint {
+                let key = #"HKCU\Software\Wine\AppDefaults\"# + executable + #"\DllOverrides"#
+                if let backend = profile.graphics, bottle.appGraphics[executable] == nil {
+                    guard components.isAvailable(backend) else { throw BottleError.backendUnavailable(backend) }
+                    try graphics.install(backend, into: prefix, components: components)
+                    try writeDirect3DOverrides(key: key, backend: backend, bottle: bottle)
+                }
+                let environment = LaunchEnvironment.make(for: bottle, components: components)
+                for (dll, mode) in profile.dllOverrides.sorted(by: { $0.key < $1.key }) {
+                    try runtime.setRegistryValue(key: key, name: dll, data: mode, prefix: prefix, environment: environment)
+                }
+                bottle.appliedProfiles[String(game.appID)] = fingerprint
+                try store.save(bottle)
+            }
+        }
+        let steam = SteamLibrary.steamDirectory(prefix: prefix).appendingPathComponent("steam.exe")
+        return try runtime.start(steam.path,
+                                 arguments: ["-applaunch", String(game.appID)] + (profile?.launchArguments ?? []) + arguments,
+                                 prefix: prefix, environment: LaunchEnvironment.make(for: bottle, components: components))
+    }
+
+    /// The Direct3D backend a game runs with, and whether the player, its profile or the bottle chose it.
+    public func gameGraphics(bottle name: String, executable: String?, profile: GameProfile?) throws -> GameGraphics {
+        let bottle = try store.load(name)
+        if let executable, let chosen = bottle.appGraphics[executable] { return GameGraphics(backend: chosen, source: .player) }
+        if let fromProfile = profile?.graphics { return GameGraphics(backend: fromProfile, source: .profile) }
+        return GameGraphics(backend: bottle.graphicsBackend, source: .bottle)
+    }
+
     /// Sets the bottle-wide backend: installs its DLLs and writes the global Direct3D load order.
     public func setGraphics(_ name: String, backend: GraphicsBackend) throws {
         var bottle = try store.load(name)

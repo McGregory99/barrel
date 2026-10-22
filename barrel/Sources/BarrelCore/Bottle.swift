@@ -35,9 +35,11 @@ public struct Bottle: Codable, Equatable, Sendable {
     public var msync = true
     /// Per-executable backend overrides (e.g. `steamwebhelper.exe` → wined3d in a DXVK bottle).
     public var appGraphics: [String: GraphicsBackend] = [:]
+    /// Game profiles already written into this bottle (Steam app id → profile fingerprint).
+    public var appliedProfiles: [String: String] = [:]
 
     private enum CodingKeys: String, CodingKey {
-        case name, uuid, windowsVersion, description, createdAt, graphicsBackend, msync, appGraphics
+        case name, uuid, windowsVersion, description, createdAt, graphicsBackend, msync, appGraphics, appliedProfiles
     }
 
     /// Fields added after the first metadata version fall back to their defaults.
@@ -51,6 +53,7 @@ public struct Bottle: Codable, Equatable, Sendable {
         graphicsBackend = try container.decodeIfPresent(GraphicsBackend.self, forKey: .graphicsBackend) ?? .wined3d
         msync = try container.decodeIfPresent(Bool.self, forKey: .msync) ?? true
         appGraphics = try container.decodeIfPresent([String: GraphicsBackend].self, forKey: .appGraphics) ?? [:]
+        appliedProfiles = try container.decodeIfPresent([String: String].self, forKey: .appliedProfiles) ?? [:]
     }
 
     public init(

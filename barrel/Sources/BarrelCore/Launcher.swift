@@ -1,12 +1,15 @@
 import Foundation
 
-/// A macOS app that opens one Windows program in a bottle through `barrel run`.
+/// A macOS app that opens one Windows program in a bottle through `barrel run`, or plays one Steam
+/// game through `barrel play` (which applies the game's profile).
 public struct LauncherSpec: Equatable, Sendable {
     public var name: String
     public var bottle: String
     /// Unix path of the program or document to open.
     public var program: String
     public var arguments: [String]
+    /// When set, the launcher plays this Steam game instead of opening `program`.
+    public var steamAppID: Int?
     /// Variables exported before `barrel` runs (BARREL_HOME, BARREL_WINE, …), since apps
     /// opened from Finder do not inherit the shell environment.
     public var environment: [String: String]
@@ -20,6 +23,12 @@ public struct LauncherSpec: Equatable, Sendable {
         self.arguments = arguments
         self.environment = environment
         self.barrelExecutable = barrelExecutable
+    }
+
+    public init(name: String, bottle: String, steamAppID: Int, environment: [String: String] = [:],
+                barrelExecutable: URL) {
+        self.init(name: name, bottle: bottle, program: "", environment: environment, barrelExecutable: barrelExecutable)
+        self.steamAppID = steamAppID
     }
 }
 
@@ -135,7 +144,12 @@ public struct LauncherInstaller: Sendable {
         for (key, value) in spec.environment.sorted(by: { $0.key < $1.key }) {
             lines.append("export \(key)=\(shellQuoted(value))")
         }
-        let command = [spec.barrelExecutable.path, "run", "--bottle", spec.bottle, spec.program] + spec.arguments
+        let command = if let appID = spec.steamAppID {
+            [spec.barrelExecutable.path, "play", "--bottle", spec.bottle, String(appID)]
+                + (spec.arguments.isEmpty ? [] : ["--"] + spec.arguments)
+        } else {
+            [spec.barrelExecutable.path, "run", "--bottle", spec.bottle, spec.program] + spec.arguments
+        }
         lines.append("exec " + command.map(shellQuoted).joined(separator: " "))
         return lines.joined(separator: "\n") + "\n"
     }

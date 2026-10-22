@@ -5,7 +5,7 @@ import Foundation
 
 struct Barrel: ParsableCommand {
     static let configuration = CommandConfiguration(
-        abstract: "Manage Wine bottles on macOS.",
+        abstract: "Play Windows Steam games on macOS, and manage the Wine bottles behind them.",
         discussion: """
             Environment:
               BARREL_HOME  Data directory (default: ~/Library/Application Support/Barrel)
@@ -16,8 +16,9 @@ struct Barrel: ParsableCommand {
               (BARREL_LIBS/DXVK/DXMT also default to Barrel.app's runtime when run from the app)
               BARREL_GPTK  Your Apple Game Porting Toolkit directory (wine/, external/)
               BARREL_LAUNCHERS  Where 'barrel launcher' puts apps (default: ~/Applications/Barrel)
+            Game profiles are read from $BARREL_HOME/Profiles, then Barrel.app's bundled profiles.
             """,
-        subcommands: [Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self,
+        subcommands: [Games.self, Play.self, Create.self, List.self, Info.self, Copy.self, Delete.self, Default.self, Templates.self,
                       Export.self, Restore.self, Run.self, Graphics.self, MSync.self,
                       Recipes.self, Install.self, Launcher.self]
     )
@@ -278,6 +279,91 @@ extension Environment {
     }
 }
 
+extension Environment {
+    /// BARREL_* variables a launcher exports, since apps opened from Finder lack the shell environment.
+    static func launcherEnvironment() throws -> [String: String] {
+        var environment = ["BARREL_HOME": home().path, "BARREL_WINE": try wine().path]
+        for key in ["BARREL_LIBS", "BARREL_DXVK", "BARREL_DXMT", "BARREL_GPTK"] {
+            if let value = ProcessInfo.processInfo.environment[key] { environment[key] = value }
+        }
+        return environment
+    }
+
+    static func profiles(extra: String?) -> GameProfileCatalog {
+        var directories = [home().appendingPathComponent("Profiles", isDirectory: true)]
+        if let extra { directories.insert(URL(fileURLWithPath: extra, isDirectory: true), at: 0) }
+        if let bundled = bundledResource("profiles") { directories.append(bundled) }
+        let catalog = GameProfileCatalog.load(directories: directories)
+        for problem in catalog.problems {
+            FileHandle.standardError.write(Data("warning: \(problem.file): \(problem.message)\n".utf8))
+        }
+        return catalog
+    }
+
+    /// An installed game by Steam app id, exact name or unambiguous name prefix (case-insensitive).
+    static func game(_ query: String, bottle: String) throws -> SteamGame {
+        let prefix = try FileBottleStore(root: home()).prefixURL(for: bottle)
+        _ = try service().info(bottle)
+        let games = SteamLibrary.installedGames(prefix: prefix)
+        if let id = Int(query), let game = games.first(where: { $0.appID == id }) { return game }
+        let lower = query.lowercased()
+        if let exact = games.first(where: { $0.name.lowercased() == lower }) { return exact }
+        let matches = games.filter { $0.name.lowercased().hasPrefix(lower) }
+        guard matches.count == 1 else {
+            let hint = matches.isEmpty ? "no installed game matches" : "several games match: "
+                + matches.map(\.name).joined(separator: ", ")
+            throw ValidationError("'\(query)': \(hint) (see 'barrel games --bottle \(bottle)')")
+        }
+        return matches[0]
+    }
+}
+
+struct Games: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "List the Steam games installed in a bottle, with their graphics and profile.",
+        discussion: """
+            Columns: Steam app id, name, Direct3D backend and who chose it (you, the game's profile or
+            the bottle), and the profile status (works, issues, broken) or 'no profile'.
+            """)
+
+    @Option(help: "Bottle with Steam (default: 'steam').") var bottle = "steam"
+    @Option(help: "Extra game profile directory.") var profilesDir: String?
+
+    func run() throws {
+        let service = try Environment.service()
+        _ = try service.info(bottle)
+        let prefix = try FileBottleStore(root: Environment.home()).prefixURL(for: bottle)
+        let profiles = Environment.profiles(extra: profilesDir)
+        for game in SteamLibrary.installedGames(prefix: prefix) {
+            let profile = profiles.profile(for: game.appID)
+            let executable = profile?.executable ?? SteamLibrary.mainExecutable(of: game)?.lastPathComponent
+            let graphics = try service.gameGraphics(bottle: bottle, executable: executable, profile: profile)
+            let status = profile.map { "profile: \($0.status.rawValue)" } ?? "no profile"
+            print("\(game.appID)\t\(game.name)\t\(graphics.backend.rawValue) (\(graphics.source.rawValue))\t\(status)")
+        }
+    }
+}
+
+struct Play: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        abstract: "Play a Steam game, applying its profile first.",
+        discussion: """
+            Starts the bottle's Steam client with '-applaunch <id>'; install Steam first with 'barrel install steam'. Extra arguments after '--' go to the game.
+            """)
+
+    @Option(help: "Bottle with Steam (default: 'steam').") var bottle = "steam"
+    @Option(help: "Extra game profile directory.") var profilesDir: String?
+    @Argument(help: "Steam app id or game name (see 'barrel games').") var game: String
+    @Argument(parsing: .postTerminator, help: "Arguments passed to the game, after '--'.") var arguments: [String] = []
+
+    func run() throws {
+        let found = try Environment.game(game, bottle: bottle)
+        let profile = Environment.profiles(extra: profilesDir).profile(for: found.appID)
+        let status = try Environment.service().play(found, profile: profile, bottle: bottle, arguments: arguments)
+        if status != 0 { throw ExitCode(status) }
+    }
+}
+
 struct Recipes: ParsableCommand {
     static let configuration = CommandConfiguration(abstract: "List available install recipes.")
 
@@ -319,7 +405,7 @@ struct Install: ParsableCommand {
 struct Launcher: ParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Create, list or remove macOS apps that open a Windows program in a bottle.",
-        subcommands: [CreateLauncher.self, ListLaunchers.self, RemoveLauncher.self])
+        subcommands: [CreateLauncher.self, GameLauncher.self, ListLaunchers.self, RemoveLauncher.self])
 
     static func installer() -> LauncherInstaller {
         let directory = ProcessInfo.processInfo.environment["BARREL_LAUNCHERS"].map { URL(fileURLWithPath: $0) }
@@ -351,13 +437,9 @@ struct CreateLauncher: ParsableCommand {
         let appName = name ?? programURL.deletingPathExtension().lastPathComponent
         guard let barrel = Bundle.main.executableURL else { throw ValidationError("cannot locate the barrel binary") }
 
-        var environment = ["BARREL_HOME": Environment.home().path, "BARREL_WINE": try Environment.wine().path]
-        for key in ["BARREL_LIBS", "BARREL_DXVK", "BARREL_DXMT", "BARREL_GPTK"] {
-            if let value = ProcessInfo.processInfo.environment[key] { environment[key] = value }
-        }
-
         let spec = LauncherSpec(name: appName, bottle: bottle, program: programURL.path, arguments: arguments,
-                                environment: environment, barrelExecutable: barrel.resolvingSymlinksInPath())
+                                environment: try Environment.launcherEnvironment(),
+                                barrelExecutable: barrel.resolvingSymlinksInPath())
         let app = try Launcher.installer().install(spec, icon: icon(from: iconFrom ?? programURL.path))
         print("Created \(app.path)")
     }
@@ -377,6 +459,29 @@ struct ListLaunchers: ParsableCommand {
 
     func run() throws {
         for name in try Launcher.installer().list() { print(name) }
+    }
+}
+
+struct GameLauncher: ParsableCommand {
+    static let configuration = CommandConfiguration(
+        commandName: "game",
+        abstract: "Create a launcher app that plays a Steam game.",
+        discussion: "The app runs 'barrel play' for the game, so its profile applies, and takes the game's icon.")
+
+    @Option(help: "Bottle with Steam (default: 'steam').") var bottle = "steam"
+    @Option(help: "App name (default: the game's name).") var name: String?
+    @Option(help: "Extra game profile directory.") var profilesDir: String?
+    @Argument(help: "Steam app id or game name (see 'barrel games').") var game: String
+
+    func run() throws {
+        let found = try Environment.game(game, bottle: bottle)
+        guard let barrel = Bundle.main.executableURL else { throw ValidationError("cannot locate the barrel binary") }
+        let spec = LauncherSpec(name: name ?? found.name, bottle: bottle, steamAppID: found.appID,
+                                environment: try Environment.launcherEnvironment(),
+                                barrelExecutable: barrel.resolvingSymlinksInPath())
+        let icon = SteamLibrary.mainExecutable(of: found).flatMap { try? IconConverter.icns(fromExecutable: $0) }
+        let app = try Launcher.installer().install(spec, icon: icon)
+        print("Created \(app.path)")
     }
 }
 

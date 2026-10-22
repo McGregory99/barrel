@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds dist/Barrel.app: the SwiftUI app, the barrel CLI, the relocatable runtime, recipes and the
+# Builds dist/Barrel.app: the SwiftUI app, the barrel CLI, the relocatable runtime, recipes, game profiles and the
 # license material the GPL/LGPL require (LICENSE, THIRD_PARTY_NOTICES.md, patches/).
 # Signing: ad-hoc by default; set SIGN_IDENTITY="Developer ID Application: …" to sign for
 # distribution (then run scripts/notarize.sh).
@@ -22,6 +22,7 @@ cp "$ROOT/app/.build/release/BarrelApp" "$APP/Contents/MacOS/BarrelApp"
 cp "$ROOT/barrel/.build/release/barrel" "$APP/Contents/MacOS/barrel"
 rsync -a "$DIST/runtime/" "$APP/Contents/Resources/runtime/"
 rsync -a "$ROOT/recipes/" "$APP/Contents/Resources/recipes/"
+rsync -a "$ROOT/profiles/" "$APP/Contents/Resources/profiles/"
 cp "$ROOT/LICENSE" "$ROOT/THIRD_PARTY_NOTICES.md" "$APP/Contents/Resources/licenses/"
 rsync -a "$ROOT/patches/" "$APP/Contents/Resources/licenses/patches/"
 

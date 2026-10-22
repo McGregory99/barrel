@@ -17,7 +17,7 @@ Branch: `feat/steam-first` · Delivery: ask-on-risk · Test runner: `swift test`
 | ID | Specs | Route | Status | Evidence |
 |----|-------|-------|--------|----------|
 | T1 | S1 | inline | done | Steam library reader: libraryfolders.vdf + appmanifest_*.acf → installed games (app id, name, install dir) |
-| T2 | S2 | inline | pending | game profiles: format, bundled `profiles/`, applied on launch; `barrel games` / `barrel play` |
+| T2 | S2 | inline | done | game profiles: format, bundled `profiles/`, applied on launch; `barrel games` / `barrel play` |
 | T3 | S1 | inline | pending | recipes can be `hidden` (dependencies); VC++ hidden from app and `barrel recipes` |
 | T4 | S1 | inline | pending | app: Steam home (Install Steam → library → Play / graphics / Add to Dock); bottles under Advanced |
 | T5 | S4 | inline | pending | `skills/barrel-game-profile/SKILL.md` + docs/profiles.md |
@@ -26,3 +26,5 @@ Branch: `feat/steam-first` · Delivery: ask-on-risk · Test runner: `swift test`
 ## Log
 - L1: 2026-10-22 user: "Me parece bien tu propuesta de Steam primero y lo demás en avanzado, y de hecho, en la landing page yo no enfocaría todo como que solamente es para Steam, pero al final pondría algo rollo si te quieres meter en serio en esta mierda, puedes hacer todo esto. En la parte de avanzado. por otro lado, si cada juego necesita un perfil me estás diciendo que tendríamos que probar todos los juegos del mundo para saber cuál es el perfil de cada uno."
 - L2: Steam data (user's bottle): `steamapps/libraryfolders.vdf` lists library paths (Windows paths) and app ids; `appmanifest_<id>.acf` has appid, name, installdir, StateFlags (4 = fully installed), LastOwner (a SteamID: never copy into fixtures).
+- L3: T1. `SteamLibrary.installedGames(prefix:)` reads libraryfolders.vdf (Windows paths mapped through dosdevices, resolved, deduplicated) and appmanifest_*.acf (StateFlags bit 4; Steamworks redistributables 228980 skipped); `KeyValues` parses Valve's text format. On the user's bottle it finds Stonewards (4502710). Commit 4165481.
+- L4: T2. `GameProfile` (+ parser, catalog: $BARREL_HOME/Profiles, extra dir, then bundled), `BottleService.play` writes graphics + DLL overrides to AppDefaults\<exe> only when the profile fingerprint changes (new optional `appliedProfiles` in bottle metadata, old metadata decodes), never over the player's own per-game choice, then runs `steam.exe -applaunch <id> <profile args> <args>`. `gameGraphics` reports player/profile/bottle. CLI: `barrel games`, `barrel play`, `barrel launcher game` (launcher script runs `barrel play`). First profile: profiles/4502710.json. 115 tests pass. `barrel games` on the user's bottle: "4502710 Stonewards dxvk (player) profile: works". Not run end to end: the user's Steam session was open. Known gap: if a player later removes their own per-game choice, the profile is not re-applied until the profile changes.

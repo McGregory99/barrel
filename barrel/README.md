@@ -1,5 +1,16 @@
 # barrel
 
+Steam games (see `../docs/profiles.md`):
+
+```sh
+barrel install steam                      # a 'steam' bottle with Steam and its fixes
+barrel games                              # installed games, their graphics and profile status
+barrel play Stonewards                    # applies the game's profile, then starts it through Steam
+barrel launcher game Stonewards           # ~/Applications/Barrel/Stonewards.app with the game's icon
+```
+
+Bottles and everything else:
+
 Command-line bottle manager for Wine on macOS (clean-room reimplementation of the
 CrossOver bottle workflow; see `../docs/feature-map.md`, features F1–F4).
 

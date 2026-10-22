@@ -35,6 +35,23 @@ struct LauncherFixture {
 }
 
 @Suite struct LauncherTests {
+    @Test func aGameLauncherPlaysTheGameThroughItsProfile() throws {
+        let f = try LauncherFixture()
+        let fake = try f.recordingBarrel()
+        let spec = LauncherSpec(name: "Stonewards", bottle: "steam", steamAppID: 4502710,
+                                environment: ["BARREL_HOME": "/data/barrel"], barrelExecutable: fake.executable)
+        let app = try f.installer.install(spec)
+
+        let process = Process()
+        process.executableURL = app.appendingPathComponent("Contents/MacOS/launcher")
+        process.environment = ["PATH": "/usr/bin:/bin"]
+        try process.run()
+        process.waitUntilExit()
+
+        let lines = try String(contentsOf: fake.output, encoding: .utf8).split(separator: "\n").map(String.init)
+        #expect(lines == ["play", "--bottle", "steam", "4502710", "HOME_VAR=/data/barrel"])
+    }
+
     @Test func createsAnAppBundleNamedAfterTheLauncher() throws {
         let f = try LauncherFixture()
         let app = try f.installer.install(f.spec())

@@ -1,0 +1,9 @@
+{
+  "formatVersion": 1,
+  "steamAppId": 4502710,
+  "name": "Stonewards",
+  "status": "works",
+  "executable": "Stonewards.exe",
+  "graphics": "dxvk",
+  "notes": "Unity game. Played on an Apple M2 with DXVK. DXMT draws the main menu with less GPU time and memory, but gameplay on DXMT is untested. Unity's GPU skinning needs MVK_CONFIG_USE_METAL_ARGUMENT_BUFFERS=0, which Barrel sets for every bottle."
+}
