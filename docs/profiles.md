@@ -43,6 +43,12 @@ remembers which version of a profile it wrote into a bottle and rewrites only wh
 changes. Environment variables cannot be scoped to one game this way, so profiles do not set them;
 a variable every game needs belongs in Barrel's defaults.
 
+## Creating a profile
+
+Follow `skills/barrel-game-profile/SKILL.md`. It is written for an AI coding agent such as Claude Code,
+and works as a checklist for people too: baseline run, one change at a time, a status the player
+confirmed, and notes for the next person.
+
 ## Commands
 
 ```sh
