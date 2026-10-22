@@ -1,0 +1,55 @@
+name: Game report
+description: Tell us how a Steam game runs in Barrel (it works, it works with problems, or it does not start).
+title: "[Game] "
+labels: ["game report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for testing Barrel while it is in beta. Reports like this one become the game profiles that make games work out of the box for everyone.
+  - type: input
+    id: game
+    attributes:
+      label: Game
+      description: Name and, if you know it, the Steam app id (the number in the game's store URL).
+      placeholder: Stonewards (4502710)
+    validations:
+      required: true
+  - type: dropdown
+    id: result
+    attributes:
+      label: How does it run?
+      options:
+        - Works well
+        - Playable, with problems
+        - Does not start or crashes
+    validations:
+      required: true
+  - type: dropdown
+    id: graphics
+    attributes:
+      label: Graphics setting in Barrel
+      options:
+        - Automatic
+        - DXVK
+        - DXMT
+        - wined3d (OpenGL)
+        - I don't know
+  - type: input
+    id: mac
+    attributes:
+      label: Mac and macOS version
+      placeholder: MacBook Air M2, macOS 26.1
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: What happened?
+      description: What you played, what went wrong, and anything you changed to make it work. Screenshots help.
+  - type: textarea
+    id: log
+    attributes:
+      label: Log (optional)
+      description: If you started the game from a Dock launcher, its log is in ~/Library/Logs/Barrel/<game>.log.
+      render: text

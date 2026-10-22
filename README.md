@@ -5,7 +5,7 @@
 <h1 align="center">Barrel</h1>
 
 <p align="center">
-  <b>Windows games on your Apple Silicon Mac.</b><br>
+  <b>Windows games on your Apple Silicon Mac.</b> · <i>public beta</i><br>
   Free and open source, built on Wine, DXVK and DXMT.
 </p>
 
@@ -69,6 +69,23 @@ Stonewards main menu on an Apple M2, GPU time per frame measured with Apple's Me
 | CrossOver 26 + D3DMetal | 2.87 ms | — |
 
 This is one scene in one game, not a general benchmark.
+
+## What runs, and what doesn't
+
+- **Many Windows games**: Direct3D 9, 10 and 11 games run through DXVK or DXMT. Barrel is in beta: many
+  games work, not all of them.
+- **Not games with anti-cheat**: Easy Anti-Cheat, BattlEye and similar systems refuse to run under Wine on a
+  Mac, so games like Apex Legends, PUBG or Destiny 2 will not start.
+- **DirectX 12 needs Apple's toolkit**: games that only use DirectX 12 need Apple's Game Porting Toolkit,
+  which Barrel cannot include. Support for your own copy is built in, but still experimental.
+
+## Tell us how it went
+
+Barrel is free and in beta. The most useful feedback is which games run for you and which don't: every
+report becomes a tested profile for everyone.
+
+- [**Report a game**](https://github.com/McGregory99/barrel/issues/new?template=game-report.yml): a short form (game, Mac, result, graphics setting).
+- [**Share your opinion**](https://github.com/McGregory99/barrel/discussions): ideas, questions and reviews.
 
 ## How it works
 
