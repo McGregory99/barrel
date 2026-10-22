@@ -30,7 +30,7 @@ over a bundled one with the same app id.
 | `name` | required |
 | `status` | required: `works`, `issues` (playable with known problems) or `broken` |
 | `executable` | optional; file name of the process that renders (no folders). When missing, Barrel guesses: an Unreal `*-Shipping.exe`, else an `.exe` named like the game, else the largest one, ignoring crash handlers, uninstallers and redistributables |
-| `graphics` | optional; `wined3d`, `dxvk` or `dxmt` for this game. A backend the player picks for the game wins. `d3dmetal` cannot be set per game |
+| `graphics` | optional; `wined3d`, `dxvk` or `dxmt` for this game. A backend the player picks for the game wins until they choose "Automatic" again (`barrel graphics <bottle> auto --app <exe>`). `d3dmetal` cannot be set per game |
 | `dllOverrides` | optional; Wine DLL overrides for this game's executable: `native`, `builtin`, `native,builtin`, `builtin,native`, or `""` to disable the DLL |
 | `launchArguments` | optional; passed to the game after `steam -applaunch <id>` |
 | `notes` | optional; for people reading the profile |

@@ -9,6 +9,7 @@ final class FakeWineRuntime: WineRuntime {
         case shutdown(String)
         case start(String, String, [String])
         case registry(String, String, String, String)
+        case deleteRegistry(String, String, String)
     }
 
     var calls: [Call] = []
@@ -38,6 +39,10 @@ final class FakeWineRuntime: WineRuntime {
     func setRegistryValue(key: String, name: String, data: String, prefix: URL, environment: [String: String]) throws {
         environments.append(environment)
         calls.append(.registry(prefix.lastPathComponent, key, name, data))
+    }
+
+    func deleteRegistryValue(key: String, name: String, prefix: URL, environment: [String: String]) throws {
+        calls.append(.deleteRegistry(prefix.lastPathComponent, key, name))
     }
 
     func registryWrites() -> [String: String] {

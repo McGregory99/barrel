@@ -21,7 +21,8 @@ or another layer's settings alone: those are starting points to try, not results
 1. **Find the game.** `barrel games` prints `appid  name  graphics (source)  profile`. Note the app id
    and whether the graphics come from `player`. A player's own choice (set with
    `barrel graphics <bottle> <backend> --app <exe>` or the app's Graphics menu) overrides any profile,
-   so tell the player when one is set: your profile tests will not change graphics for that game.
+   so clear it before testing graphics with `barrel graphics <bottle> auto --app <exe>` (or "Automatic" in
+   the app's Graphics menu), after telling the player.
 
 2. **Baseline.** Run `barrel play <appid>` with no profile and capture Wine's output:
    `WINEDEBUG=err+all,fixme-all barrel play <appid> 2>&1 | tee ~/barrel-<appid>.log`

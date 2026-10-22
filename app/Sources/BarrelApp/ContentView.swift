@@ -30,6 +30,7 @@ struct ContentView: View {
                         refresh: { Task { await model.loadLibrary() } },
                         play: { game in Task { await model.play(game) } },
                         setGraphics: { game, backend in Task { await model.setGraphics(for: game, backend: backend) } },
+                        setAutomaticGraphics: { game in Task { await model.setAutomaticGraphics(for: game) } },
                         addToDock: { game in Task { await model.addToDock(game) } }))
                     .task { await model.loadLibrary() }
             } else if let bottle = model.selectedBottle {

@@ -227,11 +227,12 @@ struct Graphics: ParsableCommand {
             dxmt (needs BARREL_DXMT), d3dmetal (needs BARREL_GPTK pointing to your own copy of
             Apple's Game Porting Toolkit; it is not redistributable).
             --app overrides the backend for one executable file name (wined3d, dxvk or dxmt),
-            e.g. keep Steam's steamwebhelper.exe on wined3d in a DXVK bottle.
+            e.g. keep Steam's steamwebhelper.exe on wined3d in a DXVK bottle. 'auto' with --app
+            removes that override, so the game's profile or the bottle decides again.
             """)
 
     @Argument var name: String
-    @Argument(help: "wined3d, dxvk, dxmt or d3dmetal.") var backend: String?
+    @Argument(help: "wined3d, dxvk, dxmt or d3dmetal; with --app also 'auto'.") var backend: String?
     @Option(help: "Executable file name to override, e.g. Game.exe.") var app: String?
 
     func run() throws {
@@ -242,6 +243,12 @@ struct Graphics: ParsableCommand {
             for (executable, backend) in bottle.appGraphics.sorted(by: { $0.key < $1.key }) {
                 print("  \(executable): \(backend.rawValue)")
             }
+            return
+        }
+        if backend.lowercased() == "auto" {
+            guard let app else { throw ValidationError("'auto' needs --app <executable>") }
+            try service.clearAppGraphics(name, executable: app)
+            print("'\(app)' in bottle '\(name)' is back to automatic graphics")
             return
         }
         let selected = try GraphicsBackend(name: backend)

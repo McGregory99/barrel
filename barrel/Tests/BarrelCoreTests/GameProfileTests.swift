@@ -139,4 +139,23 @@ struct PlayFixture {
         #expect(try f.service.gameGraphics(bottle: "steam", executable: "Stonewards.exe", profile: nil)
                 == GameGraphics(backend: .wined3d, source: .bottle))
     }
+
+    @Test func resettingAGameToAutomaticHandsItBackToItsProfile() throws {
+        let f = try PlayFixture()
+        try f.service.setAppGraphics("steam", executable: "Stonewards.exe", backend: .dxvk)
+        _ = try f.service.play(f.game, profile: profile, bottle: "steam", arguments: [])
+        f.runtime.calls.removeAll()
+        f.graphics.installer.installed.removeAll()
+
+        try f.service.clearAppGraphics("steam", executable: "Stonewards.exe")
+
+        let key = #"HKCU\Software\Wine\AppDefaults\Stonewards.exe\DllOverrides"#
+        #expect(f.runtime.calls == LaunchEnvironment.direct3DLibraries.map { .deleteRegistry("steam", key, $0) })
+        #expect(try f.graphics.base.store.load("steam").appGraphics.isEmpty)
+        #expect(try f.service.gameGraphics(bottle: "steam", executable: "Stonewards.exe", profile: profile)
+                == GameGraphics(backend: .dxmt, source: .profile))
+
+        _ = try f.service.play(f.game, profile: profile, bottle: "steam", arguments: [])
+        #expect(f.graphics.installer.installed.map(\.0) == [.dxmt])
+    }
 }

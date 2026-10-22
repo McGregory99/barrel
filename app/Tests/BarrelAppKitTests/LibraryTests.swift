@@ -56,6 +56,20 @@ struct LibraryTests {
         #expect(model.games.first?.graphics == GameGraphics(backend: .dxmt, source: .player))
     }
 
+    @Test func automaticGraphicsHandsTheGameBackToItsProfile() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        gateway.gameList = [stonewards]
+        let model = BottleListViewModel(gateway: gateway)
+        await model.loadLibrary()
+        await model.setGraphics(for: stonewards, backend: .dxmt)
+
+        await model.setAutomaticGraphics(for: stonewards)
+
+        #expect(gateway.gameGraphicsResets == ["Stonewards.exe"])
+        #expect(model.games.first?.graphics.source == .profile)
+    }
+
     @Test func addingAGameToTheDockCreatesAGameLauncher() async {
         let gateway = FakeGateway()
         gateway.steam = "steam"

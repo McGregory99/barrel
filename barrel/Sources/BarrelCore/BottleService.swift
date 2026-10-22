@@ -172,6 +172,21 @@ public struct BottleService {
         try store.save(bottle)
     }
 
+    /// Drops the player's backend for one executable, so the game's profile (or the bottle) decides again.
+    public func clearAppGraphics(_ name: String, executable: String) throws {
+        var bottle = try store.load(name)
+        let prefix = store.prefixURL(for: name)
+        let environment = LaunchEnvironment.make(for: bottle, components: components)
+        let key = #"HKCU\Software\Wine\AppDefaults\"# + executable + #"\DllOverrides"#
+        for dll in LaunchEnvironment.direct3DLibraries {
+            try runtime.deleteRegistryValue(key: key, name: dll, prefix: prefix, environment: environment)
+        }
+        bottle.appGraphics[executable] = nil
+        // Profiles were applied around the player's choice; write them again on the next launch.
+        bottle.appliedProfiles = [:]
+        try store.save(bottle)
+    }
+
     private func writeDirect3DOverrides(key: String, backend: GraphicsBackend, bottle: Bottle) throws {
         let prefix = store.prefixURL(for: bottle.name)
         let environment = LaunchEnvironment.make(for: bottle, components: components)

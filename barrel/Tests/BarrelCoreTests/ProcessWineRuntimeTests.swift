@@ -62,6 +62,13 @@ struct RecordingWine {
         #expect(!call.contains("mscoree"))
     }
 
+    @Test func deletingAMissingRegistryValueIsNotAnError() throws {
+        let sink = try CapturedOutput()
+        let wine = try RecordingWine(stderr: "ERROR: value not found", status: 1, diagnostics: sink.handle)
+        try wine.runtime.deleteRegistryValue(key: "HKCU\\X", name: "y", prefix: wine.prefix, environment: [:])
+        #expect(try wine.calls() == ["wine reg|mscoree,mshtml="])
+    }
+
     @Test func maintenanceHidesWineChatterWhenItSucceeds() throws {
         let sink = try CapturedOutput()
         let wine = try RecordingWine(stderr: "msync: up and running.", diagnostics: sink.handle)

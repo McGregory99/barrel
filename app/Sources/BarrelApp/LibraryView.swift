@@ -17,6 +17,7 @@ struct LibraryView: View {
         var refresh: () -> Void
         var play: (GameSummary) -> Void
         var setGraphics: (GameSummary, GraphicsBackend) -> Void
+        var setAutomaticGraphics: (GameSummary) -> Void
         var addToDock: (GameSummary) -> Void
     }
 
@@ -40,6 +41,7 @@ struct LibraryView: View {
                             GameCard(game: game, isAvailable: isAvailable, isBusy: isBusy,
                                      play: { actions.play(game) },
                                      setGraphics: { actions.setGraphics(game, $0) },
+                                     setAutomatic: { actions.setAutomaticGraphics(game) },
                                      addToDock: { actions.addToDock(game) })
                         }
                     }
@@ -100,6 +102,7 @@ struct GameCard: View {
     let isBusy: Bool
     let play: () -> Void
     let setGraphics: (GraphicsBackend) -> Void
+    let setAutomatic: () -> Void
     let addToDock: () -> Void
 
     var body: some View {
@@ -114,11 +117,18 @@ struct GameCard: View {
             }
             LabeledContent("Graphics") {
                 Menu {
+                    Button {
+                        setAutomatic()
+                    } label: {
+                        if game.graphics.source == .player { Text("Automatic") } else { Label("Automatic", systemImage: "checkmark") }
+                    }
+                    .help("Use the game's tested profile, or Steam's default")
+                    Divider()
                     ForEach([GraphicsBackend.dxvk, .dxmt, .wined3d], id: \.self) { backend in
                         Button {
                             setGraphics(backend)
                         } label: {
-                            if backend == game.graphics.backend {
+                            if game.graphics.source == .player && backend == game.graphics.backend {
                                 Label(backend.displayName, systemImage: "checkmark")
                             } else {
                                 Text(backend.displayName)
@@ -127,7 +137,8 @@ struct GameCard: View {
                         .disabled(!isAvailable(backend))
                     }
                 } label: {
-                    Text(game.graphics.backend.displayName)
+                    Text(game.graphics.source == .player ? game.graphics.backend.displayName
+                                                         : "Automatic · \(game.graphics.backend.displayName)")
                 }
                 .fixedSize()
                 .disabled(!game.canChooseGraphics || isBusy)

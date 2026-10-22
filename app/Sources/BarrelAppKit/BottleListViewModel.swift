@@ -142,6 +142,14 @@ public final class BottleListViewModel {
         } apply: { [self] in games = $0 }
     }
 
+    public func setAutomaticGraphics(for game: GameSummary) async {
+        guard let bottle = steamBottle, let executable = game.executable else { return }
+        await perform("Resetting \(game.name)'s graphics…") { gateway in
+            try gateway.clearGameGraphics(bottle: bottle, executable: executable)
+            return try gateway.games(in: bottle)
+        } apply: { [self] in games = $0 }
+    }
+
     public func addToDock(_ game: GameSummary) async {
         guard let bottle = steamBottle else { return }
         await perform("Creating \(game.name).app…") { gateway in

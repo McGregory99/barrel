@@ -10,6 +10,8 @@ public protocol WineRuntime {
     func start(_ path: String, arguments: [String], prefix: URL, environment: [String: String]) throws -> Int32
     /// Writes a REG_SZ value into the prefix registry.
     func setRegistryValue(key: String, name: String, data: String, prefix: URL, environment: [String: String]) throws
+    /// Removes a registry value; a value that does not exist is not an error.
+    func deleteRegistryValue(key: String, name: String, prefix: URL, environment: [String: String]) throws
 }
 
 public enum WineRuntimeError: Error, Equatable, CustomStringConvertible {
@@ -59,6 +61,12 @@ public struct ProcessWineRuntime: WineRuntime {
                 extraEnvironment: environment, quiet: true, unattended: true)
     }
 
+    public func deleteRegistryValue(key: String, name: String, prefix: URL, environment: [String: String]) throws {
+        // reg exits 1 when the value is already gone, which is the state we want.
+        try run(wineBinary, ["reg", "delete", key, "/v", name, "/f"], prefix: prefix, extraEnvironment: environment,
+                allowFailure: true, quiet: true, unattended: true)
+    }
+
     private var wineserver: URL {
         wineBinary.deletingLastPathComponent().appendingPathComponent("wineserver")
     }
@@ -96,7 +104,7 @@ public struct ProcessWineRuntime: WineRuntime {
         defer { captured.map { try? FileManager.default.removeItem(at: $0) } }
         try process.run()
         process.waitUntilExit()
-        if process.terminationStatus != 0, let captured, let output = try? Data(contentsOf: captured) {
+        if process.terminationStatus != 0, !allowFailure, let captured, let output = try? Data(contentsOf: captured) {
             diagnostics.write(output)
         }
         if process.terminationStatus != 0 && !allowFailure {

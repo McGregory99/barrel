@@ -88,6 +88,8 @@ public protocol BottleGateway: Sendable {
     /// Opens the Steam client; returns when it quits.
     func openSteam(in bottle: String) throws -> Int32
     func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws
+    /// Drops the player's backend for the game, so its profile (or the bottle) decides again.
+    func clearGameGraphics(bottle: String, executable: String) throws
     /// Creates a macOS app that plays the game (with its icon); returns its URL.
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL
 }
@@ -221,6 +223,10 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
 
     public func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws {
         try service.setAppGraphics(bottle, executable: executable, backend: backend)
+    }
+
+    public func clearGameGraphics(bottle: String, executable: String) throws {
+        try service.clearAppGraphics(bottle, executable: executable)
     }
 
     public func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL {

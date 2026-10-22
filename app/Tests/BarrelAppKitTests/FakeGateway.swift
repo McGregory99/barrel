@@ -18,6 +18,7 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     private(set) var steamOpens: [String] = []
     private(set) var gameGraphicsChanges: [(bottle: String, executable: String, backend: GraphicsBackend)] = []
     private(set) var gameLaunchers: [(appID: Int, name: String, bottle: String)] = []
+    private(set) var gameGraphicsResets: [String] = []
 
     init(bottles: [Bottle] = [], defaultName: String? = nil) {
         self.bottles = bottles
@@ -86,6 +87,13 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
         gameGraphicsChanges.append((bottle, executable, backend))
         for i in gameList.indices where gameList[i].executable == executable {
             gameList[i].graphics = GameGraphics(backend: backend, source: .player)
+        }
+    }
+    func clearGameGraphics(bottle: String, executable: String) throws {
+        try check()
+        gameGraphicsResets.append(executable)
+        for i in gameList.indices where gameList[i].executable == executable {
+            gameList[i].graphics = GameGraphics(backend: .dxvk, source: .profile)
         }
     }
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL {
