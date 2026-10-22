@@ -38,6 +38,8 @@ Mac app with its own icon.
 
 Everything in the terminal is also a button in the app: **Install Steam**, **Play** and **Add to Dock**.
 
+<img src="docs/media/dock-demo.svg" width="560" alt="Clicking Add to Dock on Stonewards puts its icon in the macOS Dock">
+
 ## The right graphics for each game
 
 Windows games draw with Direct3D, which macOS does not have. Barrel translates it to Apple's Metal, and

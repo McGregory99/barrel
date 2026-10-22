@@ -6,11 +6,14 @@
   output, "# " lines are comments (skipped) and a trailing "  @45 s" marks how long the
   command really took (shown as a muted note; the animation itself is compressed).
 - docs/media/how-it-works-{light,dark}.svg: the architecture diagram.
+- docs/media/dock-demo.svg: "Add to Dock" puts a game's icon in the Dock (icons from docs/media/logos,
+  embedded because an SVG shown as an image cannot load other files).
 
 The SVGs use only CSS and SMIL animation, so they play inside GitHub's <img> rendering.
 
 usage: render_media.py
 """
+import base64
 import html
 import pathlib
 import re
@@ -218,11 +221,79 @@ def render_how_it_works(theme):
 """
 
 
+def data_uri(path):
+    kind = "image/svg+xml" if path.suffix == ".svg" else "image/png"
+    return f"data:{kind};base64,{base64.b64encode(path.read_bytes()).decode()}"
+
+
+def render_dock_demo():
+    logos = MEDIA / "logos"
+    barrel, steam, game = (data_uri(logos / n) for n in ("barrel.svg", "steam.png", "stonewards.png"))
+    dur = "6s"
+    # One 6-second loop: the cursor clicks "Add to Dock", the icon flies into the Dock, the Dock makes room.
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="640" height="400" viewBox="0 0 640 400" role="img" aria-label="Clicking Add to Dock on Stonewards puts its icon in the macOS Dock">
+<defs>
+  <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d9c4"/><stop offset=".55" stop-color="#e9c2b5"/><stop offset="1" stop-color="#c9b6d6"/></linearGradient>
+  <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-opacity=".18"/></filter>
+  <clipPath id="round"><rect width="640" height="400" rx="18"/></clipPath>
+</defs>
+<style>
+text{{font-family:{SANS}}}
+.t{{font-size:17px;font-weight:650;fill:#1c1c1e}} .ok{{font-size:12px;fill:#2f9a55}} .b{{font-size:13px;font-weight:550;fill:#1c1c1e}}
+</style>
+<g clip-path="url(#round)">
+<rect width="640" height="400" fill="url(#desk)"/>
+<g filter="url(#shadow)">
+  <rect x="120" y="54" width="400" height="118" rx="16" fill="#fff" fill-opacity=".92"/>
+</g>
+<image x="142" y="76" width="64" height="64" href="{game}"/>
+<text x="222" y="102" class="t">Stonewards</text>
+<circle cx="228" cy="121" r="5.5" fill="#2f9a55"/><path d="M225.4 121l1.8 1.8 3.4-3.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
+<text x="239" y="125" class="ok">Tested: works</text>
+<g>
+  <rect x="380" y="92" width="118" height="36" rx="18" fill="#ececee">
+    <animate attributeName="fill" values="#ececee;#ececee;#cfcfd4;#ececee;#ececee" keyTimes="0;.3;.33;.37;1" dur="{dur}" repeatCount="indefinite"/>
+  </rect>
+  <text x="439" y="115" text-anchor="middle" class="b">Add to Dock</text>
+</g>
+<!-- Dock: grows to make room for the new icon -->
+<g filter="url(#shadow)">
+  <rect y="306" height="78" rx="22" fill="#fff" fill-opacity=".55" stroke="#fff" stroke-opacity=".7">
+    <animate attributeName="x" values="250;250;219;219;250" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/>
+    <animate attributeName="width" values="140;140;202;202;140" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/>
+  </rect>
+</g>
+<g>
+  <image y="318" width="54" height="54" href="{barrel}"><animate attributeName="x" values="262;262;231;231;262" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></image>
+  <image y="318" width="54" height="54" href="{steam}"><animate attributeName="x" values="324;324;293;293;324" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></image>
+  <circle cy="379" r="2.2" fill="#3a3a3e"><animate attributeName="cx" values="351;351;320;320;351" keyTimes="0;.45;.6;.94;1" dur="{dur}" repeatCount="indefinite"/></circle>
+</g>
+<!-- The game's icon flies from the card into the new slot -->
+<image width="64" height="64" href="{game}" opacity="0">
+  <animate attributeName="opacity" values="0;0;1;1;1;0" keyTimes="0;.33;.34;.92;.97;1" dur="{dur}" repeatCount="indefinite"/>
+  <animate attributeName="x" values="142;142;142;355;355;355" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;0 0 1 1;.4 0 .2 1;0 0 1 1;0 0 1 1"/>
+  <animate attributeName="y" values="76;76;60;318;318;318" keyTimes="0;.33;.38;.6;.97;1" dur="{dur}" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.2 0 .6 1;.5 0 .9 1;0 0 1 1;0 0 1 1"/>
+  <animate attributeName="width" values="64;64;64;54;54;54" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite"/>
+  <animate attributeName="height" values="64;64;64;54;54;54" keyTimes="0;.33;.36;.6;.97;1" dur="{dur}" repeatCount="indefinite"/>
+</image>
+<!-- Cursor -->
+<g>
+  <path d="M0 0 L0 22 L6 16 L10 26 L14 24 L10 14 L18 14 Z" fill="#1c1c1e" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+  <animateTransform attributeName="transform" type="translate" values="560,250;560,250;452,116;452,116;600,230;560,250" keyTimes="0;.08;.28;.4;.7;1" dur="{dur}" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.4 0 .2 1;0 0 1 1;.4 0 .2 1;0 0 1 1"/>
+</g>
+</g>
+</svg>
+"""
+
+
 def main():
     for cast in sorted((MEDIA / "casts").glob("*.txt")):
         out = MEDIA / f"cast-{cast.stem}.svg"
         out.write_text(render_cast(cast.stem, parse_cast(cast)))
         print("wrote", out.relative_to(ROOT))
+    out = MEDIA / "dock-demo.svg"
+    out.write_text(render_dock_demo())
+    print("wrote", out.relative_to(ROOT))
     for theme in THEMES:
         out = MEDIA / f"how-it-works-{theme}.svg"
         out.write_text(render_how_it_works(theme))
