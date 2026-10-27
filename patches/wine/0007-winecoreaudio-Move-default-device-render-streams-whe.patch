@@ -1,0 +1,138 @@
+From 9c8ed0d1346f006281d50a4988030763bc991348 Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Tue, 27 Oct 2026 21:27:12 +0100
+Subject: [PATCH 7/7] winecoreaudio: Move default-device render streams when the
+ macOS default output changes.
+
+Windows moves shared-mode streams on the default device when the user picks
+another output, and games rely on it. Changes of the macOS default output
+never reach Wine's registry-based notifications, so a game kept playing on
+the device it started with (Mac speakers after switching to headphones).
+A shared render stream opened on the default device now listens for
+kAudioHardwarePropertyDefaultOutputDevice and moves its audio unit.
+---
+ dlls/winecoreaudio.drv/coreaudio.c | 80 ++++++++++++++++++++++++++++++
+ 1 file changed, 80 insertions(+)
+
+diff --git a/dlls/winecoreaudio.drv/coreaudio.c b/dlls/winecoreaudio.drv/coreaudio.c
+index 1e6fceb..e9b1928 100644
+--- a/dlls/winecoreaudio.drv/coreaudio.c
++++ b/dlls/winecoreaudio.drv/coreaudio.c
+@@ -48,6 +48,8 @@
+ #include <AudioToolbox/AudioConverter.h>
+ #include <AudioUnit/AudioUnit.h>
+ #include <os/lock.h>
++#include <dispatch/dispatch.h>
++#include <Block.h>
+ 
+ #undef LoadResource
+ #undef CompareString
+@@ -85,6 +87,7 @@ struct coreaudio_stream
+     AudioConverterRef converter;
+     AudioStreamBasicDescription dev_desc; /* audio unit format, not necessarily the same as fmt */
+     AudioDeviceID dev_id;
++    AudioObjectPropertyListenerBlock default_output_listener; /* set while following the default output */
+ 
+     EDataFlow flow;
+     DWORD flags;
+@@ -736,6 +739,77 @@ static AudioDeviceID dev_id_from_device(const char *device)
+     return id;
+ }
+ 
++static const AudioObjectPropertyAddress default_output_addr = {
++    kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain
++};
++
++static dispatch_queue_t default_output_queue(void)
++{
++    static dispatch_once_t once;
++    static dispatch_queue_t queue;
++    dispatch_once(&once, ^{
++        queue = dispatch_queue_create("org.winehq.winecoreaudio.default-output", DISPATCH_QUEUE_SERIAL);
++    });
++    return queue;
++}
++
++static AudioDeviceID default_output_device(void)
++{
++    AudioDeviceID id = kAudioObjectUnknown;
++    UInt32 size = sizeof(id);
++    if(AudioObjectGetPropertyData(kAudioObjectSystemObject, &default_output_addr, 0, NULL, &size, &id) != noErr)
++        return kAudioObjectUnknown;
++    return id;
++}
++
++/* Runs on default_output_queue, a thread Wine does not know, so it must not log.
++ * Moves the stream's audio unit to the current default output device; the client
++ * format on the unit's input scope is kept. */
++static void switch_to_default_output(struct coreaudio_stream *stream)
++{
++    AudioDeviceID id = default_output_device();
++    OSStatus sc;
++
++    if(id == kAudioObjectUnknown || id == stream->dev_id) return;
++
++    AudioOutputUnitStop(stream->unit);
++    AudioUnitUninitialize(stream->unit);
++    sc = AudioUnitSetProperty(stream->unit, kAudioOutputUnitProperty_CurrentDevice,
++            kAudioUnitScope_Global, 0, &id, sizeof(id));
++    if(sc == noErr) stream->dev_id = id;
++    if(AudioUnitInitialize(stream->unit) == noErr) AudioOutputUnitStart(stream->unit);
++}
++
++/* Windows moves shared-mode streams on the default device when the user picks
++ * another output (games expect it). macOS changes of the default output never
++ * reach Wine's registry-based notifications, so a render stream opened on the
++ * default device follows it here instead: plugging in or choosing headphones
++ * moves the game's sound to them. */
++static void follow_default_output(struct coreaudio_stream *stream)
++{
++    AudioObjectPropertyListenerBlock listener = ^(UInt32 count, const AudioObjectPropertyAddress *addresses){
++        switch_to_default_output(stream);
++    };
++
++    listener = Block_copy(listener);
++    if(AudioObjectAddPropertyListenerBlock(kAudioObjectSystemObject, &default_output_addr,
++                default_output_queue(), listener) == noErr)
++        stream->default_output_listener = listener;
++    else
++        Block_release(listener);
++}
++
++static void stop_following_default_output(struct coreaudio_stream *stream)
++{
++    if(!stream->default_output_listener) return;
++    AudioObjectRemovePropertyListenerBlock(kAudioObjectSystemObject, &default_output_addr,
++            default_output_queue(), stream->default_output_listener);
++    /* wait for a switch that may already be running */
++    dispatch_sync(default_output_queue(), ^{});
++    Block_release(stream->default_output_listener);
++    stream->default_output_listener = NULL;
++}
++
+ static NTSTATUS unix_create_stream(void *args)
+ {
+     struct create_stream_params *params = args;
+@@ -832,6 +906,10 @@ static NTSTATUS unix_create_stream(void *args)
+     }
+     silence_buffer(stream, stream->local_buffer, stream->bufsize_frames);
+ 
++    if(stream->flow == eRender && stream->share == AUDCLNT_SHAREMODE_SHARED
++            && stream->dev_id == default_output_device())
++        follow_default_output(stream);
++
+     if(stream->flow == eCapture){
+         stream->cap_bufsize_frames = muldiv(params->duration, stream->dev_desc.mSampleRate, 10000000);
+         stream->cap_buffer = malloc(stream->cap_bufsize_frames * stream->fmt->nBlockAlign);
+@@ -864,6 +942,8 @@ static NTSTATUS unix_release_stream( void *args )
+         NtClose(params->timer_thread);
+     }
+ 
++    stop_following_default_output(stream);
++
+     if(stream->unit){
+         AudioOutputUnitStop(stream->unit);
+         AudioComponentInstanceDispose(stream->unit);
+-- 
+2.47.0
+
