@@ -30,6 +30,7 @@ Totals: 204 files, +10,194 / -662 (includes regenerated `configure`).
 | `589cf05` | kernelbase | `AppDefaults\<exe>\AppendCommandLine`: append per-app arguments (Steam's CEF flags) |
 | `a8176e4` | ntdll | `WINEDLLPATH_PREPEND`: directories searched before Wine's own dll dir, so replacement builtins (D3DMetal's d3d11/dxgi) win. CX exports `prepend_dll_path` for this purpose |
 | `dd0234e` | winecoreaudio | Ask for microphone permission without waiting for the answer: macOS may never answer, which froze games that open voice chat (Stonewards' character select) |
+| `4ff6323` | winecoreaudio | List no capture devices until macOS has granted microphone access, without asking: asking aborts the process when the launching app has no NSMicrophoneUsageDescription (Stonewards froze or crawled) |
 
 ## Next steps
 - Split the patch per area (`filterdiff`/`splitdiff`) to study each independently.

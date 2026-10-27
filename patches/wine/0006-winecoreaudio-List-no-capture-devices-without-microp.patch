@@ -1,0 +1,45 @@
+From 4ff6323518e1cf22d77bcd153f6553fc189814bd Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Tue, 27 Oct 2026 14:30:09 +0100
+Subject: [PATCH 6/6] winecoreaudio: List no capture devices without microphone
+ permission.
+
+A capture stream without permission records nothing, and a Unity game
+(Stonewards) froze after its voice chat opened one. Asking for permission
+is no better: when the app that launched Wine has no
+NSMicrophoneUsageDescription, TCC aborts the process, Wine catches the
+abort and a thread spins in its signal handler. Offer no capture devices
+until access has been granted, without asking.
+---
+ dlls/winecoreaudio.drv/coreaudio.c | 15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
+
+diff --git a/dlls/winecoreaudio.drv/coreaudio.c b/dlls/winecoreaudio.drv/coreaudio.c
+index 3199887..1e6fceb 100644
+--- a/dlls/winecoreaudio.drv/coreaudio.c
++++ b/dlls/winecoreaudio.drv/coreaudio.c
+@@ -252,6 +252,21 @@ static NTSTATUS unix_get_endpoint_ids(void *args)
+         return STATUS_SUCCESS;
+     }
+ 
++    if(params->flow == eCapture){
++        /* Without microphone permission a capture stream records nothing.
++         * Asking for it aborts the process when the app that launched Wine
++         * has no NSMicrophoneUsageDescription (TCC privacy violation); Wine
++         * catches the abort and a thread spins in its signal handler. Games
++         * that opened a capture stream for voice chat froze, so offer no
++         * capture devices until access has been granted, without asking. */
++        int authstatus = CoreAudio_get_capture_authorization_status();
++        if(authstatus != AUTHORIZED){
++            WARN("No microphone permission (status %d), not listing capture devices\n", authstatus);
++            params->result = S_OK;
++            return STATUS_SUCCESS;
++        }
++    }
++
+     size = sizeof(default_id);
+     sc = AudioObjectGetPropertyData(kAudioObjectSystemObject, &addr, 0, NULL, &size, &default_id);
+     if(sc != noErr){
+-- 
+2.47.0
+
