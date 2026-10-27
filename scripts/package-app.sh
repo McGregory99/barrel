@@ -25,6 +25,7 @@ rsync -a "$ROOT/recipes/" "$APP/Contents/Resources/recipes/"
 rsync -a "$ROOT/profiles/" "$APP/Contents/Resources/profiles/"
 cp "$ROOT/LICENSE" "$ROOT/THIRD_PARTY_NOTICES.md" "$APP/Contents/Resources/licenses/"
 rsync -a "$ROOT/patches/" "$APP/Contents/Resources/licenses/patches/"
+cp "$ROOT/app/AppIcon.icns" "$APP/Contents/Resources/AppIcon.icns"
 
 cat > "$APP/Contents/Info.plist" <<EOF
 <?xml version="1.0" encoding="UTF-8"?>
@@ -35,6 +36,7 @@ cat > "$APP/Contents/Info.plist" <<EOF
     <key>CFBundleDisplayName</key><string>Barrel</string>
     <key>CFBundleIdentifier</key><string>org.barrel.app</string>
     <key>CFBundleExecutable</key><string>BarrelApp</string>
+    <key>CFBundleIconFile</key><string>AppIcon</string>
     <key>CFBundlePackageType</key><string>APPL</string>
     <key>CFBundleShortVersionString</key><string>$VERSION</string>
     <key>CFBundleVersion</key><string>$VERSION</string>
