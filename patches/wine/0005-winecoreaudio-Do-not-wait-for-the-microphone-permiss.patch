@@ -1,0 +1,70 @@
+From dd0234ec16a8e13286272595500b76b46078a867 Mon Sep 17 00:00:00 2001
+From: Goyo Cancio <85994371+McGregory99@users.noreply.github.com>
+Date: Tue, 27 Oct 2026 13:53:14 +0100
+Subject: [PATCH 5/5] winecoreaudio: Do not wait for the microphone permission
+ answer.
+
+macOS does not always answer requestAccessForMediaType: when no permission
+dialog can be shown, the completion handler never runs and the thread that
+opened a capture stream blocked forever (a Unity game's main thread when it
+started voice chat). The answer was only used for a log message.
+---
+ dlls/winecoreaudio.drv/authorization.m | 26 ++++++++++----------------
+ 1 file changed, 10 insertions(+), 16 deletions(-)
+
+diff --git a/dlls/winecoreaudio.drv/authorization.m b/dlls/winecoreaudio.drv/authorization.m
+index bcdb5a3..1030d95 100644
+--- a/dlls/winecoreaudio.drv/authorization.m
++++ b/dlls/winecoreaudio.drv/authorization.m
+@@ -67,38 +67,32 @@ int CoreAudio_get_capture_authorization_status(void)
+ /***********************************************************************
+  *              CoreAudio_request_capture_authorization
+  *
+- * Requests audio capture/microphone permissions from the user, and posts
+- * in-process NSNotifications before/after the request.
++ * Asks for audio capture/microphone permission without waiting for the
++ * answer, and posts in-process NSNotifications before/after the request.
++ * macOS does not always answer: when no permission dialog can be shown, the
++ * completion handler never runs, and waiting for it froze the calling thread
++ * (a game's main thread when it opened voice chat). Capture works the same
++ * either way; until access is granted it records silence.
+  *
+- * Returns: 1 if access was granted
+- *          0 if access was denied
+- *         -1 if requesting permission is unsupported (older macOS)
++ * Returns: -1 (the answer is not known yet)
+  */
+ int CoreAudio_request_capture_authorization(void)
+ {
+-    __block int ret = -1;
+-    dispatch_semaphore_t semaphore;
+     NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+ 
+     if ([AVCaptureDevice respondsToSelector:@selector(requestAccessForMediaType:completionHandler:)])
+     {
+         [[NSNotificationCenter defaultCenter] postNotificationName:WineWillShowPermissionDialogNotification
+                                                             object:nil];
+-        semaphore = dispatch_semaphore_create(0);
+         [AVCaptureDevice requestAccessForMediaType:AVMediaTypeAudio
+                                  completionHandler:^(BOOL granted){
+-            dispatch_semaphore_signal(semaphore);
+-            ret = granted ? 1 : 0;
++            [[NSNotificationCenter defaultCenter] postNotificationName:WineDidShowPermissionDialogNotification
++                                                                object:nil];
+         }];
+-
+-        dispatch_semaphore_wait(semaphore, DISPATCH_TIME_FOREVER);
+-        dispatch_release(semaphore);
+-        [[NSNotificationCenter defaultCenter] postNotificationName:WineDidShowPermissionDialogNotification
+-                                                            object:nil];
+     }
+ 
+     [pool release];
+-    return ret;
++    return -1;
+ }
+ 
+ #else
+-- 
+2.47.0
+

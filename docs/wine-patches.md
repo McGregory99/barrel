@@ -29,6 +29,7 @@ Totals: 204 files, +10,194 / -662 (includes regenerated `configure`).
 | `b4af2ac` | win32u | Restore the `SONAME_LIBVULKAN` guard so the build works without a system Vulkan loader |
 | `589cf05` | kernelbase | `AppDefaults\<exe>\AppendCommandLine`: append per-app arguments (Steam's CEF flags) |
 | `a8176e4` | ntdll | `WINEDLLPATH_PREPEND`: directories searched before Wine's own dll dir, so replacement builtins (D3DMetal's d3d11/dxgi) win. CX exports `prepend_dll_path` for this purpose |
+| `dd0234e` | winecoreaudio | Ask for microphone permission without waiting for the answer: macOS may never answer, which froze games that open voice chat (Stonewards' character select) |
 
 ## Next steps
 - Split the patch per area (`filterdiff`/`splitdiff`) to study each independently.
