@@ -470,11 +470,10 @@ text{{font-family:{SANS}}}
 .btn{{font-size:12px;font-weight:550}} .st{{font-size:12px;fill:#c7d0da}} .stt{{font-size:20px;font-weight:650;fill:#fff}} .cap{{font-size:10px;font-weight:650;fill:#7c8794;letter-spacing:.08em}}
 </style>
 <g clip-path="url(#round)">
-<rect width="680" height="440" fill="url(#desk)"/>
 <!-- The four steps; the current one is highlighted and its bar fills while it plays -->
 {steps}
 <!-- Barrel's Library window -->
-<g filter="url(#shadow)"><rect x="40" y="60" width="600" height="340" rx="14" fill="#fff"/></g>
+<g><rect x="40" y="60" width="600" height="340" rx="14" fill="#fff"/></g>
 <g clip-path="url(#win)">
   <rect x="40" y="60" width="160" height="340" fill="#f6f6f7"/>
   <circle cx="60" cy="80" r="5.5" fill="#ff5f57"/><circle cx="78" cy="80" r="5.5" fill="#febc2e"/><circle cx="96" cy="80" r="5.5" fill="#28c840"/>
@@ -519,7 +518,7 @@ text{{font-family:{SANS}}}
 <!-- Steam's window: rises in after Open Steam, sinks away once the game is installed -->
 <g opacity="0">{fade((1.9, 0), (2.4, 1), (7.0, 1), (7.5, 0))}
   <g>{anim(None, [(1.9, "0,16"), (2.4, "0,0"), (7.0, "0,0"), (7.5, "0,10")], kind="translate")}
-  <g filter="url(#shadow)"><rect x="110" y="96" width="500" height="290" rx="10" fill="#1b2129"/></g>
+  <g><rect x="110" y="96" width="500" height="290" rx="10" fill="#1b2129"/></g>
   <rect x="110" y="96" width="500" height="28" rx="10" fill="#12161c"/><rect x="110" y="114" width="500" height="10" fill="#12161c"/>
   <circle cx="126" cy="110" r="5" fill="#ff5f57"/><circle cx="142" cy="110" r="5" fill="#febc2e"/><circle cx="158" cy="110" r="5" fill="#28c840"/>
   <text x="360" y="114" text-anchor="middle" class="st">Steam</text>
@@ -553,7 +552,7 @@ text{{font-family:{SANS}}}
 <!-- The game starts: its window grows in, loads, and fades away before the loop restarts -->
 <g opacity="0">{fade((12.0, 0), (12.45, 1), (14.9, 1), (15.3, 0))}
   <g transform="translate(360 234)"><g>{anim(None, [(12.0, .92), (12.45, 1)], kind="scale")}<g transform="translate(-360 -234)">
-  <g filter="url(#shadow)"><rect x="150" y="104" width="420" height="260" rx="10" fill="#141418"/></g>
+  <g><rect x="150" y="104" width="420" height="260" rx="10" fill="#141418"/></g>
   <image x="320" y="140" width="80" height="80" href="{game}"/>
   <text x="360" y="262" text-anchor="middle" class="stt">Stonewards</text>
   <rect x="260" y="290" width="200" height="4" rx="2" fill="#2a2a30"/>
