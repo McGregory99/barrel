@@ -331,10 +331,13 @@ struct Games: ParsableCommand {
         discussion: """
             Columns: Steam app id, name, Direct3D backend and who chose it (you, the game's profile or
             the bottle), and the profile status (works, issues, broken) or 'no profile'.
+            With --all, the library's games that are not installed follow as '<id>  <name>  not installed',
+            read offline from Steam's own caches (only games Steam has shown in its library).
             """)
 
     @Option(help: "Bottle with Steam (default: 'steam').") var bottle = "steam"
     @Option(help: "Extra game profile directory.") var profilesDir: String?
+    @Flag(help: "Also list the library's games that are not installed.") var all = false
 
     func run() throws {
         let service = try Environment.service()
@@ -347,6 +350,10 @@ struct Games: ParsableCommand {
             let graphics = try service.gameGraphics(bottle: bottle, executable: executable, profile: profile)
             let status = profile.map { "profile: \($0.status.rawValue)" } ?? "no profile"
             print("\(game.appID)\t\(game.name)\t\(graphics.backend.rawValue) (\(graphics.source.rawValue))\t\(status)")
+        }
+        guard all else { return }
+        for game in SteamLibrary.uninstalledGames(prefix: prefix) {
+            print("\(game.appID)\t\(game.name)\tnot installed")
         }
     }
 }

@@ -3,10 +3,12 @@ import BarrelAppKit
 import BarrelCore
 import SwiftUI
 
-/// The Steam home: install Steam, then play the games it has installed.
+/// The Steam home: install Steam, then play the games it has installed. The rest of the player's
+/// Steam library follows, greyed out, each with an Install button.
 struct LibraryView: View {
     let steamBottle: String?
     let games: [GameSummary]
+    let uninstalledGames: [GameSummary]
     let isBusy: Bool
     /// Steam was asked to open and its window is not on screen yet.
     let isOpeningSteam: Bool
@@ -18,6 +20,7 @@ struct LibraryView: View {
         var openSteam: () -> Void
         var refresh: () -> Void
         var play: (GameSummary) -> Void
+        var install: (GameSummary) -> Void
         var setGraphics: (GameSummary, GraphicsBackend) -> Void
         var setAutomaticGraphics: (GameSummary) -> Void
         var addToDock: (GameSummary) -> Void
@@ -27,14 +30,14 @@ struct LibraryView: View {
         Group {
             if steamBottle == nil {
                 Welcome(isBusy: isBusy, install: actions.installSteam)
-            } else if games.isEmpty {
+            } else if games.isEmpty && uninstalledGames.isEmpty {
                 ContentUnavailableView {
                     Label("No games yet", systemImage: "gamecontroller")
                 } description: {
                     Text("Open Steam, sign in and install a Windows game. It shows up here when it finishes.")
                 } actions: {
                     OpenSteamButton(isOpening: isOpeningSteam, action: actions.openSteam)
-                    Button("Refresh", action: actions.refresh)
+                    Button("Sync Library", action: actions.refresh)
                 }
             } else {
                 ScrollView {
@@ -48,6 +51,16 @@ struct LibraryView: View {
                         }
                     }
                     .padding(20)
+                    if !uninstalledGames.isEmpty {
+                        Text("Not installed").font(.title3.bold()).frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 20)
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 300), spacing: 16)], spacing: 16) {
+                            ForEach(uninstalledGames) { game in
+                                UninstalledGameCard(game: game, install: { actions.install(game) })
+                            }
+                        }
+                        .padding(20)
+                    }
                 }
             }
         }
@@ -55,8 +68,10 @@ struct LibraryView: View {
         .toolbar {
             if steamBottle != nil {
                 ToolbarItem {
-                    Button(action: actions.refresh) { Label("Refresh", systemImage: "arrow.clockwise") }
-                        .help("Look for newly installed games")
+                    Button(action: actions.refresh) {
+                        Label("Sync Library", systemImage: "arrow.triangle.2.circlepath")
+                    }
+                    .help("Read your Steam library again: newly installed games and the ones you can install")
                 }
                 ToolbarItem {
                     OpenSteamButton(isOpening: isOpeningSteam, action: actions.openSteam)
@@ -201,6 +216,43 @@ private struct StatusBadge: View {
 }
 
 /// The icon inside the game's Windows executable, loaded off the main thread.
+/// A library game that is not installed: Steam's artwork in grey, and a button that opens Steam's
+/// install dialog for it.
+private struct UninstalledGameCard: View {
+    let game: GameSummary
+    let install: () -> Void
+    @State private var image: NSImage?
+
+    var body: some View {
+        HStack(spacing: 14) {
+            Group {
+                if let image {
+                    Image(nsImage: image).resizable().aspectRatio(contentMode: .fill)
+                } else {
+                    Image(systemName: "gamecontroller.fill").font(.system(size: 26)).foregroundStyle(.secondary)
+                }
+            }
+            .frame(width: 48, height: 48)
+            .clipShape(RoundedRectangle(cornerRadius: 8))
+            .grayscale(1)
+            .opacity(0.6)
+            VStack(alignment: .leading, spacing: 4) {
+                Text(game.name).font(.headline).lineLimit(2).foregroundStyle(.secondary)
+                Text("Not installed").font(.caption).foregroundStyle(.tertiary)
+            }
+            Spacer(minLength: 0)
+            Button("Install", action: install)
+                .help("Open Steam to install \(game.name)")
+        }
+        .padding(16)
+        .background(.background.secondary, in: RoundedRectangle(cornerRadius: 14))
+        .task(id: game.artworkPath) {
+            guard let path = game.artworkPath else { return }
+            image = await Task.detached(priority: .utility) { NSImage(contentsOfFile: path) }.value
+        }
+    }
+}
+
 private struct GameIcon: View {
     let executablePath: String?
     @State private var image: NSImage?

@@ -29,7 +29,8 @@ public struct RecipeSummary: Equatable, Sendable, Identifiable {
     }
 }
 
-/// What the app shows for an installed Steam game.
+/// What the app shows for a Steam game: one installed in the bottle, or one in the player's
+/// library that is not installed (no executable, shown greyed out with an Install button).
 public struct GameSummary: Equatable, Sendable, Identifiable {
     public var appID: Int
     public var name: String
@@ -40,19 +41,24 @@ public struct GameSummary: Equatable, Sendable, Identifiable {
     public var graphics: GameGraphics
     /// The game's profile status, or nil without a profile.
     public var profileStatus: GameStatus?
+    public var isInstalled: Bool
+    /// Steam's cached icon or artwork, for games that are not installed.
+    public var artworkPath: String?
 
     public var id: Int { appID }
     /// Per-game graphics are set on the game's executable.
     public var canChooseGraphics: Bool { executable != nil }
 
     public init(appID: Int, name: String, executable: String?, executablePath: String?, graphics: GameGraphics,
-                profileStatus: GameStatus?) {
+                profileStatus: GameStatus?, isInstalled: Bool = true, artworkPath: String? = nil) {
         self.appID = appID
         self.name = name
         self.executable = executable
         self.executablePath = executablePath
         self.graphics = graphics
         self.profileStatus = profileStatus
+        self.isInstalled = isInstalled
+        self.artworkPath = artworkPath
     }
 }
 
@@ -85,6 +91,10 @@ public protocol BottleGateway: Sendable {
     func games(in bottle: String) throws -> [GameSummary]
     /// Starts a game through Steam after applying its profile; returns when Steam does.
     func play(appID: Int, in bottle: String) throws -> Int32
+    /// Games in the player's Steam library that are not installed in the bottle (read offline).
+    func uninstalledGames(in bottle: String) throws -> [GameSummary]
+    /// Asks Steam to install a game (`steam://install/<id>`); returns when that steam.exe does.
+    func installGame(appID: Int, in bottle: String) throws -> Int32
     /// Opens the Steam client; returns when it quits.
     func openSteam(in bottle: String) throws -> Int32
     func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws
@@ -215,6 +225,18 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
         let game = try installedGame(appID, in: bottle)
         let profile = GameProfileCatalog.load(directories: profileDirectories).profile(for: appID)
         return try service.play(game, profile: profile, bottle: bottle, arguments: [])
+    }
+
+    public func uninstalledGames(in bottle: String) throws -> [GameSummary] {
+        let graphics = try service.gameGraphics(bottle: bottle, executable: nil, profile: nil)
+        return SteamLibrary.uninstalledGames(prefix: store.prefixURL(for: bottle)).map { game in
+            GameSummary(appID: game.appID, name: game.name, executable: nil, executablePath: nil, graphics: graphics,
+                        profileStatus: nil, isInstalled: false, artworkPath: (game.icon ?? game.artwork)?.path)
+        }
+    }
+
+    public func installGame(appID: Int, in bottle: String) throws -> Int32 {
+        try service.run(steamExecutable(in: bottle).path, arguments: ["steam://install/\(appID)"], bottle: bottle)
     }
 
     public func openSteam(in bottle: String) throws -> Int32 {

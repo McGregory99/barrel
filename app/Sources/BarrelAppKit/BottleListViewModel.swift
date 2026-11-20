@@ -17,6 +17,8 @@ public final class BottleListViewModel {
     /// The bottle Steam runs in, or nil before Steam is installed.
     public private(set) var steamBottle: String?
     public private(set) var games: [GameSummary] = []
+    /// Games in the player's Steam library that are not installed, shown greyed out.
+    public private(set) var uninstalledGames: [GameSummary] = []
     /// A short note while a game or Steam starts; launching never blocks the window.
     public private(set) var launchMessage: String?
     /// True from clicking Open Steam until Steam's window is on screen (or it fails or times out).
@@ -120,13 +122,15 @@ public final class BottleListViewModel {
 
     // MARK: Steam library
 
+    /// Reads the installed games and the rest of the Steam library (Sync Library runs this again).
     public func loadLibrary() async {
-        await perform(nil) { gateway -> (String?, [GameSummary]) in
-            guard let steam = try gateway.steamBottle() else { return (nil, []) }
-            return (steam, try gateway.games(in: steam))
+        await perform(nil) { gateway -> (String?, [GameSummary], [GameSummary]) in
+            guard let steam = try gateway.steamBottle() else { return (nil, [], []) }
+            return (steam, try gateway.games(in: steam), try gateway.uninstalledGames(in: steam))
         } apply: { [self] in
             steamBottle = $0.0
             games = $0.1
+            uninstalledGames = $0.2
         }
     }
 
@@ -139,6 +143,12 @@ public final class BottleListViewModel {
     public func play(_ game: GameSummary) async {
         guard let bottle = steamBottle else { return }
         await launch("Starting \(game.name)…") { try $0.play(appID: game.appID, in: bottle) }
+    }
+
+    /// Opens Steam's install dialog for a game; once Steam finishes, Sync Library shows it as installed.
+    public func installGame(_ game: GameSummary) async {
+        guard let bottle = steamBottle else { return }
+        await launch("Opening Steam to install \(game.name)…") { try $0.installGame(appID: game.appID, in: bottle) }
     }
 
     /// Starts Steam and stays in the opening state until its window is on screen: under Wine

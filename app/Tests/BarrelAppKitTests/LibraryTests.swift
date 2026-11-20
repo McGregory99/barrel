@@ -89,4 +89,54 @@ struct LibraryTests {
         #expect(!unknown.canChooseGraphics)
         #expect(stonewards.canChooseGraphics)
     }
+
+    let dota = GameSummary(appID: 570, name: "Dota 2", executable: nil, executablePath: nil,
+                           graphics: GameGraphics(backend: .wined3d, source: .bottle), profileStatus: nil,
+                           isInstalled: false, artworkPath: "/cache/570/icon.jpg")
+
+    @Test func theLibraryAlsoListsOwnedGamesThatAreNotInstalled() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        gateway.gameList = [stonewards]
+        gateway.otherGameList = [dota]
+        let model = BottleListViewModel(gateway: gateway)
+
+        await model.loadLibrary()
+
+        #expect(model.games == [stonewards])
+        #expect(model.uninstalledGames == [dota])
+        #expect(stonewards.isInstalled)
+        #expect(!dota.isInstalled)
+    }
+
+    @Test func syncingPicksUpGamesInstalledSinceTheLastLook() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        gateway.otherGameList = [dota]
+        let model = BottleListViewModel(gateway: gateway)
+        await model.loadLibrary()
+
+        var installed = dota
+        installed.isInstalled = true
+        gateway.gameList = [installed]
+        gateway.otherGameList = []
+        await model.loadLibrary()
+
+        #expect(model.games.map(\.appID) == [570])
+        #expect(model.uninstalledGames.isEmpty)
+    }
+
+    @Test func installingAGameAsksSteamInItsBottle() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        gateway.otherGameList = [dota]
+        let model = BottleListViewModel(gateway: gateway)
+        await model.loadLibrary()
+
+        await model.installGame(dota)
+
+        #expect(gateway.gameInstalls.map(\.appID) == [570])
+        #expect(gateway.gameInstalls.map(\.bottle) == ["steam"])
+        #expect(model.errorMessage == nil)
+    }
 }

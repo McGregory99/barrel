@@ -14,6 +14,23 @@ public struct SteamGame: Equatable, Sendable {
     }
 }
 
+/// A game in the player's Steam library that is not installed in the bottle.
+public struct SteamLibraryGame: Equatable, Sendable {
+    public var appID: Int
+    public var name: String
+    /// Steam's small square icon for the game, when it has cached one.
+    public var icon: URL?
+    /// Larger cached artwork (capsule, header or logo), when there is no icon.
+    public var artwork: URL?
+
+    public init(appID: Int, name: String, icon: URL? = nil, artwork: URL? = nil) {
+        self.appID = appID
+        self.name = name
+        self.icon = icon
+        self.artwork = artwork
+    }
+}
+
 /// Reads the Windows Steam client's library files inside a Wine prefix.
 public enum SteamLibrary {
     /// Steam apps that are not games (Steamworks Common Redistributables).
@@ -47,6 +64,51 @@ public enum SteamLibrary {
             let order = $0.name.localizedCaseInsensitiveCompare($1.name)
             return order == .orderedSame ? $0.appID < $1.appID : order == .orderedAscending
         }
+    }
+
+    /// Games in the player's library that are not installed, sorted by name, read offline.
+    ///
+    /// Steam keeps artwork in `appcache/librarycache/<appid>/` for the apps its library shows
+    /// (owned, free or family-shared); `appcache/appinfo.vdf` gives each app's name and type. Only
+    /// apps of type "game" are kept, so tools, soundtracks and redistributables drop out. Steam
+    /// writes both caches itself, so the list is as fresh as Steam's last look at the library.
+    public static func uninstalledGames(prefix: URL) -> [SteamLibraryGame] {
+        let appcache = steamDirectory(prefix: prefix).appendingPathComponent("appcache", isDirectory: true)
+        let cache = appcache.appendingPathComponent("librarycache", isDirectory: true)
+        let installed = Set(installedGames(prefix: prefix).map(\.appID))
+        let cached = Set(((try? FileManager.default.contentsOfDirectory(atPath: cache.path)) ?? [])
+            .compactMap(Int.init)).subtracting(installed).subtracting(tools)
+        guard !cached.isEmpty,
+              let data = try? Data(contentsOf: appcache.appendingPathComponent("appinfo.vdf"), options: .alwaysMapped),
+              let apps = try? SteamAppInfo.parse(data, appIDs: cached)
+        else { return [] }
+        let games = apps.compactMap { appID, root -> SteamLibraryGame? in
+            guard let common = root["appinfo"]?["common"], common["type"]?.string?.lowercased() == "game",
+                  let name = common["name"]?.string, !name.isEmpty else { return nil }
+            let folder = cache.appendingPathComponent(String(appID), isDirectory: true)
+            let icon = ["icon", "clienticon"].lazy.compactMap { common[$0]?.string }
+                .map { folder.appendingPathComponent("\($0).jpg") }
+                .first { FileManager.default.fileExists(atPath: $0.path) }
+            return SteamLibraryGame(appID: appID, name: name, icon: icon, artwork: artwork(in: folder))
+        }
+        return games.sorted {
+            let order = $0.name.localizedCaseInsensitiveCompare($1.name)
+            return order == .orderedSame ? $0.appID < $1.appID : order == .orderedAscending
+        }
+    }
+
+    /// Cached artwork names, best first. Newer clients keep each one in a hash-named subfolder.
+    static let artworkNames = ["library_capsule.jpg", "library_600x900.jpg", "header.jpg", "library_header.jpg",
+                               "logo.png"]
+
+    static func artwork(in folder: URL) -> URL? {
+        guard let walker = FileManager.default.enumerator(at: folder, includingPropertiesForKeys: nil) else { return nil }
+        var found: [String: URL] = [:]
+        for case let url as URL in walker {
+            if walker.level > 2 { walker.skipDescendants(); continue }
+            if artworkNames.contains(url.lastPathComponent) { found[url.lastPathComponent] = url }
+        }
+        return artworkNames.lazy.compactMap { found[$0] }.first
     }
 
     /// The default library plus those listed in `libraryfolders.vdf`, without duplicates.

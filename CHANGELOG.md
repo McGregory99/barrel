@@ -9,6 +9,9 @@ What changed in Barrel, newest first. The format follows
 ### Added
 
 - Barrel has its own icon in the Dock and in Finder.
+- The Library also shows the other games in your Steam library, greyed out with their Steam icon,
+  each with an **Install** button that opens Steam's install dialog. **Sync Library** (it replaces
+  Refresh) reads the list again. `barrel games --all` lists them too.
 
 ### Changed
 

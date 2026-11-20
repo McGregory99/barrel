@@ -5,6 +5,7 @@ Steam games (see `../docs/profiles.md`):
 ```sh
 barrel install steam                      # a 'steam' bottle with Steam and its fixes
 barrel games                              # installed games, their graphics and profile status
+barrel games --all                        # also the library's games that are not installed
 barrel play Stonewards                    # applies the game's profile, then starts it through Steam
 barrel launcher game Stonewards           # ~/Applications/Barrel/Stonewards.app with the game's icon
 ```

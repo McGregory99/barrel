@@ -22,13 +22,15 @@ struct ContentView: View {
         } detail: {
             if sidebar == .library {
                 LibraryView(
-                    steamBottle: model.steamBottle, games: model.games, isBusy: model.isBusy,
+                    steamBottle: model.steamBottle, games: model.games,
+                    uninstalledGames: model.uninstalledGames, isBusy: model.isBusy,
                     isOpeningSteam: model.isOpeningSteam, isAvailable: model.isAvailable,
                     actions: .init(
                         installSteam: { Task { await model.installSteam() } },
                         openSteam: { Task { await model.openSteam() } },
                         refresh: { Task { await model.loadLibrary() } },
                         play: { game in Task { await model.play(game) } },
+                        install: { game in Task { await model.installGame(game) } },
                         setGraphics: { game, backend in Task { await model.setGraphics(for: game, backend: backend) } },
                         setAutomaticGraphics: { game in Task { await model.setAutomaticGraphics(for: game) } },
                         addToDock: { game in Task { await model.addToDock(game) } }))

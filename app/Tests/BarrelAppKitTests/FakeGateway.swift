@@ -14,6 +14,8 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     private(set) var launchers: [(name: String, bottle: String, program: String)] = []
     var steam: String?
     var gameList: [GameSummary] = []
+    var otherGameList: [GameSummary] = []
+    private(set) var gameInstalls: [(appID: Int, bottle: String)] = []
     private(set) var plays: [(appID: Int, bottle: String)] = []
     private(set) var steamOpens: [String] = []
     /// What `openSteam` returns; nil keeps Steam "running" for a moment before it quits cleanly.
@@ -83,6 +85,12 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     func steamBottle() throws -> String? { try check(); return steam }
     func games(in bottle: String) throws -> [GameSummary] { try check(); return gameList }
     func play(appID: Int, in bottle: String) throws -> Int32 { try check(); plays.append((appID, bottle)); return 0 }
+    func uninstalledGames(in bottle: String) throws -> [GameSummary] { try check(); return otherGameList }
+    func installGame(appID: Int, in bottle: String) throws -> Int32 {
+        try check()
+        gameInstalls.append((appID, bottle))
+        return 0
+    }
     func openSteam(in bottle: String) throws -> Int32 {
         try check()
         steamOpens.append(bottle)
