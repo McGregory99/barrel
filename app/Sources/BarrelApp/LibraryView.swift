@@ -60,6 +60,7 @@ struct LibraryView: View {
                     Button(action: actions.openSteam) {
                         Label("Open Steam", systemImage: "cloud").labelStyle(.titleAndIcon)
                     }
+                        .buttonStyle(.borderedProminent)
                         .help("Open Steam to sign in, buy or install games")
                 }
             }
