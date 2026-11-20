@@ -19,11 +19,23 @@ public final class BottleListViewModel {
     public private(set) var games: [GameSummary] = []
     /// A short note while a game or Steam starts; launching never blocks the window.
     public private(set) var launchMessage: String?
+    /// True from clicking Open Steam until Steam's window is on screen (or it fails or times out).
+    public private(set) var isOpeningSteam = false
     public var selection: String?
     public var gateway: BottleGateway?
+    private let windows: WindowSource
+    private let steamPollInterval: Duration
+    private let steamTimeout: TimeInterval
+    /// How the steam.exe started by the current Open Steam ended, once it has.
+    private var steamLaunch: Result<Int32, Error>?
+    private var steamAttempt = 0
 
-    public init(gateway: BottleGateway?) {
+    public init(gateway: BottleGateway?, windows: WindowSource = SystemWindowSource(),
+                steamPollInterval: Duration = .seconds(1), steamTimeout: TimeInterval = 180) {
         self.gateway = gateway
+        self.windows = windows
+        self.steamPollInterval = steamPollInterval
+        self.steamTimeout = steamTimeout
     }
 
     public var selectedBottle: Bottle? { bottles.first { $0.name == selection } }
@@ -129,9 +141,52 @@ public final class BottleListViewModel {
         await launch("Starting \(game.name)…") { try $0.play(appID: game.appID, in: bottle) }
     }
 
+    /// Starts Steam and stays in the opening state until its window is on screen: under Wine
+    /// that can take most of a minute. Steam keeps running afterwards, so its exit is watched, not awaited.
     public func openSteam() async {
-        guard let bottle = steamBottle else { return }
-        await launch("Opening Steam…") { try $0.openSteam(in: bottle) }
+        guard let bottle = steamBottle, let gateway, !isOpeningSteam else { return }
+        let message = "Opening Steam… (this can take a minute)"
+        isOpeningSteam = true
+        launchMessage = message
+        defer {
+            isOpeningSteam = false
+            if launchMessage == message { launchMessage = nil }
+        }
+        let watch = SteamWindowWatch(before: windows.onScreenWindows(), startedAt: Date(), timeout: steamTimeout)
+        steamAttempt += 1
+        let attempt = steamAttempt
+        steamLaunch = nil
+        Task { [weak self] in
+            let result = await Task.detached(priority: .userInitiated) {
+                Result { try gateway.openSteam(in: bottle) }
+            }.value
+            guard let self, steamAttempt == attempt else { return }
+            steamLaunch = result
+            // Errors after the window showed still surface; while opening, the watch reports them.
+            if !isOpeningSteam, case .failure(let error) = result { errorMessage = Self.describe(error) }
+        }
+        while true {
+            let launch: SteamWindowWatch.Launch
+            switch steamLaunch {
+            case .failure(let error):
+                errorMessage = Self.describe(error)
+                return
+            case .success(let code): launch = .exited(code)
+            case nil: launch = .running
+            }
+            switch watch.state(windows: windows.onScreenWindows(), now: Date(), launch: launch) {
+            case .waiting:
+                try? await Task.sleep(for: steamPollInterval)
+            case .ready:
+                return
+            case .failed(let code):
+                errorMessage = "Steam closed before its window appeared (exit code \(code))."
+                return
+            case .timedOut:
+                errorMessage = "Steam is taking longer than usual to open. It may still appear; if it does not, click Open Steam again."
+                return
+            }
+        }
     }
 
     public func setGraphics(for game: GameSummary, backend: GraphicsBackend) async {

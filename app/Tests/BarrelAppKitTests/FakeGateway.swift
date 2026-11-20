@@ -16,6 +16,8 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     var gameList: [GameSummary] = []
     private(set) var plays: [(appID: Int, bottle: String)] = []
     private(set) var steamOpens: [String] = []
+    /// What `openSteam` returns; nil keeps Steam "running" for a moment before it quits cleanly.
+    var steamExit: Int32? = 0
     private(set) var gameGraphicsChanges: [(bottle: String, executable: String, backend: GraphicsBackend)] = []
     private(set) var gameLaunchers: [(appID: Int, name: String, bottle: String)] = []
     private(set) var gameGraphicsResets: [String] = []
@@ -81,7 +83,12 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     func steamBottle() throws -> String? { try check(); return steam }
     func games(in bottle: String) throws -> [GameSummary] { try check(); return gameList }
     func play(appID: Int, in bottle: String) throws -> Int32 { try check(); plays.append((appID, bottle)); return 0 }
-    func openSteam(in bottle: String) throws -> Int32 { try check(); steamOpens.append(bottle); return 0 }
+    func openSteam(in bottle: String) throws -> Int32 {
+        try check()
+        steamOpens.append(bottle)
+        guard let steamExit else { Thread.sleep(forTimeInterval: 0.5); return 0 }
+        return steamExit
+    }
     func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws {
         try check()
         gameGraphicsChanges.append((bottle, executable, backend))

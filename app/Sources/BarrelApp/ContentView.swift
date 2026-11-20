@@ -23,7 +23,7 @@ struct ContentView: View {
             if sidebar == .library {
                 LibraryView(
                     steamBottle: model.steamBottle, games: model.games, isBusy: model.isBusy,
-                    isAvailable: model.isAvailable,
+                    isOpeningSteam: model.isOpeningSteam, isAvailable: model.isAvailable,
                     actions: .init(
                         installSteam: { Task { await model.installSteam() } },
                         openSteam: { Task { await model.openSteam() } },

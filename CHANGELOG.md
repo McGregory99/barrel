@@ -13,6 +13,8 @@ What changed in Barrel, newest first. The format follows
 ### Changed
 
 - The Library's **Open Steam** button shows its name, not only a cloud icon.
+- After you click **Open Steam**, the button shows that Steam is opening until its window
+  appears, which can take most of a minute, and tells you if Steam fails to open.
 
 ### Fixed
 

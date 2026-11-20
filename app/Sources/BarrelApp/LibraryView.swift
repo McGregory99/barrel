@@ -8,6 +8,8 @@ struct LibraryView: View {
     let steamBottle: String?
     let games: [GameSummary]
     let isBusy: Bool
+    /// Steam was asked to open and its window is not on screen yet.
+    let isOpeningSteam: Bool
     let isAvailable: (GraphicsBackend) -> Bool
     let actions: Actions
 
@@ -31,7 +33,7 @@ struct LibraryView: View {
                 } description: {
                     Text("Open Steam, sign in and install a Windows game. It shows up here when it finishes.")
                 } actions: {
-                    Button("Open Steam", action: actions.openSteam).buttonStyle(.borderedProminent)
+                    OpenSteamButton(isOpening: isOpeningSteam, action: actions.openSteam)
                     Button("Refresh", action: actions.refresh)
                 }
             } else {
@@ -57,14 +59,32 @@ struct LibraryView: View {
                         .help("Look for newly installed games")
                 }
                 ToolbarItem {
-                    Button(action: actions.openSteam) {
-                        Label("Open Steam", systemImage: "cloud").labelStyle(.titleAndIcon)
-                    }
-                        .buttonStyle(.borderedProminent)
-                        .help("Open Steam to sign in, buy or install games")
+                    OpenSteamButton(isOpening: isOpeningSteam, action: actions.openSteam)
                 }
             }
         }
+    }
+}
+
+/// Opens Steam; while Steam's window is on its way it shows a spinner and cannot be clicked again.
+private struct OpenSteamButton: View {
+    let isOpening: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            if isOpening {
+                HStack(spacing: 6) {
+                    ProgressView().controlSize(.small)
+                    Text("Opening Steam…")
+                }
+            } else {
+                Label("Open Steam", systemImage: "cloud").labelStyle(.titleAndIcon)
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(isOpening)
+        .help(isOpening ? "Steam takes up to a minute to open under Wine" : "Open Steam to sign in, buy or install games")
     }
 }
 
