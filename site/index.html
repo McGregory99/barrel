@@ -71,8 +71,7 @@
         <a class="textlink" href="https://github.com/McGregory99/barrel" data-i18n="hero.source">Read the source on GitHub <span aria-hidden="true">→</span></a>
 
         <div class="stage">
-          <img class="stage__app" src="media/app-library.png" width="1600" height="898" alt="Barrel.app library with Counter-Strike 2, Stonewards, Team Fortress 2 and Warframe, each with Play, graphics and Add to Dock" data-i18n-alt="alt.hero.app">
-          <img class="stage__term" src="media/cast-play-steam.svg" width="637" height="389" alt="Terminal: barrel install steam, barrel games, then barrel launcher game" data-i18n-alt="alt.hero.term">
+          <img class="stage__demo" src="media/steps-demo.svg?v=__V__" width="680" height="440" alt="Barrel's Open Steam button opens Steam, the game installs, Refresh adds it to Barrel's library and Play starts it" data-i18n-alt="alt.hero.steps">
         </div>
       </div>
     </section>
@@ -105,6 +104,25 @@
         </div>
         <figure class="split__media is-photo">
           <img id="tab-media" src="media/app-welcome-detail.png" alt="Barrel.app welcome screen with the Install Steam button">
+        </figure>
+      </div>
+    </section>
+
+    <section class="band band--warm" id="get-started">
+      <div class="wrap split">
+        <div class="split__text">
+          <p class="eyebrow" data-i18n="start.eyebrow">Step by step</p>
+          <h2 class="display display--md" data-i18n="start.title">From Steam<br>to playing.</h2>
+          <ol class="steps">
+            <li><h3 data-i18n="start.1.h">Open Steam.</h3><p data-i18n="start.1.p">In Barrel, click <b>Open Steam</b>, top right. The first time, click <b>Install Steam</b> and sign in with your account.</p></li>
+            <li><h3 data-i18n="start.2.h">Install your game.</h3><p data-i18n="start.2.p">In Steam's Library, choose the game and click <b>Install</b>. Steam downloads its Windows version.</p></li>
+            <li><h3 data-i18n="start.3.h">Refresh Barrel.</h3><p data-i18n="start.3.p">Back in Barrel, click <b>Refresh</b> (↻): the game appears in the Library.</p></li>
+            <li><h3 data-i18n="start.4.h">Play.</h3><p data-i18n="start.4.p">Click <b>Play</b>. <b>Add to Dock</b> turns it into a Mac app of its own.</p></li>
+          </ol>
+          <p class="check" data-i18n="start.note">Games with anti-cheat won't start. <a href="#beta">Tell us how yours went.</a></p>
+        </div>
+        <figure class="split__media is-photo">
+          <img src="media/app-library.png" width="1600" height="898" loading="lazy" alt="Barrel.app library with Counter-Strike 2, Stonewards, Team Fortress 2 and Warframe, each with Play, graphics and Add to Dock" data-i18n-alt="alt.app.library">
         </figure>
       </div>
     </section>
@@ -322,6 +340,45 @@
   </main>
 
   <footer class="footer">
+    <svg class="scene" viewBox="0 0 1440 420" preserveAspectRatio="xMaxYMax slice" aria-hidden="true" focusable="false">
+      <defs>
+        <linearGradient id="sc-sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ecf0f7" stop-opacity="0"/><stop offset=".5" stop-color="#e2e8f4"/><stop offset="1" stop-color="#cfd8ee"/></linearGradient>
+        <linearGradient id="sc-sea" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3cde7"/><stop offset="1" stop-color="#8fa1d2"/></linearGradient>
+        <pattern id="sc-lines" width="8" height="5" patternUnits="userSpaceOnUse"><path d="M0 4.5H8" stroke="#2c4a9a" stroke-width=".7" stroke-opacity=".45"/></pattern>
+        <pattern id="sc-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)"><path d="M0 2.5H5" stroke="#1f3477" stroke-width=".8" stroke-opacity=".55"/></pattern>
+        <pattern id="sc-cross" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><path d="M0 3H6M3 0V6" stroke="#f6f1e4" stroke-width=".6" stroke-opacity=".35"/></pattern>
+        <pattern id="sc-dots" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.1" fill="#f6f1e4" fill-opacity=".35"/><circle cx="5.5" cy="5.5" r=".8" fill="#f6f1e4" fill-opacity=".25"/></pattern>
+      </defs>
+      <rect width="1440" height="420" fill="url(#sc-sky)"/>
+      <g class="scene__clouds" fill="#fbf8f1" stroke="#2c4a9a" stroke-opacity=".28" stroke-width="1.2">
+        <path d="M120 236c-6-26 26-40 46-26 8-28 54-30 64-4 22-12 50 2 46 26 22 2 26 26 4 30H128c-22-2-26-22-8-26z"/>
+        <path d="M520 196c-4-20 20-30 36-20 8-24 46-24 54-2 18-8 40 4 36 22 18 2 20 22 2 24H526c-18-2-20-18-6-24z"/>
+        <path d="M900 150c-5-22 22-34 40-22 8-26 50-26 58-2 20-9 44 4 40 24 20 2 22 24 2 27H906c-20-2-22-20-6-27z"/>
+      </g>
+      <path d="M0 312L90 290 170 300 260 262 330 248 410 270 480 286 560 270 620 290 700 300V316H0z" fill="#9fb0db"/>
+      <path d="M0 312L90 290 170 300 260 262 330 248 410 270 480 286 560 270 620 290 700 300V316H0z" fill="url(#sc-hatch)" opacity=".5"/>
+      <path d="M540 316L640 292 720 286 800 296 880 310 940 316z" fill="#b6c3e3"/>
+      <rect y="314" width="1440" height="106" fill="url(#sc-sea)"/>
+      <rect class="scene__sea" y="314" width="1460" height="106" fill="url(#sc-lines)"/>
+      <g fill="#2c4a9a"><path d="M150 334h44l-6 7h-32z"/><path d="M170 334V312l12 20z" fill="#f6f1e4" stroke="#2c4a9a" stroke-width="1.2"/><path d="M168 334V308" stroke="#2c4a9a" stroke-width="1.4"/></g>
+      <path d="M980 420C990 380 1010 352 1040 336 1062 324 1074 300 1100 290 1130 280 1150 262 1190 258 1240 252 1270 240 1310 236 1360 232 1400 226 1440 222V420z" fill="#2c4a9a"/>
+      <path d="M980 420C990 380 1010 352 1040 336 1062 324 1074 300 1100 290 1130 280 1150 262 1190 258 1240 252 1270 240 1310 236 1360 232 1400 226 1440 222V420z" fill="url(#sc-cross)"/>
+      <path d="M1040 420C1052 392 1070 372 1100 360 1130 350 1140 330 1170 324V420z" fill="#1f3477" opacity=".55"/>
+      <g fill="#f6f1e4" stroke="#1f3477" stroke-width="1.4" stroke-linejoin="round">
+        <rect x="1196" y="196" width="78" height="56"/>
+        <path d="M1206 196a29 29 0 0 1 58 0z"/>
+        <rect x="1232" y="160" width="6" height="12"/>
+        <rect x="1284" y="132" width="26" height="110"/>
+        <path d="M1282 132l15-18 15 18z"/>
+        <rect x="1318" y="208" width="64" height="34"/>
+        <path d="M1314 208l36-16 36 16z"/>
+      </g>
+      <g fill="#1f3477"><rect x="1291" y="146" width="12" height="16" rx="6"/><rect x="1291" y="180" width="12" height="14" rx="6"/><rect x="1222" y="214" width="9" height="16" rx="4.5"/><rect x="1240" y="214" width="9" height="16" rx="4.5"/><rect x="1336" y="220" width="8" height="12"/><rect x="1356" y="220" width="8" height="12"/></g>
+      <g fill="#1f3477"><ellipse cx="1150" cy="222" rx="9" ry="44"/><ellipse cx="1170" cy="232" rx="7" ry="34"/><ellipse cx="1404" cy="196" rx="7" ry="32"/></g>
+      <g fill="#2c4a9a"><circle cx="1110" cy="282" r="20"/><circle cx="1130" cy="270" r="18"/><circle cx="1418" cy="176" r="28"/><circle cx="1392" cy="160" r="24"/><circle cx="1440" cy="150" r="30"/><circle cx="1366" cy="146" r="16"/></g>
+      <g fill="url(#sc-dots)"><circle cx="1110" cy="282" r="20"/><circle cx="1130" cy="270" r="18"/><circle cx="1418" cy="176" r="28"/><circle cx="1392" cy="160" r="24"/><circle cx="1440" cy="150" r="30"/></g>
+      <path d="M1420 226V190M1404 214l16-24" stroke="#1f3477" stroke-width="4" stroke-linecap="round"/>
+    </svg>
     <div class="wrap footer__inner">
       <span class="brand brand--small"><img src="media/logo.svg" width="18" height="18" alt=""> Barrel</span>
       <p><a href="https://github.com/McGregory99/barrel">GitHub</a> · GPL-3.0</p>
