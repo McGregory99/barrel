@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="440" viewBox="0 0 680 440" role="img" aria-label="Four steps: Barrel's Open Steam button opens Steam, the game installs, Refresh adds it to Barrel's library and Play starts it">
 <defs>
-  <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d9c4"/><stop offset=".55" stop-color="#e9c2b5"/><stop offset="1" stop-color="#c9b6d6"/></linearGradient>
+  <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8f4ea"/><stop offset=".5" stop-color="#f1efe8"/><stop offset="1" stop-color="#e3e9f4"/></linearGradient>
   <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".2"/></filter>
   <clipPath id="round"><rect width="680" height="440" rx="18"/></clipPath>
   <clipPath id="win"><rect x="40" y="60" width="600" height="340" rx="14"/></clipPath>
@@ -16,52 +16,52 @@ text{font-family:-apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Helveti
 <rect width="680" height="440" fill="url(#desk)"/>
 <!-- The four steps; the current one is highlighted and its bar fills while it plays -->
 <g transform="translate(40,0)">
-  <circle cx="10" cy="25" r="10" fill="#fff" fill-opacity=".85" stroke="#000" stroke-opacity=".1"/>
-  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#8a7068">1</text>
-  <text x="28" y="30" class="sl" fill="#8a7068">Open Steam</text>
+  <circle cx="10" cy="25" r="10" fill="#fffdf8" stroke="#17213d" stroke-opacity=".14"/>
+  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#4b546a">1</text>
+  <text x="28" y="30" class="sl" fill="#4b546a">Open Steam</text>
   <g opacity="1"><animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.1281;0.1469;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.45 0 .25 1;0 0 1 1"/>
-    <circle cx="10" cy="25" r="10" fill="#b74c1b"/>
+    <circle cx="10" cy="25" r="10" fill="#2c4a9a"/>
     <text x="10" y="29.5" text-anchor="middle" class="n" fill="#fff">1</text>
-    <text x="28" y="30" class="sl" fill="#1c1c1e">Open Steam</text>
+    <text x="28" y="30" class="sl" fill="#17213d">Open Steam</text>
   </g>
-  <rect y="42" width="141" height="4" rx="2" fill="#fff" fill-opacity=".55"/>
-  <rect y="42" width="0" height="4" rx="2" fill="#b74c1b"><animate attributeName="width" values="0;141;141" keyTimes="0;0.1375;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
+  <rect y="42" width="141" height="4" rx="2" fill="#2c4a9a" fill-opacity=".12"/>
+  <rect y="42" width="0" height="4" rx="2" fill="#2c4a9a"><animate attributeName="width" values="0;141;141" keyTimes="0;0.1375;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
 </g>
 <g transform="translate(193,0)">
-  <circle cx="10" cy="25" r="10" fill="#fff" fill-opacity=".85" stroke="#000" stroke-opacity=".1"/>
-  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#8a7068">2</text>
-  <text x="28" y="30" class="sl" fill="#8a7068">Install the game</text>
+  <circle cx="10" cy="25" r="10" fill="#fffdf8" stroke="#17213d" stroke-opacity=".14"/>
+  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#4b546a">2</text>
+  <text x="28" y="30" class="sl" fill="#4b546a">Install the game</text>
   <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.1281;0.1469;0.4594;0.4781;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.45 0 .25 1;0 0 1 1"/>
-    <circle cx="10" cy="25" r="10" fill="#b74c1b"/>
+    <circle cx="10" cy="25" r="10" fill="#2c4a9a"/>
     <text x="10" y="29.5" text-anchor="middle" class="n" fill="#fff">2</text>
-    <text x="28" y="30" class="sl" fill="#1c1c1e">Install the game</text>
+    <text x="28" y="30" class="sl" fill="#17213d">Install the game</text>
   </g>
-  <rect y="42" width="141" height="4" rx="2" fill="#fff" fill-opacity=".55"/>
-  <rect y="42" width="0" height="4" rx="2" fill="#b74c1b"><animate attributeName="width" values="0;0;141;141" keyTimes="0;0.1375;0.4688;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
+  <rect y="42" width="141" height="4" rx="2" fill="#2c4a9a" fill-opacity=".12"/>
+  <rect y="42" width="0" height="4" rx="2" fill="#2c4a9a"><animate attributeName="width" values="0;0;141;141" keyTimes="0;0.1375;0.4688;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
 </g>
 <g transform="translate(346,0)">
-  <circle cx="10" cy="25" r="10" fill="#fff" fill-opacity=".85" stroke="#000" stroke-opacity=".1"/>
-  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#8a7068">3</text>
-  <text x="28" y="30" class="sl" fill="#8a7068">Refresh</text>
+  <circle cx="10" cy="25" r="10" fill="#fffdf8" stroke="#17213d" stroke-opacity=".14"/>
+  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#4b546a">3</text>
+  <text x="28" y="30" class="sl" fill="#4b546a">Refresh</text>
   <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.4594;0.4781;0.6469;0.6656;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.45 0 .25 1;0 0 1 1"/>
-    <circle cx="10" cy="25" r="10" fill="#b74c1b"/>
+    <circle cx="10" cy="25" r="10" fill="#2c4a9a"/>
     <text x="10" y="29.5" text-anchor="middle" class="n" fill="#fff">3</text>
-    <text x="28" y="30" class="sl" fill="#1c1c1e">Refresh</text>
+    <text x="28" y="30" class="sl" fill="#17213d">Refresh</text>
   </g>
-  <rect y="42" width="141" height="4" rx="2" fill="#fff" fill-opacity=".55"/>
-  <rect y="42" width="0" height="4" rx="2" fill="#b74c1b"><animate attributeName="width" values="0;0;141;141" keyTimes="0;0.4688;0.6562;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
+  <rect y="42" width="141" height="4" rx="2" fill="#2c4a9a" fill-opacity=".12"/>
+  <rect y="42" width="0" height="4" rx="2" fill="#2c4a9a"><animate attributeName="width" values="0;0;141;141" keyTimes="0;0.4688;0.6562;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
 </g>
 <g transform="translate(499,0)">
-  <circle cx="10" cy="25" r="10" fill="#fff" fill-opacity=".85" stroke="#000" stroke-opacity=".1"/>
-  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#8a7068">4</text>
-  <text x="28" y="30" class="sl" fill="#8a7068">Play</text>
+  <circle cx="10" cy="25" r="10" fill="#fffdf8" stroke="#17213d" stroke-opacity=".14"/>
+  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#4b546a">4</text>
+  <text x="28" y="30" class="sl" fill="#4b546a">Play</text>
   <g opacity="0"><animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.6469;0.6656;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1;.45 0 .25 1;0 0 1 1"/>
-    <circle cx="10" cy="25" r="10" fill="#b74c1b"/>
+    <circle cx="10" cy="25" r="10" fill="#2c4a9a"/>
     <text x="10" y="29.5" text-anchor="middle" class="n" fill="#fff">4</text>
-    <text x="28" y="30" class="sl" fill="#1c1c1e">Play</text>
+    <text x="28" y="30" class="sl" fill="#17213d">Play</text>
   </g>
-  <rect y="42" width="141" height="4" rx="2" fill="#fff" fill-opacity=".55"/>
-  <rect y="42" width="0" height="4" rx="2" fill="#b74c1b"><animate attributeName="width" values="0;0;141;141" keyTimes="0;0.6562;0.975;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
+  <rect y="42" width="141" height="4" rx="2" fill="#2c4a9a" fill-opacity=".12"/>
+  <rect y="42" width="0" height="4" rx="2" fill="#2c4a9a"><animate attributeName="width" values="0;0;141;141" keyTimes="0;0.6562;0.975;1" dur="16s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.975;0.9969;1" dur="16s" repeatCount="indefinite" calcMode="spline" keySplines="0 0 1 1;.45 0 .25 1;0 0 1 1"/></rect>
 </g>
 <!-- Barrel's Library window -->
 <g filter="url(#shadow)"><rect x="40" y="60" width="600" height="340" rx="14" fill="#fff"/></g>

@@ -422,16 +422,16 @@ def render_steps_demo():
             on = fade((a - .15, 0), (a + .15, 1), (b - .15, 1), (b + .15, 0))
         fill = anim("width", [(a, 0), (min(b, 15.6), seg_w)], mode="linear")
         steps.append(f"""<g transform="translate({x0},0)">
-  <circle cx="10" cy="25" r="10" fill="#fff" fill-opacity=".85" stroke="#000" stroke-opacity=".1"/>
-  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#8a7068">{i + 1}</text>
-  <text x="28" y="30" class="sl" fill="#8a7068">{label}</text>
+  <circle cx="10" cy="25" r="10" fill="#fffdf8" stroke="#17213d" stroke-opacity=".14"/>
+  <text x="10" y="29.5" text-anchor="middle" class="n" fill="#4b546a">{i + 1}</text>
+  <text x="28" y="30" class="sl" fill="#4b546a">{label}</text>
   <g opacity="{1 if i == 0 else 0}">{on}
-    <circle cx="10" cy="25" r="10" fill="#b74c1b"/>
+    <circle cx="10" cy="25" r="10" fill="#2c4a9a"/>
     <text x="10" y="29.5" text-anchor="middle" class="n" fill="#fff">{i + 1}</text>
-    <text x="28" y="30" class="sl" fill="#1c1c1e">{label}</text>
+    <text x="28" y="30" class="sl" fill="#17213d">{label}</text>
   </g>
-  <rect y="42" width="{seg_w}" height="4" rx="2" fill="#fff" fill-opacity=".55"/>
-  <rect y="42" width="0" height="4" rx="2" fill="#b74c1b">{fill}{fade((15.6, 1), (15.95, 0))}</rect>
+  <rect y="42" width="{seg_w}" height="4" rx="2" fill="#2c4a9a" fill-opacity=".12"/>
+  <rect y="42" width="0" height="4" rx="2" fill="#2c4a9a">{fill}{fade((15.6, 1), (15.95, 0))}</rect>
 </g>""")
     steps = "\n".join(steps)
 
@@ -457,7 +457,7 @@ def render_steps_demo():
 
     return f"""<svg xmlns="http://www.w3.org/2000/svg" width="680" height="440" viewBox="0 0 680 440" role="img" aria-label="Four steps: Barrel's Open Steam button opens Steam, the game installs, Refresh adds it to Barrel's library and Play starts it">
 <defs>
-  <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f3d9c4"/><stop offset=".55" stop-color="#e9c2b5"/><stop offset="1" stop-color="#c9b6d6"/></linearGradient>
+  <linearGradient id="desk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f8f4ea"/><stop offset=".5" stop-color="#f1efe8"/><stop offset="1" stop-color="#e3e9f4"/></linearGradient>
   <filter id="shadow" x="-20%" y="-20%" width="140%" height="160%"><feDropShadow dx="0" dy="10" stdDeviation="12" flood-opacity=".2"/></filter>
   <clipPath id="round"><rect width="680" height="440" rx="18"/></clipPath>
   <clipPath id="win"><rect x="40" y="60" width="600" height="340" rx="14"/></clipPath>
