@@ -57,7 +57,9 @@ struct LibraryView: View {
                         .help("Look for newly installed games")
                 }
                 ToolbarItem {
-                    Button(action: actions.openSteam) { Label("Open Steam", systemImage: "cloud") }
+                    Button(action: actions.openSteam) {
+                        Label("Open Steam", systemImage: "cloud").labelStyle(.titleAndIcon)
+                    }
                         .help("Open Steam to sign in, buy or install games")
                 }
             }

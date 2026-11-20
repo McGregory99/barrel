@@ -10,6 +10,10 @@ What changed in Barrel, newest first. The format follows
 
 - Barrel has its own icon in the Dock and in Finder.
 
+### Changed
+
+- The Library's **Open Steam** button shows its name, not only a cloud icon.
+
 ### Fixed
 
 - Games no longer freeze or slow to a crawl when they open the microphone, for example for
