@@ -9,8 +9,8 @@ What changed in Barrel, newest first. The format follows
 ### Added
 
 - Barrel has its own icon in the Dock and in Finder.
-- The Library also shows the games from your Steam account on this Mac that are not installed,
-  greyed out with their Steam icon, each with an **Install** button that opens Steam's install
+- The Library also shows the games that are not installed, taken from your Steam account's
+  library records on this Mac, including games you own but never launched, greyed out with their Steam icon, each with an **Install** button that opens Steam's install
   dialog. **Sync Library** (it replaces Refresh) reads the list again. `barrel games --all` lists
   them too.
 
@@ -22,7 +22,8 @@ What changed in Barrel, newest first. The format follows
 
 ### Fixed
 
-- The Library no longer lists games you don't own, such as ones Steam only showed in the store.
+- The Library no longer lists games you don't own, such as ones Steam only showed in the store:
+  games come from your Steam account's library records on this Mac.
 - Games no longer freeze or slow to a crawl when they open the microphone, for example for
   voice chat. macOS was stopping the game because Barrel does not ask for microphone access
   yet, so games now see no microphone instead. Voice chat recording comes later.

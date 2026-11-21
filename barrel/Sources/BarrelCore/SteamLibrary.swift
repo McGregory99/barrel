@@ -68,8 +68,8 @@ public enum SteamLibrary {
 
     /// Games from the player's Steam account that are not installed, sorted by name, read offline.
     ///
-    /// An app counts when a Steam account on this Mac lists it in its `localconfig.vdf` (see
-    /// `accountApps`) and Steam has cached its artwork in `appcache/librarycache/<appid>/`. The cache
+    /// An app counts when a Steam account on this Mac has it in its library records under `userdata`
+    /// (see `accountApps`) and Steam has cached its artwork in `appcache/librarycache/<appid>/`. The cache
     /// alone is not enough: Steam also fills it for store and featured apps the player doesn't own.
     /// `appcache/appinfo.vdf` gives each app's name and type, and only apps of type "game" are kept,
     /// so tools, soundtracks and redistributables drop out. Steam writes all three files itself, so
@@ -100,21 +100,39 @@ public enum SteamLibrary {
         }
     }
 
-    /// App ids the Steam accounts on this Mac know, from each `userdata/<accountid>/config/localconfig.vdf`
-    /// (`UserLocalConfigStore > Software > Valve > Steam > apps`). Steam adds an app there once the
-    /// account has it in its library and the client has touched it, so an owned game that was never
-    /// installed or launched on this Mac may be missing. Empty when no account has a localconfig.
+    /// App ids in the libraries of the Steam accounts on this Mac, the union over every
+    /// `userdata/<accountid>/config/` of two records Steam keeps there:
+    /// - `localconfig.vdf` (`UserLocalConfigStore > Software > Valve > Steam > apps`), which gains an app
+    ///   once the client has touched it, so an owned game never installed or launched may be missing;
+    /// - `librarycache/<appid>.json`, one file per app in the account's library, launched or not.
+    /// An account whose files are missing or unreadable adds nothing. Empty when no account has either.
     static func accountApps(prefix: URL) -> Set<Int> {
         let userdata = steamDirectory(prefix: prefix).appendingPathComponent("userdata", isDirectory: true)
         var apps = Set<Int>()
         for account in (try? FileManager.default.contentsOfDirectory(atPath: userdata.path)) ?? [] {
-            let file = userdata.appendingPathComponent("\(account)/config/localconfig.vdf")
-            guard let text = try? String(contentsOf: file, encoding: .utf8),
-                  let list = (try? KeyValues.parse(text))?["UserLocalConfigStore"]?["Software"]?["Valve"]?["Steam"]?["apps"]
-            else { continue }
-            apps.formUnion(list.children.compactMap { Int($0.0) })
+            let config = userdata.appendingPathComponent("\(account)/config", isDirectory: true)
+            apps.formUnion(localConfigApps(config: config))
+            apps.formUnion(libraryCacheApps(config: config))
         }
         return apps
+    }
+
+    /// App ids in an account's `localconfig.vdf` apps section, empty when it is missing or unreadable.
+    static func localConfigApps(config: URL) -> Set<Int> {
+        guard let text = try? String(contentsOf: config.appendingPathComponent("localconfig.vdf"), encoding: .utf8),
+              let list = (try? KeyValues.parse(text))?["UserLocalConfigStore"]?["Software"]?["Valve"]?["Steam"]?["apps"]
+        else { return [] }
+        return Set(list.children.compactMap { Int($0.0) })
+    }
+
+    /// App ids named by an account's `librarycache/<appid>.json` files. Only the names matter; other
+    /// files there, such as `achievement_progress.json`, are skipped.
+    static func libraryCacheApps(config: URL) -> Set<Int> {
+        let folder = config.appendingPathComponent("librarycache", isDirectory: true)
+        return Set(((try? FileManager.default.contentsOfDirectory(atPath: folder.path)) ?? []).compactMap { name in
+            let file = name as NSString
+            return file.pathExtension == "json" ? Int(file.deletingPathExtension) : nil
+        })
     }
 
     /// Cached artwork names, best first. Newer clients keep each one in a hash-named subfolder.

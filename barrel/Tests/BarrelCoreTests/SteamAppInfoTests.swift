@@ -219,6 +219,45 @@ struct AppInfoBuilder {
         #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [10])
     }
 
+    /// Writes empty files named `names` into `userdata/<account>/config/librarycache/`, as Steam does
+    /// with one `<appid>.json` per app in the account's library.
+    func writeLibraryCache(prefix: URL, account: Int, names: [String]) throws {
+        let folder = SteamLibrary.steamDirectory(prefix: prefix)
+            .appendingPathComponent("userdata/\(account)/config/librarycache", isDirectory: true)
+        try FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
+        for name in names { try Data("{}".utf8).write(to: folder.appendingPathComponent(name)) }
+    }
+
+    @Test func listsGamesTheAccountsLibraryCacheHasButItsLocalConfigLacks() throws {
+        // An owned game never launched on this Mac has no localconfig entry, only `<appid>.json`.
+        let prefix = try makeSteam(
+            cached: [10, 20, 30, 570],
+            apps: [AppInfoBuilder.app(10, name: "In Local Config", type: "Game"),
+                   AppInfoBuilder.app(20, name: "Never Launched", type: "Game"),
+                   AppInfoBuilder.app(30, name: "Other Account", type: "Game"),
+                   AppInfoBuilder.app(570, name: "Dota 2", type: "Game")],
+            accounts: [111: [10]])
+        defer { try? FileManager.default.removeItem(at: prefix) }
+        try writeLibraryCache(prefix: prefix, account: 111, names: ["20.json"])
+        try writeLibraryCache(prefix: prefix, account: 222, names: ["30.json"])
+
+        #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [10, 20, 30])
+    }
+
+    @Test func ignoresLibraryCacheFilesThatAreNotAppIDs() throws {
+        let prefix = try makeSteam(
+            cached: [10, 20, 30, 40],
+            apps: [AppInfoBuilder.app(10, name: "Owned", type: "Game"),
+                   AppInfoBuilder.app(20, name: "Not JSON", type: "Game"),
+                   AppInfoBuilder.app(30, name: "No Extension", type: "Game"),
+                   AppInfoBuilder.app(40, name: "Number Inside", type: "Game")])
+        defer { try? FileManager.default.removeItem(at: prefix) }
+        try writeLibraryCache(prefix: prefix, account: 111,
+                              names: ["10.json", "achievement_progress.json", "20.txt", "30", "app40.json"])
+
+        #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [10])
+    }
+
     @Test func withoutALocalConfigThereAreNoOtherGames() throws {
         let prefix = try makeSteam(cached: [10], apps: [AppInfoBuilder.app(10, name: "Cached", type: "Game")])
         defer { try? FileManager.default.removeItem(at: prefix) }

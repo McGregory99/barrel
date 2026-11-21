@@ -332,7 +332,8 @@ struct Games: ParsableCommand {
             Columns: Steam app id, name, Direct3D backend and who chose it (you, the game's profile or
             the bottle), and the profile status (works, issues, broken) or 'no profile'.
             With --all, the library's games that are not installed follow as '<id>  <name>  not installed',
-            read offline from Steam's own caches (only games from the Steam accounts on this Mac that have artwork cached).
+            read offline from Steam's own caches (only games in the library records of the Steam accounts on this Mac
+            that have artwork cached).
             """)
 
     @Option(help: "Bottle with Steam (default: 'steam').") var bottle = "steam"
