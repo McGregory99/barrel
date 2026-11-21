@@ -118,7 +118,8 @@ struct AppInfoBuilder {
     }
 
     /// A `localconfig.vdf` like Steam's, with decoy app ids in a comment and outside the "apps" section.
-    func localConfig(apps: [Int]) -> String {
+    /// `path` names the keys from "Software" to "apps", in the case this client writes them.
+    func localConfig(apps: [Int], path: [String] = ["Software", "Valve", "Steam", "apps"]) -> String {
         let entries = apps.map { "\t\t\t\t\t\"\($0)\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LastPlayed\"\t\t\"1700000000\"\n\t\t\t\t\t}" }
         return #"""
         "UserLocalConfigStore"
@@ -129,13 +130,13 @@ struct AppInfoBuilder {
         		"999"		"{ not a block }"
         	}
         	// "Software" { "Valve" { "Steam" { "apps" { "998" {} } } } }
-        	"Software"
+        	"\#(path[0])"
         	{
-        		"Valve"
+        		"\#(path[1])"
         		{
-        			"Steam"
+        			"\#(path[2])"
         			{
-        				"apps"
+        				"\#(path[3])"
         				{
         \#(entries.joined(separator: "\n"))
         				}
@@ -182,6 +183,40 @@ struct AppInfoBuilder {
         defer { try? FileManager.default.removeItem(at: prefix) }
 
         #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [10, 20, 30])
+    }
+
+    @Test func readsTheLocalConfigKeysWhateverTheirCase() throws {
+        // Steam's keys are case-insensitive, and some clients write "Apps" or "software".
+        let prefix = try makeSteam(cached: [10, 20],
+                                   apps: [AppInfoBuilder.app(10, name: "Owned", type: "Game"),
+                                          AppInfoBuilder.app(20, name: "Also Owned", type: "Game")])
+        defer { try? FileManager.default.removeItem(at: prefix) }
+        let userdata = SteamLibrary.steamDirectory(prefix: prefix).appendingPathComponent("userdata")
+        for (account, apps, path) in [(111, [10], ["software", "valve", "steam", "Apps"]),
+                                      (222, [20], ["SOFTWARE", "Valve", "STEAM", "APPS"])] {
+            let config = userdata.appendingPathComponent("\(account)/config", isDirectory: true)
+            try FileManager.default.createDirectory(at: config, withIntermediateDirectories: true)
+            try localConfig(apps: apps, path: path).write(to: config.appendingPathComponent("localconfig.vdf"),
+                                                          atomically: true, encoding: .utf8)
+        }
+
+        #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [20, 10])
+    }
+
+    @Test func anUnreadableLocalConfigDoesNotHideTheOtherAccountsGames() throws {
+        let prefix = try makeSteam(cached: [10, 20],
+                                   apps: [AppInfoBuilder.app(10, name: "Owned", type: "Game"),
+                                          AppInfoBuilder.app(20, name: "Broken Account", type: "Game")],
+                                   accounts: [111: [10], 222: [20], 333: [20]])
+        defer { try? FileManager.default.removeItem(at: prefix) }
+        let userdata = SteamLibrary.steamDirectory(prefix: prefix).appendingPathComponent("userdata")
+        // Account 222's file is cut off mid-write; account 333's is not UTF-8.
+        let truncated = String(localConfig(apps: [20]).dropLast(40))
+        try truncated.write(to: userdata.appendingPathComponent("222/config/localconfig.vdf"),
+                            atomically: true, encoding: .utf8)
+        try Data([0x22, 0xFF, 0xFE, 0x22]).write(to: userdata.appendingPathComponent("333/config/localconfig.vdf"))
+
+        #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [10])
     }
 
     @Test func withoutALocalConfigThereAreNoOtherGames() throws {
