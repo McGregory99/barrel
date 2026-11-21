@@ -124,6 +124,28 @@ struct LauncherFixture {
         #expect(!f.installer.exists("a:b"))
     }
 
+    @Test(arguments: [("Age of Empires II: Definitive Edition", "Age of Empires II - Definitive Edition"),
+                      ("A/B", "A-B"), ("Plain", "Plain"), ("Half-Life:Alyx", "Half-Life-Alyx"),
+                      ("  Spaced   Out :  Title ", "Spaced Out - Title")])
+    func gameTitlesBecomeFileSafeLauncherNames(title: String, name: String) {
+        #expect(LauncherName.forGame(title) == name)
+    }
+
+    @Test func aGameWithAColonInItsTitleGetsALauncherUnderItsFileSafeName() throws {
+        let f = try LauncherFixture()
+        let title = "Age of Empires II: Definitive Edition"
+        let spec = LauncherSpec(name: LauncherName.forGame(title), displayName: title, bottle: "steam",
+                                steamAppID: 813780, barrelExecutable: URL(fileURLWithPath: "/opt/barrel"))
+
+        let app = try f.installer.install(spec)
+
+        #expect(app.lastPathComponent == "Age of Empires II - Definitive Edition.app")
+        #expect(f.installer.exists(LauncherName.forGame(title)))
+        let plist = try #require(NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist")))
+        #expect(plist["CFBundleDisplayName"] as? String == title)
+        #expect(plist["CFBundleName"] as? String == title)
+    }
+
     @Test func movingToTheTrashTakesTheLauncherOutOfItsDirectory() throws {
         let f = try LauncherFixture()
         let trash = f.root.appendingPathComponent("Trash")

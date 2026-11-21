@@ -79,14 +79,14 @@ struct BarrelCoreGatewayLauncherTests {
     }
 
     /// A bottle named "steam" with Stonewards and Nightfall installed.
-    func steamBottle(_ root: URL) throws -> AppSettings {
+    func steamBottle(_ root: URL, games: [(Int, String)] = [(4502710, "Stonewards"), (100, "Nightfall")]) throws -> AppSettings {
         let data = root.appendingPathComponent("data")
         let store = try FileBottleStore(root: data)
         try store.save(Bottle(name: "steam", windowsVersion: .win10))
         let steam = SteamLibrary.steamDirectory(prefix: store.prefixURL(for: "steam"))
         try FileManager.default.createDirectory(at: steam.appendingPathComponent("steamapps"), withIntermediateDirectories: true)
         try Data("MZ".utf8).write(to: steam.appendingPathComponent("steam.exe"))
-        for (appID, name) in [(4502710, "Stonewards"), (100, "Nightfall")] {
+        for (appID, name) in games {
             let game = steam.appendingPathComponent("steamapps/common/\(name)")
             try FileManager.default.createDirectory(at: game, withIntermediateDirectories: true)
             try Data("MZ".utf8).write(to: game.appendingPathComponent("\(name).exe"))
@@ -124,6 +124,30 @@ struct BarrelCoreGatewayLauncherTests {
         #expect(try gateway.games(in: "steam").first { $0.name == "Stonewards" }?.hasLauncher == false)
         #expect(!FileManager.default.fileExists(atPath: app.path))
         #expect(FileManager.default.fileExists(atPath: trash.appendingPathComponent("Stonewards.app").path))
+    }
+
+    @Test func aGameWithAColonInItsNameGoesToTheDockAndBack() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
+        let apps = root.appendingPathComponent("Apps"), trash = root.appendingPathComponent("Trash")
+        let title = "Age of Empires II: Definitive Edition"
+        let gateway = try BarrelCoreGateway(settings: steamBottle(root, games: [(813780, title)]),
+                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), launchersDirectory: apps) {
+            try FileManager.default.createDirectory(at: trash, withIntermediateDirectories: true)
+            try FileManager.default.moveItem(at: $0, to: trash.appendingPathComponent($0.lastPathComponent))
+        }
+
+        let app = try gateway.createGameLauncher(appID: 813780, name: title, bottle: "steam")
+
+        #expect(app.lastPathComponent == "Age of Empires II - Definitive Edition.app")
+        #expect(try gateway.games(in: "steam").map(\.hasLauncher) == [true])
+        #expect(try gateway.games(in: "steam").map(\.name) == [title])
+        let plist = try #require(NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist")))
+        #expect(plist["CFBundleDisplayName"] as? String == title)
+
+        try gateway.removeGameLauncher(name: title)
+
+        #expect(try gateway.games(in: "steam").map(\.hasLauncher) == [false])
+        #expect(FileManager.default.fileExists(atPath: trash.appendingPathComponent(app.lastPathComponent).path))
     }
 
     @Test func launcherRunsTheBundledToolWithTheAppSettings() throws {

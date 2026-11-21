@@ -104,9 +104,10 @@ public protocol BottleGateway: Sendable {
     func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws
     /// Drops the player's backend for the game, so its profile (or the bottle) decides again.
     func clearGameGraphics(bottle: String, executable: String) throws
-    /// Creates a macOS app that plays the game (with its icon); returns its URL.
+    /// Creates a macOS app that plays the game (with its icon); returns its URL. `name` is the game's
+    /// title; the app file takes `LauncherName.forGame(name)` and shows the title.
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL
-    /// Moves the game's Mac app to the Trash.
+    /// Moves the Mac app of the game titled `name` to the Trash.
     func removeGameLauncher(name: String) throws
 }
 
@@ -225,7 +226,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
             let executable = profile?.executable ?? path?.lastPathComponent
             return GameSummary(appID: game.appID, name: game.name, executable: executable, executablePath: path?.path,
                                graphics: try service.gameGraphics(bottle: bottle, executable: executable, profile: profile),
-                               profileStatus: profile?.status, hasLauncher: launchers.exists(game.name))
+                               profileStatus: profile?.status, hasLauncher: launchers.exists(LauncherName.forGame(game.name)))
         }
     }
 
@@ -262,14 +263,14 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     public func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL {
         guard let barrelExecutable else { throw GatewayError.launchersNeedBarrelApp }
         let game = try installedGame(appID, in: bottle)
-        let spec = LauncherSpec(name: name, bottle: bottle, steamAppID: appID, environment: launcherEnvironment,
-                                barrelExecutable: barrelExecutable)
+        let spec = LauncherSpec(name: LauncherName.forGame(name), displayName: name, bottle: bottle, steamAppID: appID,
+                                environment: launcherEnvironment, barrelExecutable: barrelExecutable)
         let icon = SteamLibrary.mainExecutable(of: game).flatMap { try? IconConverter.icns(fromExecutable: $0) }
         return try launchers.install(spec, icon: icon)
     }
 
     public func removeGameLauncher(name: String) throws {
-        try launchers.moveToTrash(name)
+        try launchers.moveToTrash(LauncherName.forGame(name))
     }
 
     private func steamExecutable(in bottle: String) -> URL {

@@ -25,6 +25,7 @@ What changed in Barrel, newest first. The format follows
 
 ### Fixed
 
+- Add to Dock works for games whose name contains a colon, such as Age of Empires II: Definitive Edition.
 - The Library no longer lists games you don't own, such as ones Steam only showed in the store:
   games come from your Steam account's library records on this Mac.
 - Games no longer freeze or slow to a crawl when they open the microphone, for example for

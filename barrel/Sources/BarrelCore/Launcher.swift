@@ -3,7 +3,10 @@ import Foundation
 /// A macOS app that opens one Windows program in a bottle through `barrel run`, or plays one Steam
 /// game through `barrel play` (which applies the game's profile).
 public struct LauncherSpec: Equatable, Sendable {
+    /// File name of the app (`<name>.app`); see `LauncherName.forGame` for names taken from a game.
     public var name: String
+    /// Name the app shows (bundle name and display name); defaults to `name`.
+    public var displayName: String?
     public var bottle: String
     /// Unix path of the program or document to open.
     public var program: String
@@ -25,10 +28,25 @@ public struct LauncherSpec: Equatable, Sendable {
         self.barrelExecutable = barrelExecutable
     }
 
-    public init(name: String, bottle: String, steamAppID: Int, environment: [String: String] = [:],
-                barrelExecutable: URL) {
+    public init(name: String, displayName: String? = nil, bottle: String, steamAppID: Int,
+                environment: [String: String] = [:], barrelExecutable: URL) {
         self.init(name: name, bottle: bottle, program: "", environment: environment, barrelExecutable: barrelExecutable)
+        self.displayName = displayName
         self.steamAppID = steamAppID
+    }
+}
+
+/// Launcher names derived from titles that may hold characters a file name cannot.
+public enum LauncherName {
+    /// A launcher name for a game title: `: ` becomes ` - `, any other `:` or `/` becomes `-`, and
+    /// runs of spaces collapse to one, so "Age of Empires II: Definitive Edition" becomes
+    /// "Age of Empires II - Definitive Edition". Use it wherever a game's launcher is created or looked up.
+    public static func forGame(_ title: String) -> String {
+        let replaced = title
+            .replacingOccurrences(of: ": ", with: " - ")
+            .replacingOccurrences(of: ":", with: "-")
+            .replacingOccurrences(of: "/", with: "-")
+        return replaced.split(separator: " ", omittingEmptySubsequences: true).joined(separator: " ")
     }
 }
 
@@ -88,8 +106,8 @@ public struct LauncherInstaller: Sendable {
         try fileManager.createDirectory(at: macOS, withIntermediateDirectories: true)
 
         var info: [String: Any] = [
-            "CFBundleName": spec.name,
-            "CFBundleDisplayName": spec.name,
+            "CFBundleName": spec.displayName ?? spec.name,
+            "CFBundleDisplayName": spec.displayName ?? spec.name,
             "CFBundleExecutable": "launcher",
             "CFBundleIdentifier": Self.identifierPrefix + identifierSafe(spec.name),
             "CFBundlePackageType": "APPL",

@@ -485,14 +485,16 @@ struct GameLauncher: ParsableCommand {
         discussion: "The app runs 'barrel play' for the game, so its profile applies, and takes the game's icon.")
 
     @Option(help: "Bottle with Steam (default: 'steam').") var bottle = "steam"
-    @Option(help: "App name (default: the game's name).") var name: String?
+    @Option(help: "App name (default: the game's name, with ':' and '/' replaced).") var name: String?
     @Option(help: "Extra game profile directory.") var profilesDir: String?
     @Argument(help: "Steam app id or game name (see 'barrel games').") var game: String
 
     func run() throws {
         let found = try Environment.game(game, bottle: bottle)
         guard let barrel = Bundle.main.executableURL else { throw ValidationError("cannot locate the barrel binary") }
-        let spec = LauncherSpec(name: name ?? found.name, bottle: bottle, steamAppID: found.appID,
+        // A name the user gives stays strict; the game's title is made file-safe and still shown.
+        let spec = LauncherSpec(name: name ?? LauncherName.forGame(found.name), displayName: name ?? found.name,
+                                bottle: bottle, steamAppID: found.appID,
                                 environment: try Environment.launcherEnvironment(),
                                 barrelExecutable: barrel.resolvingSymlinksInPath())
         let icon = SteamLibrary.mainExecutable(of: found).flatMap { try? IconConverter.icns(fromExecutable: $0) }
