@@ -33,7 +33,8 @@ struct ContentView: View {
                         install: { game in Task { await model.installGame(game) } },
                         setGraphics: { game, backend in Task { await model.setGraphics(for: game, backend: backend) } },
                         setAutomaticGraphics: { game in Task { await model.setAutomaticGraphics(for: game) } },
-                        addToDock: { game in Task { await model.addToDock(game) } }))
+                        addToDock: { game in Task { await model.addToDock(game) } },
+                        removeFromDock: { game in Task { await model.removeFromDock(game) } }))
                     .task { await model.loadLibrary() }
             } else if let bottle = model.selectedBottle {
                 BottleDetailView(

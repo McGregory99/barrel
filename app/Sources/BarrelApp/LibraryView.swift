@@ -24,6 +24,7 @@ struct LibraryView: View {
         var setGraphics: (GameSummary, GraphicsBackend) -> Void
         var setAutomaticGraphics: (GameSummary) -> Void
         var addToDock: (GameSummary) -> Void
+        var removeFromDock: (GameSummary) -> Void
     }
 
     var body: some View {
@@ -47,7 +48,8 @@ struct LibraryView: View {
                                      play: { actions.play(game) },
                                      setGraphics: { actions.setGraphics(game, $0) },
                                      setAutomatic: { actions.setAutomaticGraphics(game) },
-                                     addToDock: { actions.addToDock(game) })
+                                     addToDock: { actions.addToDock(game) },
+                                     removeFromDock: { actions.removeFromDock(game) })
                         }
                     }
                     .padding(20)
@@ -142,6 +144,7 @@ struct GameCard: View {
     let setGraphics: (GraphicsBackend) -> Void
     let setAutomatic: () -> Void
     let addToDock: () -> Void
+    let removeFromDock: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -187,9 +190,22 @@ struct GameCard: View {
                 Button(action: play) { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity) }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                Button(action: addToDock) { Label("Add to Dock", systemImage: "dock.rectangle") }
-                    .controlSize(.large)
-                    .help("Create a Mac app for this game in ~/Applications/Barrel")
+                if game.hasLauncher {
+                    Menu {
+                        Button("Remove from Dock", systemImage: "minus.circle", action: removeFromDock)
+                            .help("Move this game's Mac app to the Trash")
+                    } label: {
+                        Label("In Dock", systemImage: "checkmark")
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+                    .foregroundStyle(.secondary)
+                    .help("This game has a Mac app in ~/Applications/Barrel")
+                } else {
+                    Button(action: addToDock) { Label("Add to Dock", systemImage: "dock.rectangle") }
+                        .controlSize(.large)
+                        .help("Create a Mac app for this game in ~/Applications/Barrel")
+                }
             }
             .disabled(isBusy)
         }

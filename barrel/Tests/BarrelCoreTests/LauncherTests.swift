@@ -115,6 +115,32 @@ struct LauncherFixture {
         #expect(throws: LauncherError.notFound("A Game")) { try f.installer.remove("A Game") }
     }
 
+    @Test func existsOnlyForABarrelLauncherInItsDirectory() throws {
+        let f = try LauncherFixture()
+        #expect(!f.installer.exists("Stonewards"))
+        _ = try f.installer.install(f.spec())
+        #expect(f.installer.exists("Stonewards"))
+        #expect(!f.installer.exists("Other"))
+        #expect(!f.installer.exists("a:b"))
+    }
+
+    @Test func movingToTheTrashTakesTheLauncherOutOfItsDirectory() throws {
+        let f = try LauncherFixture()
+        let trash = f.root.appendingPathComponent("Trash")
+        let installer = LauncherInstaller(directory: f.installer.directory, logDirectory: f.installer.logDirectory) {
+            try FileManager.default.createDirectory(at: trash, withIntermediateDirectories: true)
+            try FileManager.default.moveItem(at: $0, to: trash.appendingPathComponent($0.lastPathComponent))
+        }
+        let app = try installer.install(f.spec())
+
+        try installer.moveToTrash("Stonewards")
+
+        #expect(!installer.exists("Stonewards"))
+        #expect(!FileManager.default.fileExists(atPath: app.path))
+        #expect(FileManager.default.fileExists(atPath: trash.appendingPathComponent("Stonewards.app").path))
+        #expect(throws: LauncherError.notFound("Stonewards")) { try installer.moveToTrash("Stonewards") }
+    }
+
     @Test func launcherOutputGoesToALogFile() throws {
         let f = try LauncherFixture()
         let fake = try f.recordingBarrel()
@@ -138,6 +164,7 @@ struct LauncherFixture {
 
         #expect(try f.installer.list() == ["Mine"])
         #expect(throws: LauncherError.foreignApp("Other")) { try f.installer.remove("Other") }
+        #expect(throws: LauncherError.foreignApp("Other")) { try f.installer.moveToTrash("Other") }
         #expect(throws: LauncherError.foreignApp("Other")) { try f.installer.install(f.spec(name: "Other")) }
         #expect(FileManager.default.fileExists(atPath: foreign.path))
     }

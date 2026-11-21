@@ -53,13 +53,21 @@ public struct LauncherInstaller: Sendable {
     /// Where each launcher appends its output (`<name>.log`); apps opened from Finder have no terminal.
     public let logDirectory: URL
 
+    /// Moves an item to the Trash; tests pass their own so they never touch the user's Trash.
+    public typealias Trash = @Sendable (URL) throws -> Void
+    private let trash: Trash
+
     static let identifierPrefix = "org.barrel.launcher."
+
+    public static let systemTrash: Trash = { try FileManager.default.trashItem(at: $0, resultingItemURL: nil) }
 
     public init(directory: URL,
                 logDirectory: URL = FileManager.default.homeDirectoryForCurrentUser
-                    .appendingPathComponent("Library/Logs/Barrel")) {
+                    .appendingPathComponent("Library/Logs/Barrel"),
+                trash: @escaping Trash = LauncherInstaller.systemTrash) {
         self.directory = directory
         self.logDirectory = logDirectory
+        self.trash = trash
     }
 
     /// Creates or replaces the launcher. `icon` is ICNS data. The bundle is built next to its final
@@ -118,12 +126,26 @@ public struct LauncherInstaller: Sendable {
             .sorted()
     }
 
+    /// Whether a launcher barrel made exists under this name.
+    public func exists(_ name: String) -> Bool {
+        (try? validate(name)) != nil && isBarrelLauncher(appURL(name))
+    }
+
     public func remove(_ name: String) throws {
+        try FileManager.default.removeItem(at: existingLauncher(name))
+    }
+
+    /// Moves the launcher to the Trash, so it can be put back from there.
+    public func moveToTrash(_ name: String) throws {
+        try trash(existingLauncher(name))
+    }
+
+    private func existingLauncher(_ name: String) throws -> URL {
         try validate(name)
         let app = appURL(name)
         guard FileManager.default.fileExists(atPath: app.path) else { throw LauncherError.notFound(name) }
         guard isBarrelLauncher(app) else { throw LauncherError.foreignApp(name) }
-        try FileManager.default.removeItem(at: app)
+        return app
     }
 
     private func isBarrelLauncher(_ app: URL) -> Bool {

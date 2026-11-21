@@ -44,13 +44,16 @@ public struct GameSummary: Equatable, Sendable, Identifiable {
     public var isInstalled: Bool
     /// Steam's cached icon or artwork, for games that are not installed.
     public var artworkPath: String?
+    /// The game has a Mac app (launcher) in the launchers folder, made by Add to Dock.
+    public var hasLauncher: Bool
 
     public var id: Int { appID }
     /// Per-game graphics are set on the game's executable.
     public var canChooseGraphics: Bool { executable != nil }
 
     public init(appID: Int, name: String, executable: String?, executablePath: String?, graphics: GameGraphics,
-                profileStatus: GameStatus?, isInstalled: Bool = true, artworkPath: String? = nil) {
+                profileStatus: GameStatus?, isInstalled: Bool = true, artworkPath: String? = nil,
+                hasLauncher: Bool = false) {
         self.appID = appID
         self.name = name
         self.executable = executable
@@ -59,6 +62,7 @@ public struct GameSummary: Equatable, Sendable, Identifiable {
         self.profileStatus = profileStatus
         self.isInstalled = isInstalled
         self.artworkPath = artworkPath
+        self.hasLauncher = hasLauncher
     }
 }
 
@@ -102,6 +106,8 @@ public protocol BottleGateway: Sendable {
     func clearGameGraphics(bottle: String, executable: String) throws
     /// Creates a macOS app that plays the game (with its icon); returns its URL.
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL
+    /// Moves the game's Mac app to the Trash.
+    func removeGameLauncher(name: String) throws
 }
 
 /// Adapter from the gateway port to `BottleService`.
@@ -119,7 +125,8 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     public init(store: BottleStore, wineBinary: URL, components: RuntimeComponents,
                 recipeDirectories: [URL] = [], profileDirectories: [URL] = [], downloadsDirectory: URL,
                 launcherEnvironment: [String: String] = [:], barrelExecutable: URL? = nil,
-                launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory) {
+                launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory,
+                trash: @escaping LauncherInstaller.Trash = LauncherInstaller.systemTrash) {
         self.store = store
         self.components = components
         self.recipeDirectories = recipeDirectories
@@ -127,7 +134,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
         self.downloadsDirectory = downloadsDirectory
         self.launcherEnvironment = launcherEnvironment
         self.barrelExecutable = barrelExecutable
-        self.launchers = LauncherInstaller(directory: launchersDirectory)
+        self.launchers = LauncherInstaller(directory: launchersDirectory, trash: trash)
         self.service = BottleService(store: store, runtime: ProcessWineRuntime(wineBinary: wineBinary),
                                      components: components)
     }
@@ -139,7 +146,8 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     /// Launchers call the `barrel` tool bundled next to the app's executable.
     public convenience init(settings: AppSettings,
                             barrelExecutable: URL? = Bundle.main.url(forAuxiliaryExecutable: "barrel"),
-                            launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory) throws {
+                            launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory,
+                            trash: @escaping LauncherInstaller.Trash = LauncherInstaller.systemTrash) throws {
         // Launchers start outside the app, so they carry the settings as BARREL_* variables.
         var environment = ["BARREL_HOME": settings.dataDirectory.path,
                            "BARREL_WINE": settings.resolvedWineBinary.path]
@@ -153,7 +161,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
                       recipeDirectories: settings.recipeDirectories, profileDirectories: settings.profileDirectories,
                       downloadsDirectory: settings.dataDirectory.appendingPathComponent("Downloads", isDirectory: true),
                       launcherEnvironment: environment, barrelExecutable: barrelExecutable,
-                      launchersDirectory: launchersDirectory)
+                      launchersDirectory: launchersDirectory, trash: trash)
     }
 
     public func list() throws -> [Bottle] { try service.list() }
@@ -217,7 +225,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
             let executable = profile?.executable ?? path?.lastPathComponent
             return GameSummary(appID: game.appID, name: game.name, executable: executable, executablePath: path?.path,
                                graphics: try service.gameGraphics(bottle: bottle, executable: executable, profile: profile),
-                               profileStatus: profile?.status)
+                               profileStatus: profile?.status, hasLauncher: launchers.exists(game.name))
         }
     }
 
@@ -258,6 +266,10 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
                                 barrelExecutable: barrelExecutable)
         let icon = SteamLibrary.mainExecutable(of: game).flatMap { try? IconConverter.icns(fromExecutable: $0) }
         return try launchers.install(spec, icon: icon)
+    }
+
+    public func removeGameLauncher(name: String) throws {
+        try launchers.moveToTrash(name)
     }
 
     private func steamExecutable(in bottle: String) -> URL {

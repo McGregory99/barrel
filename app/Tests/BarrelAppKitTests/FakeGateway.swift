@@ -23,6 +23,7 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     private(set) var gameGraphicsChanges: [(bottle: String, executable: String, backend: GraphicsBackend)] = []
     private(set) var gameLaunchers: [(appID: Int, name: String, bottle: String)] = []
     private(set) var gameGraphicsResets: [String] = []
+    private(set) var removedGameLaunchers: [String] = []
 
     init(bottles: [Bottle] = [], defaultName: String? = nil) {
         self.bottles = bottles
@@ -114,7 +115,13 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL {
         try check()
         gameLaunchers.append((appID, name, bottle))
+        for i in gameList.indices where gameList[i].name == name { gameList[i].hasLauncher = true }
         return URL(fileURLWithPath: "/Applications/Barrel/\(name).app")
+    }
+    func removeGameLauncher(name: String) throws {
+        try check()
+        removedGameLaunchers.append(name)
+        for i in gameList.indices where gameList[i].name == name { gameList[i].hasLauncher = false }
     }
     func install(recipe: String, bottle: String?) throws -> String {
         try check()
