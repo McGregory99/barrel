@@ -31,7 +31,7 @@ struct LauncherViewModelTests {
 
         #expect(gateway.gameLaunchers.map(\.name) == ["Stonewards"])
         #expect(model.games.map(\.isInDock) == [true])
-        #expect(model.lastLauncher?.lastPathComponent == "Stonewards.app")
+        #expect(model.lastLauncher == nil)  // Adding a game to the Dock does not open Finder
     }
 
     @Test func removingAGameFromTheDockBringsBackAddToDock() async {
@@ -61,7 +61,7 @@ struct LauncherViewModelTests {
         await model.addToDock(stonewards)
 
         #expect(model.games.map(\.isInDock) == [true])
-        #expect(model.lastLauncher?.lastPathComponent == "Stonewards.app")
+        #expect(model.lastLauncher == nil)  // Adding a game to the Dock does not open Finder
         #expect(model.errorMessage == BottleError.notFound("steam").description)
     }
 

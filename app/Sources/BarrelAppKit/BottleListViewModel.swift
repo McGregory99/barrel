@@ -243,7 +243,6 @@ public final class BottleListViewModel {
             do { reloaded = try gateway.games(in: bottle) } catch let failure { error = error ?? failure }
             return DockChange(app: app, changed: changed, reloaded: reloaded, error: error)
         } apply: { [self] result in
-            if let app = result.app { lastLauncher = app }
             if let reloaded = result.reloaded {
                 games = reloaded
             } else if result.changed {

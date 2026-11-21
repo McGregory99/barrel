@@ -80,7 +80,7 @@ struct LibraryTests {
 
         #expect(gateway.gameLaunchers.map(\.appID) == [4502710])
         #expect(gateway.gameLaunchers.map(\.name) == ["Stonewards"])
-        #expect(model.lastLauncher?.lastPathComponent == "Stonewards.app")
+        #expect(model.lastLauncher == nil)  // Adding a game to the Dock does not open Finder
     }
 
     @Test func aGameWithoutAKnownExecutableCannotChangeGraphics() async {
