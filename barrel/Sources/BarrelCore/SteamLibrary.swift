@@ -66,18 +66,21 @@ public enum SteamLibrary {
         }
     }
 
-    /// Games in the player's library that are not installed, sorted by name, read offline.
+    /// Games from the player's Steam account that are not installed, sorted by name, read offline.
     ///
-    /// Steam keeps artwork in `appcache/librarycache/<appid>/` for the apps its library shows
-    /// (owned, free or family-shared); `appcache/appinfo.vdf` gives each app's name and type. Only
-    /// apps of type "game" are kept, so tools, soundtracks and redistributables drop out. Steam
-    /// writes both caches itself, so the list is as fresh as Steam's last look at the library.
+    /// An app counts when a Steam account on this Mac lists it in its `localconfig.vdf` (see
+    /// `accountApps`) and Steam has cached its artwork in `appcache/librarycache/<appid>/`. The cache
+    /// alone is not enough: Steam also fills it for store and featured apps the player doesn't own.
+    /// `appcache/appinfo.vdf` gives each app's name and type, and only apps of type "game" are kept,
+    /// so tools, soundtracks and redistributables drop out. Steam writes all three files itself, so
+    /// the list is as fresh as Steam's last look at the library.
     public static func uninstalledGames(prefix: URL) -> [SteamLibraryGame] {
         let appcache = steamDirectory(prefix: prefix).appendingPathComponent("appcache", isDirectory: true)
         let cache = appcache.appendingPathComponent("librarycache", isDirectory: true)
         let installed = Set(installedGames(prefix: prefix).map(\.appID))
         let cached = Set(((try? FileManager.default.contentsOfDirectory(atPath: cache.path)) ?? [])
-            .compactMap(Int.init)).subtracting(installed).subtracting(tools)
+            .compactMap(Int.init)).intersection(accountApps(prefix: prefix))
+            .subtracting(installed).subtracting(tools)
         guard !cached.isEmpty,
               let data = try? Data(contentsOf: appcache.appendingPathComponent("appinfo.vdf"), options: .alwaysMapped),
               let apps = try? SteamAppInfo.parse(data, appIDs: cached)
@@ -95,6 +98,23 @@ public enum SteamLibrary {
             let order = $0.name.localizedCaseInsensitiveCompare($1.name)
             return order == .orderedSame ? $0.appID < $1.appID : order == .orderedAscending
         }
+    }
+
+    /// App ids the Steam accounts on this Mac know, from each `userdata/<accountid>/config/localconfig.vdf`
+    /// (`UserLocalConfigStore > Software > Valve > Steam > apps`). Steam adds an app there once the
+    /// account has it in its library and the client has touched it, so an owned game that was never
+    /// installed or launched on this Mac may be missing. Empty when no account has a localconfig.
+    static func accountApps(prefix: URL) -> Set<Int> {
+        let userdata = steamDirectory(prefix: prefix).appendingPathComponent("userdata", isDirectory: true)
+        var apps = Set<Int>()
+        for account in (try? FileManager.default.contentsOfDirectory(atPath: userdata.path)) ?? [] {
+            let file = userdata.appendingPathComponent("\(account)/config/localconfig.vdf")
+            guard let text = try? String(contentsOf: file, encoding: .utf8),
+                  let list = (try? KeyValues.parse(text))?["UserLocalConfigStore"]?["Software"]?["Valve"]?["Steam"]?["apps"]
+            else { continue }
+            apps.formUnion(list.children.compactMap { Int($0.0) })
+        }
+        return apps
     }
 
     /// Cached artwork names, best first. Newer clients keep each one in a hash-named subfolder.

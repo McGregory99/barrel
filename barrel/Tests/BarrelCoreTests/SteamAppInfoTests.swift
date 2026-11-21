@@ -86,9 +86,17 @@ struct AppInfoBuilder {
 
 @Suite struct SteamLibraryOwnedGamesTests {
     /// A Steam folder whose library cache holds artwork for `cached` and whose appinfo knows `apps`.
-    func makeSteam(cached: [Int], apps: [(Int, [(String, AppInfoBuilder.Node)])], installed: [Int] = []) throws -> URL {
+    /// `accounts` maps a Steam account id to the apps its `userdata/<id>/config/localconfig.vdf` lists.
+    func makeSteam(cached: [Int], apps: [(Int, [(String, AppInfoBuilder.Node)])], installed: [Int] = [],
+                   accounts: [Int: [Int]] = [:]) throws -> URL {
         let prefix = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString, isDirectory: true)
         let steam = SteamLibrary.steamDirectory(prefix: prefix)
+        for (account, owned) in accounts {
+            let config = steam.appendingPathComponent("userdata/\(account)/config", isDirectory: true)
+            try FileManager.default.createDirectory(at: config, withIntermediateDirectories: true)
+            try localConfig(apps: owned).write(to: config.appendingPathComponent("localconfig.vdf"),
+                                               atomically: true, encoding: .utf8)
+        }
         let cache = steam.appendingPathComponent("appcache/librarycache", isDirectory: true)
         for id in cached {
             let folder = cache.appendingPathComponent("\(id)/abc123", isDirectory: true)
@@ -109,6 +117,35 @@ struct AppInfoBuilder {
         return prefix
     }
 
+    /// A `localconfig.vdf` like Steam's, with decoy app ids in a comment and outside the "apps" section.
+    func localConfig(apps: [Int]) -> String {
+        let entries = apps.map { "\t\t\t\t\t\"\($0)\"\n\t\t\t\t\t{\n\t\t\t\t\t\t\"LastPlayed\"\t\t\"1700000000\"\n\t\t\t\t\t}" }
+        return #"""
+        "UserLocalConfigStore"
+        {
+        	"friends"
+        	{
+        		"PersonaName"		"say \"hi\" // not a comment"
+        		"999"		"{ not a block }"
+        	}
+        	// "Software" { "Valve" { "Steam" { "apps" { "998" {} } } } }
+        	"Software"
+        	{
+        		"Valve"
+        		{
+        			"Steam"
+        			{
+        				"apps"
+        				{
+        \#(entries.joined(separator: "\n"))
+        				}
+        			}
+        		}
+        	}
+        }
+        """#
+    }
+
     @Test func listsCachedGamesThatAreNotInstalledWithTheirArtwork() throws {
         let prefix = try makeSteam(
             cached: [10, 20, 30, 228980, 40],
@@ -118,7 +155,7 @@ struct AppInfoBuilder {
                    AppInfoBuilder.app(228980, name: "Redistributables", type: "Game"),
                    AppInfoBuilder.app(40, name: "Soundtrack", type: "Music"),
                    AppInfoBuilder.app(50, name: "Not In Library", type: "Game")],
-            installed: [30])
+            installed: [30], accounts: [1877573056: [10, 20, 30, 40, 228980]])
         defer { try? FileManager.default.removeItem(at: prefix) }
 
         let games = SteamLibrary.uninstalledGames(prefix: prefix)
@@ -130,8 +167,31 @@ struct AppInfoBuilder {
         #expect(games[0].artwork?.lastPathComponent == "library_capsule.jpg")
     }
 
+    @Test func listsOnlyCachedGamesFromTheSteamAccountsOnThisMac() throws {
+        // Steam also caches artwork for store and featured apps (Dota 2, Team Fortress 2) the player doesn't own.
+        let prefix = try makeSteam(
+            cached: [10, 20, 30, 570, 440, 998, 999],
+            apps: [AppInfoBuilder.app(10, name: "Owned By First", type: "Game"),
+                   AppInfoBuilder.app(20, name: "Owned By Second", type: "Game"),
+                   AppInfoBuilder.app(30, name: "Owned Twice", type: "Game"),
+                   AppInfoBuilder.app(570, name: "Dota 2", type: "Game"),
+                   AppInfoBuilder.app(440, name: "Team Fortress 2", type: "Game"),
+                   AppInfoBuilder.app(998, name: "In A Comment", type: "Game"),
+                   AppInfoBuilder.app(999, name: "Outside Apps", type: "Game")],
+            accounts: [111: [10, 30], 222: [20, 30]])
+        defer { try? FileManager.default.removeItem(at: prefix) }
+
+        #expect(SteamLibrary.uninstalledGames(prefix: prefix).map(\.appID) == [10, 20, 30])
+    }
+
+    @Test func withoutALocalConfigThereAreNoOtherGames() throws {
+        let prefix = try makeSteam(cached: [10], apps: [AppInfoBuilder.app(10, name: "Cached", type: "Game")])
+        defer { try? FileManager.default.removeItem(at: prefix) }
+        #expect(SteamLibrary.uninstalledGames(prefix: prefix).isEmpty)
+    }
+
     @Test func withoutAppInfoThereAreNoOtherGames() throws {
-        let prefix = try makeSteam(cached: [10], apps: [])
+        let prefix = try makeSteam(cached: [10], apps: [], accounts: [111: [10]])
         defer { try? FileManager.default.removeItem(at: prefix) }
         try FileManager.default.removeItem(at: SteamLibrary.steamDirectory(prefix: prefix)
             .appendingPathComponent("appcache/appinfo.vdf"))
