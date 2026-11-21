@@ -19,18 +19,18 @@ struct LauncherViewModelTests {
         #expect(model.errorMessage == nil)
     }
 
-    @Test func addingAGameToTheDockShowsItHasItsApp() async {
+    @Test func addingAGameToTheDockShowsItIsInTheDock() async {
         let gateway = FakeGateway()
         gateway.steam = "steam"
         gateway.gameList = [stonewards]
         let model = BottleListViewModel(gateway: gateway)
         await model.loadLibrary()
-        #expect(model.games.map(\.hasLauncher) == [false])
+        #expect(model.games.map(\.isInDock) == [false])
 
         await model.addToDock(stonewards)
 
         #expect(gateway.gameLaunchers.map(\.name) == ["Stonewards"])
-        #expect(model.games.map(\.hasLauncher) == [true])
+        #expect(model.games.map(\.isInDock) == [true])
         #expect(model.lastLauncher?.lastPathComponent == "Stonewards.app")
     }
 
@@ -38,7 +38,7 @@ struct LauncherViewModelTests {
         let gateway = FakeGateway()
         gateway.steam = "steam"
         var game = stonewards
-        game.hasLauncher = true
+        game.isInDock = true
         gateway.gameList = [game]
         let model = BottleListViewModel(gateway: gateway)
         await model.loadLibrary()
@@ -46,8 +46,55 @@ struct LauncherViewModelTests {
         await model.removeFromDock(game)
 
         #expect(gateway.removedGameLaunchers == ["Stonewards"])
-        #expect(model.games.map(\.hasLauncher) == [false])
+        #expect(model.games.map(\.isInDock) == [false])
         #expect(model.errorMessage == nil)
+    }
+
+    @Test func aFailedReloadAfterAddingStillShowsTheGameInTheDock() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        gateway.gameList = [stonewards]
+        let model = BottleListViewModel(gateway: gateway)
+        await model.loadLibrary()
+        gateway.gamesFailure = BottleError.notFound("steam")
+
+        await model.addToDock(stonewards)
+
+        #expect(model.games.map(\.isInDock) == [true])
+        #expect(model.lastLauncher?.lastPathComponent == "Stonewards.app")
+        #expect(model.errorMessage == BottleError.notFound("steam").description)
+    }
+
+    @Test func aFailedReloadAfterRemovingStillOffersAddToDock() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        var game = stonewards
+        game.isInDock = true
+        gateway.gameList = [game]
+        let model = BottleListViewModel(gateway: gateway)
+        await model.loadLibrary()
+        gateway.gamesFailure = BottleError.notFound("steam")
+
+        await model.removeFromDock(game)
+
+        #expect(model.games.map(\.isInDock) == [false])
+    }
+
+    @Test func aFailureAfterTheAppWasTrashedStillRefreshesTheCard() async {
+        let gateway = FakeGateway()
+        gateway.steam = "steam"
+        var game = stonewards
+        game.isInDock = true
+        gateway.gameList = [game]
+        let model = BottleListViewModel(gateway: gateway)
+        await model.loadLibrary()
+        gateway.failureAfterLauncherChange = DockError.notSaved
+
+        await model.removeFromDock(game)
+
+        #expect(gateway.removedGameLaunchers == ["Stonewards"])
+        #expect(model.games.map(\.isInDock) == [false])
+        #expect(model.errorMessage == DockError.notSaved.description)
     }
 
     @Test func launcherFailureShowsItsDescription() async {
@@ -71,7 +118,7 @@ struct BarrelCoreGatewayLauncherTests {
 
     @Test func launchersNeedTheBundledCommandLineTool() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
-        let gateway = try BarrelCoreGateway(settings: settings(root), barrelExecutable: nil,
+        let gateway = try BarrelCoreGateway(settings: settings(root), barrelExecutable: nil, dock: Dock(store: MemoryDockStore()),
                                             launchersDirectory: root.appendingPathComponent("Apps"))
         #expect(throws: GatewayError.launchersNeedBarrelApp) {
             try gateway.createLauncher(name: "Game", bottle: "steam", program: "/p/Game.exe")
@@ -96,32 +143,78 @@ struct BarrelCoreGatewayLauncherTests {
         return settings(root)
     }
 
-    @Test func gamesWithAMacAppLoadAsHavingALauncher() throws {
+    @Test func gamesPinnedInTheDockLoadAsInTheDock() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
         let apps = root.appendingPathComponent("Apps")
+        let store = MemoryDockStore(), dock = Dock(store: store)
         let gateway = try BarrelCoreGateway(settings: steamBottle(root),
-                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), launchersDirectory: apps)
+                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), dock: dock,
+                                            launchersDirectory: apps)
+        let app = try gateway.createGameLauncher(appID: 4502710, name: "Stonewards", bottle: "steam")
         _ = try gateway.createGameLauncher(appID: 4502710, name: "Stonewards", bottle: "steam")
 
         let games = try gateway.games(in: "steam")
 
-        #expect(games.first { $0.name == "Stonewards" }?.hasLauncher == true)
-        #expect(games.first { $0.name == "Nightfall" }?.hasLauncher == false)
+        #expect(store.apps.count == 1)
+        #expect(dock.contains(app))
+
+        #expect(games.first { $0.name == "Stonewards" }?.isInDock == true)
+        #expect(games.first { $0.name == "Nightfall" }?.isInDock == false)
+    }
+
+    @Test func aGameWhoseAppIsNotInTheDockLoadsAsNotInTheDock() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
+        let apps = root.appendingPathComponent("Apps")
+        let store = MemoryDockStore(), dock = Dock(store: store)
+        let gateway = try BarrelCoreGateway(settings: steamBottle(root),
+                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), dock: dock,
+                                            launchersDirectory: apps)
+        let app = try gateway.createGameLauncher(appID: 4502710, name: "Stonewards", bottle: "steam")
+        try dock.remove(app)
+
+        #expect(FileManager.default.fileExists(atPath: app.path))
+        #expect(try gateway.games(in: "steam").first { $0.name == "Stonewards" }?.isInDock == false)
+
+        _ = try gateway.createGameLauncher(appID: 4502710, name: "Stonewards", bottle: "steam")
+
+        #expect(store.apps.count == 1)
+        #expect(try gateway.games(in: "steam").first { $0.name == "Stonewards" }?.isInDock == true)
+    }
+
+    @Test func removingAGameWhoseAppIsAlreadyGoneStillRemovesItsTile() throws {
+        let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
+        let apps = root.appendingPathComponent("Apps")
+        let store = MemoryDockStore(), dock = Dock(store: store)
+        let gateway = try BarrelCoreGateway(settings: steamBottle(root),
+                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), dock: dock,
+                                            launchersDirectory: apps) { _ in Issue.record("nothing to trash") }
+        let app = try gateway.createGameLauncher(appID: 4502710, name: "Stonewards", bottle: "steam")
+        try FileManager.default.removeItem(at: app)
+
+        try gateway.removeGameLauncher(name: "Stonewards")
+
+        #expect(store.apps.isEmpty)
+        #expect(try gateway.games(in: "steam").first { $0.name == "Stonewards" }?.isInDock == false)
     }
 
     @Test func removingAGameLauncherMovesItToTheTrash() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
         let apps = root.appendingPathComponent("Apps"), trash = root.appendingPathComponent("Trash")
+        let store = MemoryDockStore(), dock = Dock(store: store)
         let gateway = try BarrelCoreGateway(settings: steamBottle(root),
-                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), launchersDirectory: apps) {
+                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), dock: dock,
+                                            launchersDirectory: apps) {
             try FileManager.default.createDirectory(at: trash, withIntermediateDirectories: true)
             try FileManager.default.moveItem(at: $0, to: trash.appendingPathComponent($0.lastPathComponent))
         }
         let app = try gateway.createGameLauncher(appID: 4502710, name: "Stonewards", bottle: "steam")
 
+        #expect(store.apps.count == 1)
+
         try gateway.removeGameLauncher(name: "Stonewards")
 
-        #expect(try gateway.games(in: "steam").first { $0.name == "Stonewards" }?.hasLauncher == false)
+        #expect(store.apps.isEmpty)
+        #expect(try gateway.games(in: "steam").first { $0.name == "Stonewards" }?.isInDock == false)
         #expect(!FileManager.default.fileExists(atPath: app.path))
         #expect(FileManager.default.fileExists(atPath: trash.appendingPathComponent("Stonewards.app").path))
     }
@@ -129,9 +222,11 @@ struct BarrelCoreGatewayLauncherTests {
     @Test func aGameWithAColonInItsNameGoesToTheDockAndBack() throws {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
         let apps = root.appendingPathComponent("Apps"), trash = root.appendingPathComponent("Trash")
+        let store = MemoryDockStore(), dock = Dock(store: store)
         let title = "Age of Empires II: Definitive Edition"
         let gateway = try BarrelCoreGateway(settings: steamBottle(root, games: [(813780, title)]),
-                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), launchersDirectory: apps) {
+                                            barrelExecutable: URL(fileURLWithPath: "/opt/barrel"), dock: dock,
+                                            launchersDirectory: apps) {
             try FileManager.default.createDirectory(at: trash, withIntermediateDirectories: true)
             try FileManager.default.moveItem(at: $0, to: trash.appendingPathComponent($0.lastPathComponent))
         }
@@ -139,14 +234,17 @@ struct BarrelCoreGatewayLauncherTests {
         let app = try gateway.createGameLauncher(appID: 813780, name: title, bottle: "steam")
 
         #expect(app.lastPathComponent == "Age of Empires II - Definitive Edition.app")
-        #expect(try gateway.games(in: "steam").map(\.hasLauncher) == [true])
+        #expect(try gateway.games(in: "steam").map(\.isInDock) == [true])
         #expect(try gateway.games(in: "steam").map(\.name) == [title])
         let plist = try #require(NSDictionary(contentsOf: app.appendingPathComponent("Contents/Info.plist")))
         #expect(plist["CFBundleDisplayName"] as? String == title)
 
+        #expect(store.apps.count == 1)
+
         try gateway.removeGameLauncher(name: title)
 
-        #expect(try gateway.games(in: "steam").map(\.hasLauncher) == [false])
+        #expect(store.apps.isEmpty)
+        #expect(try gateway.games(in: "steam").map(\.isInDock) == [false])
         #expect(FileManager.default.fileExists(atPath: trash.appendingPathComponent(app.lastPathComponent).path))
     }
 
@@ -154,6 +252,7 @@ struct BarrelCoreGatewayLauncherTests {
         let root = FileManager.default.temporaryDirectory.appendingPathComponent("gw-\(UUID().uuidString)")
         let gateway = try BarrelCoreGateway(settings: settings(root),
                                             barrelExecutable: URL(fileURLWithPath: "/Applications/Barrel.app/Contents/MacOS/barrel"),
+                                            dock: Dock(store: MemoryDockStore()),
                                             launchersDirectory: root.appendingPathComponent("Apps"))
         let app = try gateway.createLauncher(name: "Game", bottle: "steam", program: "/p/Game.exe")
         let script = try String(contentsOf: app.appendingPathComponent("Contents/MacOS/launcher"), encoding: .utf8)

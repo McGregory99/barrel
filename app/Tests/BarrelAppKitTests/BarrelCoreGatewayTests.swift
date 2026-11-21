@@ -16,7 +16,7 @@ struct BarrelCoreGatewayTests {
         settings.wineBinary = "/nonexistent/wine"
         settings.recipesDirectory = recipes.path
 
-        let gateway = try BarrelCoreGateway(settings: settings)
+        let gateway = try BarrelCoreGateway(settings: settings, dock: Dock(store: MemoryDockStore()))
 
         #expect(try gateway.recipes() == [RecipeSummary(id: "alpha", name: "Alpha App", description: "d"),
                                           RecipeSummary(id: "zeta", name: "Zeta App", description: "d")])
@@ -44,7 +44,7 @@ struct BarrelCoreGatewayTests {
         settings.wineBinary = "/nonexistent/wine"
         settings.profilesDirectory = profiles.path
 
-        let gateway = try BarrelCoreGateway(settings: settings)
+        let gateway = try BarrelCoreGateway(settings: settings, dock: Dock(store: MemoryDockStore()))
 
         #expect(try gateway.steamBottle() == "steam")
         let games = try gateway.games(in: "steam")
@@ -60,6 +60,6 @@ struct BarrelCoreGatewayTests {
         try store.save(Bottle(name: "steam", windowsVersion: .win10))
         var settings = AppSettings(dataDirectory: root)
         settings.wineBinary = "/nonexistent/wine"
-        #expect(try BarrelCoreGateway(settings: settings).steamBottle() == nil)
+        #expect(try BarrelCoreGateway(settings: settings, dock: Dock(store: MemoryDockStore())).steamBottle() == nil)
     }
 }

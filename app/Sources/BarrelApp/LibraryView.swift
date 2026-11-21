@@ -190,7 +190,7 @@ struct GameCard: View {
                 Button(action: play) { Label("Play", systemImage: "play.fill").frame(maxWidth: .infinity) }
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
-                if game.hasLauncher {
+                if game.isInDock {
                     Menu {
                         Button("Remove from Dock", systemImage: "minus.circle", action: removeFromDock)
                             .help("Move this game's Mac app to the Trash")

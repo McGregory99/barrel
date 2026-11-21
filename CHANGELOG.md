@@ -19,9 +19,14 @@ What changed in Barrel, newest first. The format follows
 - The Library's **Open Steam** button shows its name, not only a cloud icon.
 - After you click **Open Steam**, the button shows that Steam is opening until its window
   appears, which can take most of a minute, and tells you if Steam fails to open.
-- Once a game has its Mac app, its card shows **In Dock** instead of the **Add to Dock** button.
-  The **In Dock** menu has **Remove from Dock**, which moves the game's app from
-  `~/Applications/Barrel` to the Trash and brings the **Add to Dock** button back.
+- **Add to Dock** now pins the game to the macOS Dock: it creates the game's Mac app in
+  `~/Applications/Barrel` (or replaces it) and adds its tile at the end of the Dock, never twice.
+  Your other Dock items stay as they are.
+- A game's card shows **In Dock** only while its app's tile is in the Dock. A game whose app exists
+  but is not in the Dock shows **Add to Dock**, which pins it.
+- The **In Dock** menu has **Remove from Dock**, which takes the tile out of the Dock, moves the
+  game's app to the Trash and brings the **Add to Dock** button back. If the app was already deleted,
+  its tile is still removed.
 
 ### Fixed
 

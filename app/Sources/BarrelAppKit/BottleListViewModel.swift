@@ -215,25 +215,42 @@ public final class BottleListViewModel {
         } apply: { [self] in games = $0 }
     }
 
-    /// Creates the game's Mac app, then reloads the games so its card shows "In Dock".
+    /// Creates the game's Mac app and pins it in the Dock, then reloads the games so its card shows "In Dock".
     public func addToDock(_ game: GameSummary) async {
-        guard let bottle = steamBottle else { return }
-        await perform("Creating \(game.name).app…") { gateway in
-            (try gateway.createGameLauncher(appID: game.appID, name: game.name, bottle: bottle),
-             try gateway.games(in: bottle))
-        } apply: { [self] in
-            lastLauncher = $0.0
-            games = $0.1
+        await changeDock(game, to: true, "Adding \(game.name) to the Dock…") { gateway, bottle in
+            try gateway.createGameLauncher(appID: game.appID, name: game.name, bottle: bottle)
         }
     }
 
-    /// Moves the game's Mac app to the Trash, then reloads the games so its card offers Add to Dock again.
+    /// Takes the game out of the Dock and moves its Mac app to the Trash, then reloads the games so its
+    /// card offers Add to Dock again.
     public func removeFromDock(_ game: GameSummary) async {
-        guard let bottle = steamBottle else { return }
-        await perform("Moving \(game.name).app to the Trash…") { gateway in
+        await changeDock(game, to: false, "Removing \(game.name) from the Dock…") { gateway, _ in
             try gateway.removeGameLauncher(name: game.name)
-            return try gateway.games(in: bottle)
-        } apply: { [self] in games = $0 }
+            return nil
+        }
+    }
+
+    /// Runs a Dock change, then reloads the games even if the change failed part way (say, after the
+    /// app was trashed), so the card shows what happened. If only the reload fails, the card is set
+    /// from the change. The first error is shown.
+    private func changeDock(_ game: GameSummary, to inDock: Bool, _ message: String,
+                            _ change: @escaping @Sendable (BottleGateway, String) throws -> URL?) async {
+        guard let bottle = steamBottle else { return }
+        await perform(message) { gateway in
+            var app: URL?, changed = false, error: Error?, reloaded: [GameSummary]?
+            do { app = try change(gateway, bottle); changed = true } catch let failure { error = failure }
+            do { reloaded = try gateway.games(in: bottle) } catch let failure { error = error ?? failure }
+            return DockChange(app: app, changed: changed, reloaded: reloaded, error: error)
+        } apply: { [self] result in
+            if let app = result.app { lastLauncher = app }
+            if let reloaded = result.reloaded {
+                games = reloaded
+            } else if result.changed {
+                for i in games.indices where games[i].appID == game.appID { games[i].isInDock = inDock }
+            }
+            if let error = result.error { errorMessage = Self.describe(error) }
+        }
     }
 
     /// Starts something long-running (Steam stays open) without the busy state; errors still surface.
@@ -300,8 +317,17 @@ public final class BottleListViewModel {
         case let error as WineRuntimeError: error.description
         case let error as RecipeError: error.description
         case let error as LauncherError: error.description
+        case let error as DockError: error.description
         case let error as GatewayError: error.description
         default: error.localizedDescription
         }
     }
+}
+
+/// What an Add to Dock or Remove from Dock did: the app made, the reloaded games, and the first error.
+private struct DockChange: Sendable {
+    var app: URL?
+    var changed: Bool
+    var reloaded: [GameSummary]?
+    var error: Error?
 }

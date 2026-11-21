@@ -44,8 +44,8 @@ public struct GameSummary: Equatable, Sendable, Identifiable {
     public var isInstalled: Bool
     /// Steam's cached icon or artwork, for games that are not installed.
     public var artworkPath: String?
-    /// The game has a Mac app (launcher) in the launchers folder, made by Add to Dock.
-    public var hasLauncher: Bool
+    /// The game's Mac app (launcher), made by Add to Dock, exists and its tile is in the macOS Dock.
+    public var isInDock: Bool
 
     public var id: Int { appID }
     /// Per-game graphics are set on the game's executable.
@@ -53,7 +53,7 @@ public struct GameSummary: Equatable, Sendable, Identifiable {
 
     public init(appID: Int, name: String, executable: String?, executablePath: String?, graphics: GameGraphics,
                 profileStatus: GameStatus?, isInstalled: Bool = true, artworkPath: String? = nil,
-                hasLauncher: Bool = false) {
+                isInDock: Bool = false) {
         self.appID = appID
         self.name = name
         self.executable = executable
@@ -62,7 +62,7 @@ public struct GameSummary: Equatable, Sendable, Identifiable {
         self.profileStatus = profileStatus
         self.isInstalled = isInstalled
         self.artworkPath = artworkPath
-        self.hasLauncher = hasLauncher
+        self.isInDock = isInDock
     }
 }
 
@@ -104,10 +104,11 @@ public protocol BottleGateway: Sendable {
     func setGameGraphics(bottle: String, executable: String, backend: GraphicsBackend) throws
     /// Drops the player's backend for the game, so its profile (or the bottle) decides again.
     func clearGameGraphics(bottle: String, executable: String) throws
-    /// Creates a macOS app that plays the game (with its icon); returns its URL. `name` is the game's
-    /// title; the app file takes `LauncherName.forGame(name)` and shows the title.
+    /// Creates (or replaces) a macOS app that plays the game (with its icon) and pins it in the Dock;
+    /// returns its URL. `name` is the game's title; the app file takes `LauncherName.forGame(name)`
+    /// and shows the title.
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL
-    /// Moves the Mac app of the game titled `name` to the Trash.
+    /// Moves the Mac app of the game titled `name` to the Trash (if it is still there) and removes its Dock tile.
     func removeGameLauncher(name: String) throws
 }
 
@@ -122,10 +123,12 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     private let launcherEnvironment: [String: String]
     private let barrelExecutable: URL?
     private let launchers: LauncherInstaller
+    private let dock: DockTiles
 
+    /// `dock` is `Dock.system` in the app; tests pass a `Dock` over a `MemoryDockStore`.
     public init(store: BottleStore, wineBinary: URL, components: RuntimeComponents,
                 recipeDirectories: [URL] = [], profileDirectories: [URL] = [], downloadsDirectory: URL,
-                launcherEnvironment: [String: String] = [:], barrelExecutable: URL? = nil,
+                launcherEnvironment: [String: String] = [:], barrelExecutable: URL? = nil, dock: DockTiles,
                 launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory,
                 trash: @escaping LauncherInstaller.Trash = LauncherInstaller.systemTrash) {
         self.store = store
@@ -136,6 +139,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
         self.launcherEnvironment = launcherEnvironment
         self.barrelExecutable = barrelExecutable
         self.launchers = LauncherInstaller(directory: launchersDirectory, trash: trash)
+        self.dock = dock
         self.service = BottleService(store: store, runtime: ProcessWineRuntime(wineBinary: wineBinary),
                                      components: components)
     }
@@ -147,6 +151,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
     /// Launchers call the `barrel` tool bundled next to the app's executable.
     public convenience init(settings: AppSettings,
                             barrelExecutable: URL? = Bundle.main.url(forAuxiliaryExecutable: "barrel"),
+                            dock: DockTiles,
                             launchersDirectory: URL = BarrelCoreGateway.defaultLaunchersDirectory,
                             trash: @escaping LauncherInstaller.Trash = LauncherInstaller.systemTrash) throws {
         // Launchers start outside the app, so they carry the settings as BARREL_* variables.
@@ -161,7 +166,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
                       wineBinary: settings.resolvedWineBinary, components: settings.components,
                       recipeDirectories: settings.recipeDirectories, profileDirectories: settings.profileDirectories,
                       downloadsDirectory: settings.dataDirectory.appendingPathComponent("Downloads", isDirectory: true),
-                      launcherEnvironment: environment, barrelExecutable: barrelExecutable,
+                      launcherEnvironment: environment, barrelExecutable: barrelExecutable, dock: dock,
                       launchersDirectory: launchersDirectory, trash: trash)
     }
 
@@ -226,7 +231,7 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
             let executable = profile?.executable ?? path?.lastPathComponent
             return GameSummary(appID: game.appID, name: game.name, executable: executable, executablePath: path?.path,
                                graphics: try service.gameGraphics(bottle: bottle, executable: executable, profile: profile),
-                               profileStatus: profile?.status, hasLauncher: launchers.exists(LauncherName.forGame(game.name)))
+                               profileStatus: profile?.status, isInDock: isInDock(game.name))
         }
     }
 
@@ -266,11 +271,25 @@ public final class BarrelCoreGateway: BottleGateway, @unchecked Sendable {
         let spec = LauncherSpec(name: LauncherName.forGame(name), displayName: name, bottle: bottle, steamAppID: appID,
                                 environment: launcherEnvironment, barrelExecutable: barrelExecutable)
         let icon = SteamLibrary.mainExecutable(of: game).flatMap { try? IconConverter.icns(fromExecutable: $0) }
-        return try launchers.install(spec, icon: icon)
+        let app = try launchers.install(spec, icon: icon)
+        try dock.add(app, label: name)
+        return app
     }
 
     public func removeGameLauncher(name: String) throws {
-        try launchers.moveToTrash(LauncherName.forGame(name))
+        let launcher = LauncherName.forGame(name)
+        do {
+            try launchers.moveToTrash(launcher)
+        } catch LauncherError.notFound {
+            // Already deleted outside Barrel; its tile still goes.
+        }
+        try dock.remove(launchers.url(for: launcher))
+    }
+
+    /// The game's app exists and its tile is in the Dock.
+    private func isInDock(_ name: String) -> Bool {
+        let launcher = LauncherName.forGame(name)
+        return launchers.exists(launcher) && dock.contains(launchers.url(for: launcher))
     }
 
     private func steamExecutable(in bottle: String) -> URL {

@@ -94,7 +94,7 @@ public struct LauncherInstaller: Sendable {
     public func install(_ spec: LauncherSpec, icon: Data? = nil) throws -> URL {
         try validate(spec.name)
         let fileManager = FileManager.default
-        let app = appURL(spec.name)
+        let app = url(for: spec.name)
         let exists = fileManager.fileExists(atPath: app.path)
         if exists, !isBarrelLauncher(app) { throw LauncherError.foreignApp(spec.name) }
 
@@ -146,7 +146,7 @@ public struct LauncherInstaller: Sendable {
 
     /// Whether a launcher barrel made exists under this name.
     public func exists(_ name: String) -> Bool {
-        (try? validate(name)) != nil && isBarrelLauncher(appURL(name))
+        (try? validate(name)) != nil && isBarrelLauncher(url(for: name))
     }
 
     public func remove(_ name: String) throws {
@@ -160,7 +160,7 @@ public struct LauncherInstaller: Sendable {
 
     private func existingLauncher(_ name: String) throws -> URL {
         try validate(name)
-        let app = appURL(name)
+        let app = url(for: name)
         guard FileManager.default.fileExists(atPath: app.path) else { throw LauncherError.notFound(name) }
         guard isBarrelLauncher(app) else { throw LauncherError.foreignApp(name) }
         return app
@@ -171,7 +171,8 @@ public struct LauncherInstaller: Sendable {
         return (info?["CFBundleIdentifier"] as? String)?.hasPrefix(Self.identifierPrefix) == true
     }
 
-    private func appURL(_ name: String) -> URL {
+    /// Where the launcher named `name` is (or would be): `<directory>/<name>.app`.
+    public func url(for name: String) -> URL {
         directory.appendingPathComponent(name + ".app", isDirectory: true)
     }
 

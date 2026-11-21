@@ -8,6 +8,10 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     var defaultName: String?
     var unavailable: Set<GraphicsBackend> = [.dxvk, .dxmt, .d3dmetal]
     var failure: Error?
+    /// Thrown by `games(in:)` only, to test a reload that fails after a change.
+    var gamesFailure: Error?
+    /// Thrown by the Dock calls after they changed the game, as when the app was trashed but the tile stayed.
+    var failureAfterLauncherChange: Error?
     private(set) var runs: [(path: String, bottle: String)] = []
     var recipeList: [RecipeSummary] = []
     private(set) var installs: [(recipe: String, bottle: String?)] = []
@@ -84,7 +88,11 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
         return URL(fileURLWithPath: "/Applications/Barrel/\(name).app")
     }
     func steamBottle() throws -> String? { try check(); return steam }
-    func games(in bottle: String) throws -> [GameSummary] { try check(); return gameList }
+    func games(in bottle: String) throws -> [GameSummary] {
+        try check()
+        if let gamesFailure { throw gamesFailure }
+        return gameList
+    }
     func play(appID: Int, in bottle: String) throws -> Int32 { try check(); plays.append((appID, bottle)); return 0 }
     func uninstalledGames(in bottle: String) throws -> [GameSummary] { try check(); return otherGameList }
     func installGame(appID: Int, in bottle: String) throws -> Int32 {
@@ -115,13 +123,15 @@ final class FakeGateway: BottleGateway, @unchecked Sendable {
     func createGameLauncher(appID: Int, name: String, bottle: String) throws -> URL {
         try check()
         gameLaunchers.append((appID, name, bottle))
-        for i in gameList.indices where gameList[i].name == name { gameList[i].hasLauncher = true }
+        for i in gameList.indices where gameList[i].name == name { gameList[i].isInDock = true }
+        if let failureAfterLauncherChange { throw failureAfterLauncherChange }
         return URL(fileURLWithPath: "/Applications/Barrel/\(name).app")
     }
     func removeGameLauncher(name: String) throws {
         try check()
         removedGameLaunchers.append(name)
-        for i in gameList.indices where gameList[i].name == name { gameList[i].hasLauncher = false }
+        for i in gameList.indices where gameList[i].name == name { gameList[i].isInDock = false }
+        if let failureAfterLauncherChange { throw failureAfterLauncherChange }
     }
     func install(recipe: String, bottle: String?) throws -> String {
         try check()

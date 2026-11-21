@@ -1,3 +1,4 @@
+import BarrelCore
 import Foundation
 import Observation
 
@@ -24,7 +25,7 @@ public final class AppController {
 
     private func rebuildGateway() {
         do {
-            bottles.gateway = try BarrelCoreGateway(settings: settings)
+            bottles.gateway = try BarrelCoreGateway(settings: settings, dock: Dock.system)
         } catch {
             bottles.gateway = nil
             bottles.reportError(error)
